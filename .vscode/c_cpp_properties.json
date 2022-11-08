@@ -1,0 +1,38 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        },
+        {
+            "name": "Arduino",
+            "includePath": [
+                "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\libraries\\**",
+                "${workspaceRoot}"
+            ],
+            "browse": {
+                "path": [
+                    "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\libraries\\**",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "intelliSenseMode": "${default}",
+            "forcedInclude": [
+                "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\libraries\\Arduino_BuiltIn\\src\\Arduino_BuiltIn.h"
+            ]
+        }
+    ],
+    "version": 4
+}
