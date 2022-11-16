@@ -1,5 +1,4 @@
 #include <ArduPID.h>
-#include <string.h>
 // Encoder used is Nanotec NME2-SSI-V06-12-C
 // URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
 #define PWM_PIN 3                    // Motor control pin
@@ -62,65 +61,12 @@ void loop() {
     }
     pid.compute();
     updateEngineSpeed();
-
-    /*
-    if (Serial.available() > 0) {
-        String input = Serial.readString();
-        input.trim();
-        if (input.substring(0, 1) == "!") {
-            switch ((char)input.substring(1, 2)) {
-                case 'P':
-                    p = input.substring(2).toFloat();
-                    Serial.print("Set P to: ");
-                    Serial.println(p);
-                    break;
-                case 'I':
-                    i = input.substring(2).toFloat();
-                    Serial.print("Set I to: ");
-                    Serial.println(I);
-                    break;
-                case 'D':
-                    d = input.substring(2).toFloat();
-                    Serial.print("Set D to: ");
-                    Serial.println(d);
-                    break;
-            }
-            pid.setCoefficients(p, i, d);
-        } else if (input.substring(0, 1) == "%") {
-            float incoming = parseCommand(input.substring(1).toFloat());
-            byte newDir = (incoming >= 0) ? C_FORWARD : C_REVERSE;
-            byte newVal = (byte)abs((255 * incoming));
-            Serial.print(">Set duty cycle to " + (String)(incoming * 100.0) + "% or ");
-            Serial.println((newDir == C_FORWARD ? "" : "-") + (String)newVal + "/255");
-            updateEngineSpeed(newVal, newDir);
-        } else {
-            int incoming = input.toInt();
-            byte newDir = (incoming >= 0) ? C_FORWARD : C_REVERSE;
-            byte newVal = (byte)abs(incoming);
-            Serial.println(">Set duty cycle to " + (String)(newDir == C_FORWARD ? "" : "-") + (String)(newVal) +
-                           "/255");
-            updateEngineSpeed(newVal, newDir);
-        }
-    }
-    */
 }
 
 void updateEngineSpeed() {
     digitalWrite(DIR_PIN, output > 0 ? C_FORWARD : C_REVERSE);
     analogWrite(PWM_PIN, abs(output));
 }
-/*
-float parseCommand(float input) {
-    if (abs(input) > 100) {
-        while (abs(input) > 1) {
-            input = input / 10;
-        }
-    } else {
-        input = input / 100;
-    }
-    return input;
-}
-*/
 
 bool updateValvePos() {
     unsigned long sample1 = readEncData();
