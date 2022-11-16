@@ -2,18 +2,24 @@
 Xavier Beech
 UW SARP 2022-23
 
+Encoder used is Nanotec NME2-SSI-V06-12-C
+URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
+Motor used is Nanotec DB59l024035-A
+URL: https://us.nanotec.com/products/2870-db59l024035-a
+
 TODO:
 - Homing routine
-- Change placeholder values to VALVE_OPEN_DEG and VALVE_CLOSED_DEG
+- Placeholders:
+    - VALVE_OPEN_DEG
+    = VALVE_CLOSED_DEG
+    - isActivated()
+    - getRevolutions()
 - TUNE PID AND WIND UP CONSTANTS
 - Count revolutions w Halls
 */
 
 #include <ArduPID.h>
-// Encoder used is Nanotec NME2-SSI-V06-12-C
-// URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
-// Motor used is Nanotec DB59l024035-A
-// URL: https://us.nanotec.com/products/2870-db59l024035-a
+
 #define PWM_PIN 3                      // Motor control pin
 #define DIR_PIN 5                      // Directional control pin
 #define CLK_PIN 5                      // Encoder clock PWM pin
@@ -31,12 +37,13 @@ TODO:
 #define ENC_TICS_PER_VALVE_REV ENC_TICS_PER_MOTOR_REV * GEARBOX_RATIO // Post-gearbox encoder tics per valve revolution
 #define VALVE_OPEN_DEG 90.0                                           // Encoder value for valve being fully open.
 #define VALVE_CLOSED_DEG 0.0                                          // Encoder value for valve being fully closed
-#define ENC_TICS_PER_VALVE_DEG ENC_TICS_PER_VALVE_REV / 360           // Post-gearbox encoder tics / degree
+#define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)    // Post-gearbox encoder tics / degree
+#define TARGET_REVS (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO)     // Number of rotations to get almost fully open
 
 #define DELAY_US(n) __builtin_avr_delay_cycles(n * CPU_MHZ)
 // Uses built in routine to skip clock cycles for timing purposes.
 
-const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle
+const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle, at 45deg increments
     {
   //    {H1, H2, H3}
         {1, 0, 1}, //  0->45
@@ -59,39 +66,54 @@ byte totalRevs = 0;                                        // Revolution counter
 ArduPID pid; // PID instance
 
 void setup() {
-    Serial.begin(57600);
+    Serial.begin(57600); // Init serial connection
 
-    pinMode(PWM_PIN, OUTPUT);
-    pinMode(DIR_PIN, OUTPUT);
-    pinMode(CLK_PIN, OUTPUT);
-    pinMode(ENC_DATA_PIN, INPUT);
-    analogWrite(PWM_PIN, 0);
+    // Init pin values
+    pinMode(PWM_PIN, OUTPUT);     // Motor magnitude control
+    pinMode(DIR_PIN, OUTPUT);     // Motor direction control
+    pinMode(CLK_PIN, OUTPUT);     // Encoder serial clock
+    pinMode(ENC_DATA_PIN, INPUT); // Encoder data
+
+    analogWrite(PWM_PIN, 0); // Set motor to 0, intiailize correct orientation
     digitalWrite(DIR_PIN, C_FORWARD);
 
-    updateValvePos();
-    pid.begin(&pos, &output, &target, k_pid[0], k_pid[1], k_pid[2]);
+    updateValvePos();                                                // Initialize valve position
+    pid.begin(&pos, &output, &target, k_pid[0], k_pid[1], k_pid[2]); // Initialize PID
     pid.setOutputLimits(-255, 255);                // Motor can be actuated from 0-255 in either direction
     pid.setWindUpLimits(WIND_UP_MIN, WIND_UP_MAX); // Growth bounds to prevent integral wind-up
-
-    pid.start();
 }
 
 void loop() {
+    if (!activated) { // Wait for system to be activated
+        while (!isActivated()) {};
+    }
+    activated = true;
+    withinOneRev = getRevolutions() > TARGET_REVS;
 
-    if (updateValvePos()) {
+    if (!withinOneRev) { // If system has been activated but hasn't gotten to within 180* of final open position
+        output = C_FORWARD * 255;
+        updateEngineSpeed();
+        return;
+    }
+
+    if (updateValvePos()) { // If getting bad readings from enc, stop pid to prevent damage to system
         pid.stop();
-    } else {
+    } else { // When recovered, continue. Depending on testing, may sub for fatal error.
         pid.start();
     }
-    pid.compute();
-    updateEngineSpeed();
+    pid.compute();       // Update motor target
+    updateEngineSpeed(); // Set motor to target
 }
 
+// Takes input from global var, writes to pins accordingly
 void updateEngineSpeed() {
     digitalWrite(DIR_PIN, output > 0 ? C_FORWARD : C_REVERSE);
     analogWrite(PWM_PIN, abs(output));
 }
 
+// Takes two readings from encoders, compares, and if they match, updates global var
+// Possible issues: if the encoder moves enough to update between 20us minimum,
+// it will never return valid value even if encoder is working as designed.
 bool updateValvePos() {
     unsigned long sample1 = readEncData();
     unsigned long sample2 = readEncData();
@@ -105,8 +127,9 @@ bool updateValvePos() {
     return false;
 }
 
+// Returns binary representation of encoder readings
 unsigned long readEncData() {
-    noInterrupts();
+    noInterrupts();             // Deactivate interrupts for more accurate timing
     digitalWrite(CLK_PIN, LOW); // First bit is latch, always 1.
     DELAY_US(1);
     digitalWrite(CLK_PIN, HIGH);
@@ -118,27 +141,28 @@ unsigned long readEncData() {
     }
 
     unsigned long data = 0;
-    for (int i = 0; i < ENC_TOT_BIT_CT - 1; i++) { // Read in all 17 data bits
+    for (int i = 0; i < ENC_TOT_BIT_CT - 1; i++) {
         data <<= 1;
-        digitalWrite(CLK_PIN, LOW);
-        DELAY_US(1);
-        digitalWrite(CLK_PIN, HIGH);
-        DELAY_US(1);
 
+        PORTD &= ~(1 << CLK_PIN); // clock pin goes low
+        DELAY_US(1);              // Wait for 1us
+        PORTD |= (1 << CLK_PIN);  // clock pin goes high
+        DELAY_US(1);              // Wait for 1us
         data |= digitalRead(ENC_DATA_PIN);
     }
 
     if (!(data & ~(~0U << 1))) { // If last error bit is 0, internal encoder error occured
         errorCode = 3;
-        error(true);
+        error(true); // Throw fatal error
     }
 
     DELAY_US(20);
-    interrupts();
+    interrupts(); // Reactivate interrupts
 
-    return data >> ENC_TOT_BIT_CT - ENC_DATA_BIT_CT;
+    return data >> ENC_TOT_BIT_CT - ENC_DATA_BIT_CT; // Return the first 17 bits of the data
 }
 
+// Outputs crash info to serial, if fatal hard crashes
 void error(bool isFatal) {
     Serial.println("Error occured!");
     Serial.println("isFatal: " + isFatal);
@@ -146,3 +170,7 @@ void error(bool isFatal) {
 
     while (isFatal) {};
 }
+
+bool isActivated() { return true; } // Placeholder
+
+byte getRevolutions() { return TARGET_REVS; } // Placeholder

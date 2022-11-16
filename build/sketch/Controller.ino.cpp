@@ -1,10 +1,23 @@
 #include <Arduino.h>
 #line 1 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+/*
+Xavier Beech
+UW SARP 2022-23
+
+Encoder used is Nanotec NME2-SSI-V06-12-C
+URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
+Motor used is Nanotec DB59l024035-A
+URL: https://us.nanotec.com/products/2870-db59l024035-a
+
+TODO:
+- Homing routine
+- Change placeholder values to VALVE_OPEN_DEG and VALVE_CLOSED_DEG
+- TUNE PID AND WIND UP CONSTANTS
+- Count revolutions w Halls
+*/
+
 #include <ArduPID.h>
-// Encoder used is Nanotec NME2-SSI-V06-12-C
-// URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
-// Motor used is Nanotec DB59l024035-A
-// URL: https://us.nanotec.com/products/2870-db59l024035-a
+
 #define PWM_PIN 3                      // Motor control pin
 #define DIR_PIN 5                      // Directional control pin
 #define CLK_PIN 5                      // Encoder clock PWM pin
@@ -22,14 +35,15 @@
 #define ENC_TICS_PER_VALVE_REV ENC_TICS_PER_MOTOR_REV * GEARBOX_RATIO // Post-gearbox encoder tics per valve revolution
 #define VALVE_OPEN_DEG 90.0                                           // Encoder value for valve being fully open.
 #define VALVE_CLOSED_DEG 0.0                                          // Encoder value for valve being fully closed
-#define ENC_TICS_PER_VALVE_DEG ENC_TICS_PER_VALVE_REV / 360           // Post-gearbox encoder tics / degree
+#define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)    // Post-gearbox encoder tics / degree
+#define TARGET_REVS (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO)     // Number of rotations to get almost fully open
 
 #define DELAY_US(n) __builtin_avr_delay_cycles(n * CPU_MHZ)
 // Uses built in routine to skip clock cycles for timing purposes.
 
-const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle
+const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle, at 45deg increments
     {
-  //    H1,H2,H3}
+  //    {H1, H2, H3}
         {1, 0, 1}, //  0->45
         {0, 0, 1}, //  45->90
         {0, 1, 1}, //  90->135
@@ -43,56 +57,67 @@ double k_pid[3] = {0.0, 0.0, 0.0};                         // PID constants, in 
 double target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
 double pos = 0.0;                                          // Current valve position
 int errorCode = 0;                                         // Global error code variable for fault tracking.
-
-/* TODO:
-- Homing routine
-- Change placeholder values to VALVE_OPEN and VALVE_CLOSED
-- TUNE PID AND WIND UP CONSTANTS
-- Count revolutions
-*/
+bool activated = false;                                    // Flag for actuating valve.
+bool withinOneRev = false;                                 // Flag for activating PID
+byte totalRevs = 0;                                        // Revolution counter
 
 ArduPID pid; // PID instance
 
-#line 54 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 64 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup();
-#line 72 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 82 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void loop();
-#line 83 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 104 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void updateEngineSpeed();
-#line 88 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 109 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 bool updateValvePos();
-#line 101 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 122 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 unsigned long readEncData();
-#line 135 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 169 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void error(bool isFatal);
-#line 54 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 177 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+bool isActivated();
+#line 179 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+byte getRevolutions();
+#line 64 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup() {
-    Serial.begin(57600);
+    Serial.begin(57600); // Init serial connection
 
-    pinMode(PWM_PIN, OUTPUT);
-    pinMode(DIR_PIN, OUTPUT);
-    pinMode(CLK_PIN, OUTPUT);
-    pinMode(ENC_DATA_PIN, INPUT);
-    analogWrite(PWM_PIN, 0);
+    // Init pin values
+    pinMode(PWM_PIN, OUTPUT);     // Motor magnitude control
+    pinMode(DIR_PIN, OUTPUT);     // Motor direction control
+    pinMode(CLK_PIN, OUTPUT);     // Encoder serial clock
+    pinMode(ENC_DATA_PIN, INPUT); // Encoder data
+
+    analogWrite(PWM_PIN, 0); // Set motor to 0, intiailize correct orientation
     digitalWrite(DIR_PIN, C_FORWARD);
 
-    updateValvePos();
-    pid.begin(&pos, &output, &target, k_pid[0], k_pid[1], k_pid[2]);
+    updateValvePos();                                                // Initialize valve position
+    pid.begin(&pos, &output, &target, k_pid[0], k_pid[1], k_pid[2]); // Initialize PID
     pid.setOutputLimits(-255, 255);                // Motor can be actuated from 0-255 in either direction
     pid.setWindUpLimits(WIND_UP_MIN, WIND_UP_MAX); // Growth bounds to prevent integral wind-up
-
-    pid.start();
 }
 
 void loop() {
+    if (!activated) { // Wait for system to be activated
+        while (!isActivated()) {};
+    }
+    activated = true;
+    withinOneRev = getRevolutions() > TARGET_REVS;
 
-    if (updateValvePos()) {
+    if (!withinOneRev) { // If system has been activated but hasn't gotten to within 180* of final open position
+        output = C_FORWARD * 255;
+        updateEngineSpeed();
+        return;
+    }
+
+    if (updateValvePos()) { // If getting bad readings from enc, stop pid to prevent damage to system
         pid.stop();
-    } else {
+    } else { // When recovered, continue. Depending on testing, may sub for fatal error.
         pid.start();
     }
-    pid.compute();
-    updateEngineSpeed();
+    pid.compute();       // Update motor target
+    updateEngineSpeed(); // Set motor to target
 }
 
 void updateEngineSpeed() {
@@ -126,13 +151,26 @@ unsigned long readEncData() {
     }
 
     unsigned long data = 0;
-    for (int i = 0; i < ENC_TOT_BIT_CT - 1; i++) { // Read in all 17 data bits
+    for (int i = 0; i < ENC_TOT_BIT_CT - 1; i++) {
         data <<= 1;
-        digitalWrite(CLK_PIN, LOW);
-        DELAY_US(1);
-        digitalWrite(CLK_PIN, HIGH);
-        DELAY_US(1);
 
+        /*
+        // speed up I/O In order to meet the communication speed of this encoder.
+        The correct form is:
+        PORTD &= ~(1 << n); // Pin n goes low
+        PORTD |= (1 << n); // Pin n goes high
+        So:
+        PORTD &= ~(1 << PD0); // PD0 goes low
+        PORTD |= (1 << PD0); // PD0 goes high
+
+        PORTD &= ~(1 << PD1); // PD1 goes low
+        PORTD |= (1 << PD1); // PD1 goes high
+        */
+
+        PORTD &= ~(1 << CLK_PIN); // clock pin goes low
+        DELAY_US(1);              // Wait for 16 CPU clock cycles @16MHz this is 1 uS
+        PORTD |= (1 << CLK_PIN);  // clock pin goes high
+        DELAY_US(1);              // Wait for 16 CPU clock cycles
         data |= digitalRead(ENC_DATA_PIN);
     }
 
@@ -154,3 +192,7 @@ void error(bool isFatal) {
 
     while (isFatal) {};
 }
+
+bool isActivated() { return true; }
+
+byte getRevolutions() { return TARGET_REVS; }
