@@ -1,0 +1,37 @@
+[
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino"
+  },
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\variants\\standard"
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Include": "ArduPID.h",
+    "Includepath": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduPID\\src"
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Include": "FireTimer.h",
+    "Includepath": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\FireTimer\\src"
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduPID\\src\\ArduPID.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\FireTimer\\src\\FireTimer.cpp",
+    "Include": "",
+    "Includepath": null
+  }
+]

@@ -12,26 +12,26 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "msvc-x64"
         },
         {
             "name": "Arduino",
             "includePath": [
                 "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\libraries\\**",
+                "${workspaceRoot}/lib/**",
                 "${workspaceRoot}"
             ],
             "browse": {
                 "path": [
                     "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\libraries\\**",
-                    "${workspaceRoot}"
+                    "${workspaceRoot}",
+                    "${default}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
             },
-            "intelliSenseMode": "${default}",
-            "forcedInclude": [
-                "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\libraries\\Arduino_BuiltIn\\src\\Arduino_BuiltIn.h"
-            ]
+            "forcedInclude": [],
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4

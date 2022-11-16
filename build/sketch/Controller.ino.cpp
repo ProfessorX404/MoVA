@@ -1,7 +1,8 @@
+#include <Arduino.h>
+#line 1 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 #include <ArduPID.h>
 #include <string.h>
 // Encoder used is Nanotec NME2-SSI-V06-12-C
-// URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
 #define PWM_PIN 3                    // Motor control pin
 #define DIR_PIN 5                    // Directional control pin
 #define CLK_PIN 5                    // Encoder clock PWM pin
@@ -18,7 +19,7 @@
 #define WIND_UP_MAX 10.0             // Integral growth bound max const
 #define ENC_TICS_PER_REV 0x20000     // Number of encoder tics in mechanical revolution (per datasheet)
 
-#define DELAY_US(n) __builtin_avr_delay_cycles(n * CPU_MHZ)
+#define DELAY_US(n) __builtin_avr_delay_cycles(n *CPU_MHZ)
 // Uses built in routine to skip clock cycles for timing purposes.
 
 double output = 0;                 // Signed PID output from -255 to 255.
@@ -28,13 +29,26 @@ double pos = 0.0;                  // Current valve position
 int errorCode = 0;                 // Global error code variable for fault tracking.
 
 /* TODO:
-- Homing routine
-- Change placeholder values to VALVE_OPEN and VALVE_CLOSED
+-Homing routine
+-Change placeholder values to VALVE_OPEN and VALVE_CLOSED
 - TUNE PID AND WIND UP CONSTANTS
 - Work out how to count revolutions
 */
 ArduPID pid; // PID instance
 
+#line 37 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void setup();
+#line 56 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void loop();
+#line 108 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void updateEngineSpeed();
+#line 125 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+bool updateValvePos();
+#line 138 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+unsigned long readEncData();
+#line 170 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void error(bool isFatal);
+#line 37 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup() {
     Serial.begin(57600);
 
@@ -47,8 +61,9 @@ void setup() {
 
     updateValvePos();
     pid.begin(&pos, &output, &target, k_pid[0], k_pid[1], k_pid[2]);
+    pid.setSampleTime(ENC_MIN_TIME_MS);
     pid.setOutputLimits(-255, 255);                // Motor can be actuated from 0-255 in either direction
-    pid.setWindUpLimits(WIND_UP_MIN, WIND_UP_MAX); // Growth bounds to prevent integral wind-up
+    pid.setWindUpLimits(WIND_UP_MIN, WIND_UP_MAX); // Growth bounds for the integral term to prevent integral wind-up
 
     pid.start();
 }
@@ -138,22 +153,22 @@ bool updateValvePos() {
 unsigned long readEncData() {
     noInterrupts();
     digitalWrite(CLK_PIN, LOW); // First bit is latch, always 1.
-    DELAY_US(1);
+    delayMicroseconds(1);
     digitalWrite(CLK_PIN, HIGH);
-    DELAY_US(1);
-    if (!digitalRead(ENC_DATA_PIN)) { // If latch reads successfully, continue to data bits
+    delayMicroseconds(1);
+    if (!digitalRead(ENC_DATA_PIN)) {
         errorCode = 2;
         error(false);
         return -1.0;
     }
 
-    unsigned long data = 0;
-    for (int i = 0; i < ENC_TOT_BIT_CT - 1; i++) { // Read in all 17 data bits
+    unsigned long data = 0; // If latch reads successfully, continue to data bits
+    for (int i = 0; i < ENC_TOT_BIT_CT; i++) {
         data <<= 1;
         digitalWrite(CLK_PIN, LOW);
-        DELAY_US(1);
+        delayMicroseconds(1);
         digitalWrite(CLK_PIN, HIGH);
-        DELAY_US(1);
+        delayMicroseconds(1);
 
         data |= digitalRead(ENC_DATA_PIN);
     }
@@ -162,10 +177,8 @@ unsigned long readEncData() {
         errorCode = 3;
         error(true);
     }
-
-    DELAY_US(20);
+    delayMicroseconds(ENC_MIN_TIME_MS * 10);
     interrupts();
-
     return data >> ENC_TOT_BIT_CT - ENC_DATA_BIT_CT;
 }
 

@@ -1,6 +1,5 @@
 {
+    "board": "arduino:avr:uno",
     "sketch": "Controller\\Controller.ino",
-    "board": "arduino:avr:nano",
-    "programmer": "avrisp",
-    "configuration": "cpu=atmega328old"
+    "output": ".\\build"
 }
