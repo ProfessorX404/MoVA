@@ -1,21 +1,27 @@
 #include <ArduPID.h>
+#include <vector>
 // Encoder used is Nanotec NME2-SSI-V06-12-C
 // URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
-#define PWM_PIN 3                    // Motor control pin
-#define DIR_PIN 5                    // Directional control pin
-#define CLK_PIN 5                    // Encoder clock PWM pin
-#define ENC_DATA_PIN 6               // Encoder data input pin
-#define C_FORWARD 1                  // Normalized forward vector. Swap to 0 if reversed.
-#define C_REVERSE abs(C_FORWARD - 1) // Normalized reverse vector. Always opposite of C_FORWARD.
-#define ENC_TOT_BIT_CT 24            // Total number of bits in encoder packet. Last bit is error bit, success=1.
-#define ENC_DATA_BIT_CT 17           // Data bits in encoder packet.
-#define ENC_MIN_TIME_US 20           // Minimum amount of time between data calls, in milliseconds
-#define CPU_MHZ 0x10                 // HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us
-#define VALVE_OPEN 90.0              // Encoder value for valve being fully open.
-#define VALVE_CLOSED 0.0             // Encoder value for valve being fully closed
-#define WIND_UP_MIN -10.0            // Integral growth bound min const
-#define WIND_UP_MAX 10.0             // Integral growth bound max const
-#define ENC_TICS_PER_REV 0x20000     // Number of encoder tics in mechanical revolution (per datasheet)
+// Motor used is Nanotec DB59l024035-A
+// URL: https://us.nanotec.com/products/2870-db59l024035-a
+#define PWM_PIN 3                      // Motor control pin
+#define DIR_PIN 5                      // Directional control pin
+#define CLK_PIN 5                      // Encoder clock PWM pin
+#define ENC_DATA_PIN 6                 // Encoder data input pin
+#define C_FORWARD 1                    // Normalized forward vector. Swap to 0 if reversed.
+#define C_REVERSE abs(C_FORWARD - 1)   // Normalized reverse vector. Always opposite of C_FORWARD.
+#define ENC_TOT_BIT_CT 24              // Total number of bits in encoder packet. Last bit is error bit, success=1.
+#define ENC_DATA_BIT_CT 17             // Data bits in encoder packet.
+#define ENC_MIN_TIME_US 20             // Minimum amount of time between data calls, in milliseconds
+#define CPU_MHZ 0x10                   // HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us
+#define WIND_UP_MIN -10.0              // Integral growth bound min const
+#define WIND_UP_MAX 10.0               // Integral growth bound max const
+#define ENC_TICS_PER_MOTOR_REV 0x20000 // Number of encoder tics in mechanical revolution (per datasheet)
+#define GEARBOX_RATIO 15               // Revs into gearbox per 1 revolution out
+#define ENC_TICS_PER_VALVE_REV ENC_TICS_PER_MOTOR_REV * GEARBOX_RATIO // Post-gearbox encoder tics per valve revolution
+#define VALVE_OPEN_DEG 90.0                                           // Encoder value for valve being fully open.
+#define VALVE_CLOSED_DEG 0.0                                          // Encoder value for valve being fully closed
+#define ENC_TICS_PER_VALVE_DEG ENC_TICS_PER_VALVE_REV / 360           // Post-gearbox encoder tics / degree
 
 #define DELAY_US(n) __builtin_avr_delay_cycles(n * CPU_MHZ)
 // Uses built in routine to skip clock cycles for timing purposes.
@@ -30,8 +36,9 @@ int errorCode = 0;                 // Global error code variable for fault track
 - Homing routine
 - Change placeholder values to VALVE_OPEN and VALVE_CLOSED
 - TUNE PID AND WIND UP CONSTANTS
-- Work out how to count revolutions
+- Count revolutions
 */
+
 ArduPID pid; // PID instance
 
 void setup() {

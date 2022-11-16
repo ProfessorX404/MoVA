@@ -17,14 +17,15 @@
         {
             "name": "Arduino",
             "includePath": [
-                "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\libraries\\**",
+                "C:/Users/xsegg/AppData/Local/Arduino15/libraries/**",
                 "${workspaceRoot}/lib/**",
                 "${workspaceRoot}"
             ],
             "browse": {
                 "path": [
-                    "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\libraries\\**",
+                    "C:/Users/xsegg/AppData/Local/Arduino15/libraries/**",
                     "${workspaceRoot}",
+                    "${workspaceFolder}/**",
                     "${default}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
