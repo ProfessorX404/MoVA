@@ -24,6 +24,9 @@ TODO:
 #define DIR_PIN 5                      // Directional control pin
 #define CLK_PIN 5                      // Encoder clock PWM pin
 #define ENC_DATA_PIN 6                 // Encoder data input pin
+#define H1_PIN A1                      // Hall effect sensor pins.
+#define H2_PIN A2                      // Generally be used digitally, but
+#define H3_PIN A3                      // mapped to analog pins for resolution.
 #define C_FORWARD 1                    // Normalized forward vector. Swap to 0 if reversed.
 #define C_REVERSE abs(C_FORWARD - 1)   // Normalized reverse vector. Always opposite of C_FORWARD.
 #define ENC_TOT_BIT_CT 24              // Total number of bits in encoder packet. Last bit is error bit, success=1.
@@ -39,11 +42,13 @@ TODO:
 #define VALVE_CLOSED_DEG 0.0                                          // Encoder value for valve being fully closed
 #define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)    // Post-gearbox encoder tics / degree
 #define TARGET_REVS (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO)     // Number of rotations to get almost fully open
+#define HALL_CUTOFF 0xff      // Voltage level cutoff for a positive hall effect status
+#define MAG_TIME_TO_FORM_MS 2 // Time in ms for magnetic fields to form large enough to be registered on Hall sensors
 
 #define DELAY_US(n) __builtin_avr_delay_cycles(n * CPU_MHZ)
 // Uses built in routine to skip clock cycles for timing purposes.
 
-const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle, at 45deg increments
+const bool HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle, at 45deg increments
     {
   //    {H1, H2, H3}
         {1, 0, 1}, //  0->45
@@ -54,6 +59,8 @@ const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor 
         {1, 0, 0}  //  225->270
 };
 
+const int HALL_COMBO_DEGS[7] = {0, .125, .25, .375, .5, .625, .75};
+
 double output = 0;                                         // Signed PID output from -255 to 255.
 double k_pid[3] = {0.0, 0.0, 0.0};                         // PID constants, in format [kP, kI, kD]
 double target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
@@ -61,18 +68,25 @@ double pos = 0.0;                                          // Current valve posi
 int errorCode = 0;                                         // Global error code variable for fault tracking.
 bool activated = false;                                    // Flag for actuating valve.
 bool withinOneRev = false;                                 // Flag for activating PID
+bool motorCharged = false;                                 // Flag for current in motor
 byte totalRevs = 0;                                        // Revolution counter
+byte hallStatus[3] = {0, 0, 0};                            // Initial hall effect status, 0deg calibration
+int degrees
 
-ArduPID pid; // PID instance
+    ArduPID pid; // PID instance
 
 void setup() {
     Serial.begin(57600); // Init serial connection
 
     // Init pin values
-    pinMode(PWM_PIN, OUTPUT);     // Motor magnitude control
-    pinMode(DIR_PIN, OUTPUT);     // Motor direction control
-    pinMode(CLK_PIN, OUTPUT);     // Encoder serial clock
+    pinMode(PWM_PIN, OUTPUT); // Motor magnitude control
+    pinMode(DIR_PIN, OUTPUT); // Motor direction control
+    pinMode(CLK_PIN, OUTPUT); // Encoder serial clock
+
     pinMode(ENC_DATA_PIN, INPUT); // Encoder data
+    pinMode(H1_PIN, INPUT);       // Hall effect sensors
+    pinMode(H2_PIN, INPUT);
+    pinMode(H3_PIN, INPUT);
 
     analogWrite(PWM_PIN, 0); // Set motor to 0, intiailize correct orientation
     digitalWrite(DIR_PIN, C_FORWARD);
@@ -88,11 +102,17 @@ void loop() {
         while (!isActivated()) {};
     }
     activated = true;
-    withinOneRev = getRevolutions() > TARGET_REVS;
+    withinOneRev = totalRevs > TARGET_REVS;
 
     if (!withinOneRev) { // If system has been activated but hasn't gotten to within 180* of final open position
         output = C_FORWARD * 255;
         updateEngineSpeed();
+        if (motorCharged) {
+            totalRevs = getRevolutions();
+        } else {
+            delay(MAG_TIME_TO_FORM_US);
+            motorCharged = true;
+        }
         return;
     }
 
@@ -171,6 +191,24 @@ void error(bool isFatal) {
     while (isFatal) {};
 }
 
+// Updates Hall sensor readings
+void updateHallSensors() {
+    hallStatus[0] = analogRead(H1_PIN >= HALL_CUTOFF);
+    hallStatus[1] = analogRead(H2_PIN >= HALL_CUTOFF);
+    hallStatus[2] = analogRead(H3_PIN >= HALL_CUTOFF);
+}
+
 bool isActivated() { return true; } // Placeholder
 
-byte getRevolutions() { return TARGET_REVS; } // Placeholder
+byte getRevolutions() {
+    updateHallSensors();
+    for (int i = 0; i < (*(&HALL_COMBOS + 1) - HALL_COMBOS); i++) {
+        if ()
+    }
+}
+
+void preciseDelay(int us) {
+    noInterrupts();
+    DELAY_US(us);
+    interrupts();
+}
