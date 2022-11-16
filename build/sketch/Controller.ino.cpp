@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #line 1 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 #include <ArduPID.h>
-#include <vector.h>
 // Encoder used is Nanotec NME2-SSI-V06-12-C
 // URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
 // Motor used is Nanotec DB59l024035-A
@@ -28,11 +27,22 @@
 #define DELAY_US(n) __builtin_avr_delay_cycles(n * CPU_MHZ)
 // Uses built in routine to skip clock cycles for timing purposes.
 
-double output = 0;                 // Signed PID output from -255 to 255.
-double k_pid[3] = {0.0, 0.0, 0.0}; // PID constants, in format [kP, kI, kD]
-double target = VALVE_CLOSED;      // Current valve position target. Init'ed to closed
-double pos = 0.0;                  // Current valve position
-int errorCode = 0;                 // Global error code variable for fault tracking.
+const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle
+    {
+  //    H1,H2,H3}
+        {1, 0, 1}, //  0->45
+        {0, 0, 1}, //  45->90
+        {0, 1, 1}, //  90->135
+        {0, 1, 0}, //  135->180
+        {1, 1, 0}, //  180->225
+        {1, 0, 0}  //  225->270
+};
+
+double output = 0;                                         // Signed PID output from -255 to 255.
+double k_pid[3] = {0.0, 0.0, 0.0};                         // PID constants, in format [kP, kI, kD]
+double target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
+double pos = 0.0;                                          // Current valve position
+int errorCode = 0;                                         // Global error code variable for fault tracking.
 
 /* TODO:
 - Homing routine
@@ -43,6 +53,19 @@ int errorCode = 0;                 // Global error code variable for fault track
 
 ArduPID pid; // PID instance
 
+#line 54 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void setup();
+#line 72 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void loop();
+#line 83 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void updateEngineSpeed();
+#line 88 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+bool updateValvePos();
+#line 101 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+unsigned long readEncData();
+#line 135 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void error(bool isFatal);
+#line 54 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup() {
     Serial.begin(57600);
 

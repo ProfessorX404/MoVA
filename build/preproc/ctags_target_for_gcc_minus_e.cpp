@@ -2,12 +2,25 @@
 # 2 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
 // Encoder used is Nanotec NME2-SSI-V06-12-C
 // URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
-# 23 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+// Motor used is Nanotec DB59l024035-A
+// URL: https://us.nanotec.com/products/2870-db59l024035-a
+# 26 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 // Uses built in routine to skip clock cycles for timing purposes.
+
+const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle
+    {
+  //    H1,H2,H3}
+        {1, 0, 1}, //  0->45
+        {0, 0, 1}, //  45->90
+        {0, 1, 1}, //  90->135
+        {0, 1, 0}, //  135->180
+        {1, 1, 0}, //  180->225
+        {1, 0, 0} //  225->270
+};
 
 double output = 0; // Signed PID output from -255 to 255.
 double k_pid[3] = {0.0, 0.0, 0.0}; // PID constants, in format [kP, kI, kD]
-double target = 0.0 /* Encoder value for valve being fully closed*/; // Current valve position target. Init'ed to closed
+double target = 0.0 /* Encoder value for valve being fully closed*/ * 0x20000 /* Number of encoder tics in mechanical revolution (per datasheet)*/ * 15 /* Revs into gearbox per 1 revolution out*/ /* Post-gearbox encoder tics per valve revolution*/ / 360 /* Post-gearbox encoder tics / degree*/; // Current valve position target. Init'ed to closed
 double pos = 0.0; // Current valve position
 int errorCode = 0; // Global error code variable for fault tracking.
 
@@ -19,10 +32,10 @@ int errorCode = 0; // Global error code variable for fault tracking.
 
 - TUNE PID AND WIND UP CONSTANTS
 
-- Work out how to count revolutions
+- Count revolutions
 
 */
-# 37 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 52 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 ArduPID pid; // PID instance
 
 void setup() {
@@ -74,9 +87,9 @@ bool updateValvePos() {
 
 unsigned long readEncData() {
     
-# 87 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 102 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("cli" ::: "memory")
-# 87 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 102 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                  ;
     digitalWrite(5 /* Encoder clock PWM pin*/, 0x0); // First bit is latch, always 1.
     __builtin_avr_delay_cycles(1 * 0x10 /* HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us*/);
@@ -106,9 +119,9 @@ unsigned long readEncData() {
 
     __builtin_avr_delay_cycles(20 * 0x10 /* HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us*/);
     
-# 115 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 130 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("sei" ::: "memory")
-# 115 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 130 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                ;
 
     return data >> 24 /* Total number of bits in encoder packet. Last bit is error bit, success=1.*/ - 17 /* Data bits in encoder packet.*/;

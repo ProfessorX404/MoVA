@@ -1,5 +1,15 @@
+/*
+Xavier Beech
+UW SARP 2022-23
+
+TODO:
+- Homing routine
+- Change placeholder values to VALVE_OPEN_DEG and VALVE_CLOSED_DEG
+- TUNE PID AND WIND UP CONSTANTS
+- Count revolutions w Halls
+*/
+
 #include <ArduPID.h>
-#include <vector>
 // Encoder used is Nanotec NME2-SSI-V06-12-C
 // URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
 // Motor used is Nanotec DB59l024035-A
@@ -26,18 +36,25 @@
 #define DELAY_US(n) __builtin_avr_delay_cycles(n * CPU_MHZ)
 // Uses built in routine to skip clock cycles for timing purposes.
 
-double output = 0;                 // Signed PID output from -255 to 255.
-double k_pid[3] = {0.0, 0.0, 0.0}; // PID constants, in format [kP, kI, kD]
-double target = VALVE_CLOSED;      // Current valve position target. Init'ed to closed
-double pos = 0.0;                  // Current valve position
-int errorCode = 0;                 // Global error code variable for fault tracking.
+const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle
+    {
+  //    {H1, H2, H3}
+        {1, 0, 1}, //  0->45
+        {0, 0, 1}, //  45->90
+        {0, 1, 1}, //  90->135
+        {0, 1, 0}, //  135->180
+        {1, 1, 0}, //  180->225
+        {1, 0, 0}  //  225->270
+};
 
-/* TODO:
-- Homing routine
-- Change placeholder values to VALVE_OPEN and VALVE_CLOSED
-- TUNE PID AND WIND UP CONSTANTS
-- Count revolutions
-*/
+double output = 0;                                         // Signed PID output from -255 to 255.
+double k_pid[3] = {0.0, 0.0, 0.0};                         // PID constants, in format [kP, kI, kD]
+double target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
+double pos = 0.0;                                          // Current valve position
+int errorCode = 0;                                         // Global error code variable for fault tracking.
+bool activated = false;                                    // Flag for actuating valve.
+bool withinOneRev = false;                                 // Flag for activating PID
+byte totalRevs = 0;                                        // Revolution counter
 
 ArduPID pid; // PID instance
 
