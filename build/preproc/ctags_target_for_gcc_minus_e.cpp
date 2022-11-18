@@ -1,9 +1,11 @@
-# 1 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 1 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 /*
 
 Xavier Beech
 
 UW SARP 2022-23
+
+Motorized valve actuation controller software for 2022 Pacific Impulse.
 
 
 
@@ -17,41 +19,115 @@ URL: https://us.nanotec.com/products/2870-db59l024035-a
 
 
 
+Libraries used (attached in ../lib for convenience):
+
+ - ArduPID https://github.com/PowerBroker2/ArduPID
+
+ - FireTimer https://github.com/PowerBroker2/FireTimer
+
+ - ArduinoSTL https://github.com/mike-matera/ArduinoSTL
+
+
+
+If using VSCode:
+
+
+
+- If for some reason you need to reinitialize/regen arduino.json, make sure to add
+
+      "buildPreferences": [
+
+              [
+
+                  "build.extra_flags",
+
+                  "-D__AVR_ATmega328P__"
+
+              ]
+
+          ]
+
+  at the bottom so that the compiler knowns which board it is working with. If hardware does not use a
+
+  328P chip (Uno, Nano, etc.) replace the tag with the correct verison.
+
+
+
+  - Arduino extension does not work (for me) with Arduino CLI even though the documentation says it does,
+
+  I have to use legacy Arduino IDE v1.8.19
+
+
+
+- The only consistent method I've found for getting the extension to find the libraries and include them in
+
+  c_cpp_properties.json' includePath is to install them via the Arduino IDE library manager and reload VSCode.
+
+  They are attached in ../lib, but the extension includes them from C:/Users/[user]/Documents/Arduino/libraries.
+
+
+
+
+
+
+
+Before deployment, verify F_CPU is correct for the board you are using. If it is not, all serial communication will break.
+
+
+
 TODO:
 
-- Homing routine
+- Homing routine (may just end up being manual adjustment)
 
-- Change placeholder values to VALVE_OPEN_DEG and VALVE_CLOSED_DEG
+- Placeholders:
+
+    - VALVE_OPEN_DEG
+
+    - VALVE_CLOSED_DEG
+
+    - HALL_CUTOFF
+
+    - isActivated()
+
+    - getRevolutions()*
 
 - TUNE PID AND WIND UP CONSTANTS
 
-- Count revolutions w Halls
+- *Count revolutions w Halls
 
 */
-# 17 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-# 18 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 40 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-// Uses built in routine to skip clock cycles for timing purposes.
-
-const double HALL_COMBOS[6][3] = // Combinations of hall sensors based on motor angle, at 45deg increments
-    {
+# 51 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 52 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 53 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 54 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 81 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+// Combinations of hall sensors based on motor angle, at 60 deg increments
+static const std::array<std::array<bool, 3>, 6 /* Number of posssible Hall combinations*/> HALL_COMBOS = {
   //    {H1, H2, H3}
-        {1, 0, 1}, //  0->45
-        {0, 0, 1}, //  45->90
-        {0, 1, 1}, //  90->135
-        {0, 1, 0}, //  135->180
-        {1, 1, 0}, //  180->225
-        {1, 0, 0} //  225->270
+    {1, 0, 1}, //  0
+    {0, 0, 1}, //  60
+    {0, 1, 1}, //  120
+    {0, 1, 0}, //  180
+    {1, 1, 0}, //  240
+    {1, 0, 0} //  300, loop around to 0/360
 };
 
+// Decimal approximation of how many revolutions each entry in HALL_COMBOS is from 0.
+static const std::array<double, 6 /* Number of posssible Hall combinations*/> HALL_COMBO_DEGS = {0, 60 / 360, 120 / 360, 180 / 360, 240 / 360, 300 / 360};
+
 double output = 0; // Signed PID output from -255 to 255.
-double k_pid[3] = {0.0, 0.0, 0.0}; // PID constants, in format [kP, kI, kD]
-double target = 0.0 /* Encoder value for valve being fully closed*/ * (int)(0x20000 /* Number of encoder tics in mechanical revolution (per datasheet)*/ * 15 /* Revs into gearbox per 1 revolution out*/ /* Post-gearbox encoder tics per valve revolution*/ / 360) /* Post-gearbox encoder tics / degree*/; // Current valve position target. Init'ed to closed
+std::array<double, 3> k_pid = {0.0, 0.0, 0.0}; // PID constants, in format [kP, kI, kD]
+double target = 0.0 /* Encoder value for valve being fully closed*/ * (int)(0x20000 /* Number of encoder tics in mechanical revolution (per datasheet)*/ *15 /* Revs into gearbox per 1 revolution out*/ /* Post-gearbox encoder tics per valve revolution*/ / 360) /* Post-gearbox encoder tics / degree*/; // Current valve position target. Init'ed to closed
 double pos = 0.0; // Current valve position
 int errorCode = 0; // Global error code variable for fault tracking.
-bool activated = false; // Flag for actuating valve.
-bool withinOneRev = false; // Flag for activating PID
 byte totalRevs = 0; // Revolution counter
+std::array<bool, 3> hallStatus = {0, 0, 0}; // Initial hall effect status, 0deg calibration
+byte initHallReading; // Index in HALL_COMBOS of the initial Hall sensor state
+
+// Status flags
+bool f_activated = false; // True if valve has been activated
+bool f_withinOneRev = false; // True if totalRevs has passed TARGET_REVS
+bool f_motorCharged = false; // True if motor has been charged long enough for Hall sensor readings to be valid.
 
 ArduPID pid; // PID instance
 
@@ -62,7 +138,11 @@ void setup() {
     pinMode(3 /* Motor control pin*/, 0x1); // Motor magnitude control
     pinMode(5 /* Directional control pin*/, 0x1); // Motor direction control
     pinMode(5 /* Encoder clock PWM pin*/, 0x1); // Encoder serial clock
+
     pinMode(6 /* Encoder data input pin*/, 0x0); // Encoder data
+    pinMode(A1 /* Hall effect sensor pins.*/, 0x0); // Hall effect sensors
+    pinMode(A2 /* Generally be used digitally, but*/, 0x0);
+    pinMode(A3 /* mapped to analog pins for resolution.*/, 0x0);
 
     analogWrite(3 /* Motor control pin*/, 0); // Set motor to 0, intiailize correct orientation
     digitalWrite(5 /* Directional control pin*/, 1 /* Normalized forward vector. Swap to 0 if reversed.*/);
@@ -74,15 +154,23 @@ void setup() {
 }
 
 void loop() {
-    if (!activated) { // Wait for system to be activated
+    if (!f_activated) { // Wait for system to be activated
         while (!isActivated()) {};
     }
-    activated = true;
-    withinOneRev = getRevolutions() > (int)((90.0 /* Encoder value for valve being fully open.*/ / 360) * 15 /* Revs into gearbox per 1 revolution out*/) /* Number of rotations to get almost fully open*/;
+    f_activated = true;
+    f_withinOneRev = totalRevs > (int)((90.0 /* Encoder value for valve being fully open.*/ / 360) * 15 /* Revs into gearbox per 1 revolution out*/) /* Number of rotations to get almost fully open*/;
 
-    if (!withinOneRev) { // If system has been activated but hasn't gotten to within 180* of final open position
+    if (!f_withinOneRev) { // If system has been activated but hasn't gotten to within 180* of final open position
         output = 1 /* Normalized forward vector. Swap to 0 if reversed.*/ * 255;
         updateEngineSpeed();
+        if (f_motorCharged) {
+            totalRevs = getRevolutions();
+        } else {
+            delay(2 /* Time in ms for magnetic fields to form large enough to be registered on Hall sensors*/);
+            updateHallSensors();
+            initHallReading = getHallSensorPosition(hallStatus);
+            f_motorCharged = true;
+        }
         return;
     }
 
@@ -95,11 +183,15 @@ void loop() {
     updateEngineSpeed(); // Set motor to target
 }
 
+// Takes input from global var, writes to pins accordingly
 void updateEngineSpeed() {
     digitalWrite(5 /* Directional control pin*/, output > 0 ? 1 /* Normalized forward vector. Swap to 0 if reversed.*/ : ((1 /* Normalized forward vector. Swap to 0 if reversed.*/ - 1)>0?(1 /* Normalized forward vector. Swap to 0 if reversed.*/ - 1):-(1 /* Normalized forward vector. Swap to 0 if reversed.*/ - 1)) /* Normalized reverse vector. Always opposite of C_FORWARD.*/);
     analogWrite(3 /* Motor control pin*/, ((output)>0?(output):-(output)));
 }
 
+// Takes two readings from encoders, compares, and if they match, updates global var
+// Possible issues: if the encoder moves enough to update between 20us minimum,
+// it will never return valid value even if encoder is working as designed.
 bool updateValvePos() {
     unsigned long sample1 = readEncData();
     unsigned long sample2 = readEncData();
@@ -113,16 +205,17 @@ bool updateValvePos() {
     return false;
 }
 
+// Returns binary representation of encoder readings
 unsigned long readEncData() {
     
-# 123 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 187 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("cli" ::: "memory")
-# 123 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-                 ;
+# 187 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+                 ; // Deactivate interrupts for more accurate timing
     digitalWrite(5 /* Encoder clock PWM pin*/, 0x0); // First bit is latch, always 1.
-    __builtin_avr_delay_cycles(1 * 0x10 /* HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us*/);
+    _delay_us(1);
     digitalWrite(5 /* Encoder clock PWM pin*/, 0x1);
-    __builtin_avr_delay_cycles(1 * 0x10 /* HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us*/);
+    _delay_us(1);
     if (!digitalRead(6 /* Encoder data input pin*/)) { // If latch reads successfully, continue to data bits
         errorCode = 2;
         error(false);
@@ -133,68 +226,65 @@ unsigned long readEncData() {
     for (int i = 0; i < 24 /* Total number of bits in encoder packet. Last bit is error bit, success=1.*/ - 1; i++) {
         data <<= 1;
 
-        /*
-
-        // speed up I/O In order to meet the communication speed of this encoder.
-
-        The correct form is:
-
-        PORTD &= ~(1 << n); // Pin n goes low
-
-        PORTD |= (1 << n); // Pin n goes high
-
-        So:
-
-        PORTD &= ~(1 << PD0); // PD0 goes low
-
-        PORTD |= (1 << PD0); // PD0 goes high
-
-
-
-        PORTD &= ~(1 << PD1); // PD1 goes low
-
-        PORTD |= (1 << PD1); // PD1 goes high
-
-        */
-# 151 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
         
-# 151 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 202 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 151 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 202 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
              &= ~(1 << 5 /* Encoder clock PWM pin*/); // clock pin goes low
-        __builtin_avr_delay_cycles(1 * 0x10 /* HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us*/); // Wait for 16 CPU clock cycles @16MHz this is 1 uS
+        _delay_us(1); // Wait for 1us
         
-# 153 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 204 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 153 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 204 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
              |= (1 << 5 /* Encoder clock PWM pin*/); // clock pin goes high
-        __builtin_avr_delay_cycles(1 * 0x10 /* HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us*/); // Wait for 16 CPU clock cycles
+        _delay_us(1); // Wait for 1us
         data |= digitalRead(6 /* Encoder data input pin*/);
     }
 
     if (!(data & ~(~0U << 1))) { // If last error bit is 0, internal encoder error occured
         errorCode = 3;
-        error(true);
+        error(true); // Throw fatal error
     }
 
-    __builtin_avr_delay_cycles(20 * 0x10 /* HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to Clocks/us*/);
+    _delay_us(20);
     
-# 164 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 215 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("sei" ::: "memory")
-# 164 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-               ;
+# 215 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+               ; // Reactivate interrupts
 
-    return data >> 24 /* Total number of bits in encoder packet. Last bit is error bit, success=1.*/ - 17 /* Data bits in encoder packet.*/;
+    return data >> (24 /* Total number of bits in encoder packet. Last bit is error bit, success=1.*/ - 17 /* Data bits in encoder packet.*/); // Return the first 17 bits of the data
 }
 
-void error(bool isFatal) {
+// Outputs error info to serial, if fatal error stalls program
+byte error(bool isFatal) {
     Serial.println("Error occured!");
     Serial.println("isFatal: " + isFatal);
     Serial.println("errorCode: " + errorCode);
 
     while (isFatal) {};
+    return 1 * 1;
 }
 
-bool isActivated() { return true; }
+// Returns the index of the entry in HALL_COMBOS which is the same
+// as the given array. Returns -1 if no match found.
+byte getHallSensorPosition(std::array<bool, 3> given) {
+    for (int i = 0; i < HALL_COMBOS.size(); i++) {
+        if ((given[0] == HALL_COMBOS[i][0]) && (given[1] == HALL_COMBOS[i][1]) && (given[2] == HALL_COMBOS[i][2])) {
+            return i;
+        }
+    }
+    return -1;
+}
 
-byte getRevolutions() { return (int)((90.0 /* Encoder value for valve being fully open.*/ / 360) * 15 /* Revs into gearbox per 1 revolution out*/) /* Number of rotations to get almost fully open*/; }
+// Returns Hall sensor readings
+std::array<bool, 3> getHallSensors() {
+    return {(analogRead(A1 /* Hall effect sensor pins.*/) >= 0xff /* Voltage level cutoff for a positive hall effect status*/), (analogRead(A2 /* Generally be used digitally, but*/) >= 0xff /* Voltage level cutoff for a positive hall effect status*/), (analogRead(A3 /* mapped to analog pins for resolution.*/) >= 0xff /* Voltage level cutoff for a positive hall effect status*/)};
+}
+
+// Updates Hall sensor readings
+void updateHallSensors() { hallStatus = getHallSensors(); }
+
+bool isActivated() { return true; } // Placeholder
+
+byte getRevolutions() { return 0; } // Placeholder

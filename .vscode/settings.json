@@ -1,4 +1,9 @@
 {
-    "C_Cpp.intelliSenseEngine": "Tag Parser",
-    "C_Cpp.intelliSenseEngineFallback": "Disabled",
+    "files.associations": {
+        "new": "cpp",
+        "*.ino": "cpp",
+        "array": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Enabled",
+    "C_Cpp.intelliSenseEngineFallback": "Enabled"
 }

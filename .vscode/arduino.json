@@ -1,5 +1,13 @@
 {
-    "board": "arduino:avr:uno",
+    "board": "arduino:avr:nano",
     "sketch": "Controller\\Controller.ino",
-    "output": ".\\build"
+    "output": ".\\build",
+    "programmer": "arduino:avrispmkii",
+    "configuration": "cpu=atmega328old",
+    "buildPreferences": [
+        [
+            "build.extra_flags",
+            "-D__AVR_ATmega2560__"
+        ]
+    ]
 }
