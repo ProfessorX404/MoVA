@@ -49,7 +49,7 @@ If using VSCode:
 
   at the bottom so that the compiler knowns which board it is working with. If hardware does not use a
 
-  328P chip (Uno, Nano, etc.) replace the tag with the correct verison.
+  328P chip (Uno, Nano, etc.) replace the tag with the correct value.
 
 
 
@@ -100,9 +100,7 @@ TODO:
 # 52 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
 # 53 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
 # 54 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 67 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-// #define F_CPU                  0x10               // HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to clock cycles/us
-# 81 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 80 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 // Combinations of hall sensors based on motor angle, at 60 deg increments
 static const std::array<std::array<bool, 3>, 6 /* Number of posssible Hall combinations*/> HALL_COMBOS = {
   //    {H1, H2, H3}
@@ -210,9 +208,9 @@ bool updateValvePos() {
 // Returns binary representation of encoder readings
 unsigned long readEncData() {
     
-# 187 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 186 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("cli" ::: "memory")
-# 187 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 186 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                  ; // Deactivate interrupts for more accurate timing
     digitalWrite(5 /* Encoder clock PWM pin*/, 0x0); // First bit is latch, always 1.
     _delay_us(1);
@@ -229,15 +227,15 @@ unsigned long readEncData() {
         data <<= 1;
 
         
-# 202 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 201 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 202 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 201 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
              &= ~(1 << 5 /* Encoder clock PWM pin*/); // clock pin goes low
         _delay_us(1); // Wait for 1us
         
-# 204 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 203 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 204 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 203 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
              |= (1 << 5 /* Encoder clock PWM pin*/); // clock pin goes high
         _delay_us(1); // Wait for 1us
         data |= digitalRead(6 /* Encoder data input pin*/);
@@ -250,9 +248,9 @@ unsigned long readEncData() {
 
     _delay_us(20);
     
-# 215 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 214 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("sei" ::: "memory")
-# 215 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 214 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                ; // Reactivate interrupts
 
     return data >> (24 /* Total number of bits in encoder packet. Last bit is error bit, success=1.*/ - 17 /* Data bits in encoder packet.*/); // Return the first 17 bits of the data

@@ -9,5 +9,4 @@ c:\Users\xsegg\Documents\Git\motoractuatedvalve-controller\build\core\Tone.cpp.o
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\cores\arduino\Print.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\cores\arduino\Printable.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\cores\arduino\USBAPI.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\variants\eightanaloginputs/pins_arduino.h \
- c:\users\xsegg\appdata\local\arduino15\packages\arduino\hardware\avr\1.8.6\variants\standard\pins_arduino.h
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\variants\standard/pins_arduino.h

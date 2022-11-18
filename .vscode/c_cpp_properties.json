@@ -20,9 +20,8 @@
         },
         {
             "name": "Arduino",
-            "compilerPath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\bin\\avr-gcc",
+            "compilerPath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\bin\\avr-g++",
             "compilerArgs": [
-                "-mmcu=atmega328p",
                 "-Wall",
                 "-std=gnu++11",
                 "-fpermissive",
@@ -41,8 +40,7 @@
                 "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src",
                 "c:\\users\\xsegg\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include",
                 "c:\\users\\xsegg\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include-fixed",
-                "c:\\users\\xsegg\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\avr\\include",
-                "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino"
+                "c:\\users\\xsegg\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\avr\\include"
             ],
             "forcedInclude": [
                 "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino\\Arduino.h"
@@ -54,6 +52,7 @@
                 "ARDUINO=10819",
                 "ARDUINO_AVR_UNO",
                 "ARDUINO_ARCH_AVR",
+                "__AVR_ATmega328P__",
                 "__DBL_MIN_EXP__=(-125)",
                 "__HQ_FBIT__=15",
                 "__cpp_attributes=200809",

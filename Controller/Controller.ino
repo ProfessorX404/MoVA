@@ -20,14 +20,10 @@ If using VSCode:
               [
                   "build.extra_flags",
                   "-D__AVR_ATmega328P__"
-              ],
-              [
-                  "build.extra_flags",
-                  "-DF_CPU=16000000UL"
               ]
           ]
-  at the bottom so that the compiler knowns which board it is working with. If hardware does not use a
-  328P chip (Uno, Nano, etc.), or runs at a different frequency, replace the tag with the correct value.
+  at the bottom so that the compiler knowns which chip it is working with. If hardware does not use a
+  328P chip (Uno, Nano, etc.) replace the tag with the correct value.
 
   - Arduino extension does not work (for me) with Arduino CLI even though the documentation says it does,
   I have to use legacy Arduino IDE v1.8.19
