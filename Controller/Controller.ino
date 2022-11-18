@@ -20,10 +20,14 @@ If using VSCode:
               [
                   "build.extra_flags",
                   "-D__AVR_ATmega328P__"
+              ],
+              [
+                  "build.extra_flags",
+                  "-DF_CPU=16000000UL"
               ]
           ]
   at the bottom so that the compiler knowns which board it is working with. If hardware does not use a
-  328P chip (Uno, Nano, etc.) replace the tag with the correct verison.
+  328P chip (Uno, Nano, etc.), or runs at a different frequency, replace the tag with the correct value.
 
   - Arduino extension does not work (for me) with Arduino CLI even though the documentation says it does,
   I have to use legacy Arduino IDE v1.8.19
@@ -64,7 +68,6 @@ TODO:
 #define ENC_TOT_BIT_CT         24                 // Total number of bits in encoder packet. Last bit is error bit, success=1.
 #define ENC_DATA_BIT_CT        17                 // Data bits in encoder packet.
 #define ENC_MIN_TIME_US        20                 // Minimum amount of time between data calls, in milliseconds
-#define F_CPU                  0x10               // HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to clock cycles/us
 #define WIND_UP_MIN            -10.0              // Integral growth bound min const
 #define WIND_UP_MAX            10.0               // Integral growth bound max const
 #define ENC_TICS_PER_MOTOR_REV 0x20000            // Number of encoder tics in mechanical revolution (per datasheet)

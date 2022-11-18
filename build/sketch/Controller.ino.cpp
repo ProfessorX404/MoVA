@@ -54,27 +54,27 @@ TODO:
 #include <ArduinoSTL.h>
 #include <array>
 
-#define PWM_PIN                3                  // Motor control pin
-#define DIR_PIN                5                  // Directional control pin
-#define CLK_PIN                5                  // Encoder clock PWM pin
-#define ENC_DATA_PIN           6                  // Encoder data input pin
-#define H1_PIN                 A1                 // Hall effect sensor pins.
-#define H2_PIN                 A2                 // Generally be used digitally, but
-#define H3_PIN                 A3                 // mapped to analog pins for resolution.
-#define C_FORWARD              1                  // Normalized forward vector. Swap to 0 if reversed.
-#define C_REVERSE              abs(C_FORWARD - 1) // Normalized reverse vector. Always opposite of C_FORWARD.
-#define ENC_TOT_BIT_CT         24                 // Total number of bits in encoder packet. Last bit is error bit, success=1.
-#define ENC_DATA_BIT_CT        17                 // Data bits in encoder packet.
-#define ENC_MIN_TIME_US        20                 // Minimum amount of time between data calls, in milliseconds
-#define F_CPU                  0x10               // HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to clock cycles/us
-#define WIND_UP_MIN            -10.0              // Integral growth bound min const
-#define WIND_UP_MAX            10.0               // Integral growth bound max const
-#define ENC_TICS_PER_MOTOR_REV 0x20000            // Number of encoder tics in mechanical revolution (per datasheet)
-#define GEARBOX_RATIO          15                 // Revs into gearbox per 1 revolution out
-#define ENC_TICS_PER_VALVE_REV ENC_TICS_PER_MOTOR_REV *GEARBOX_RATIO         // Post-gearbox encoder tics per valve revolution
-#define VALVE_OPEN_DEG         90.0                                          // Encoder value for valve being fully open.
-#define VALVE_CLOSED_DEG       0.0                                           // Encoder value for valve being fully closed
-#define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)           // Post-gearbox encoder tics / degree
+#define PWM_PIN         3                  // Motor control pin
+#define DIR_PIN         5                  // Directional control pin
+#define CLK_PIN         5                  // Encoder clock PWM pin
+#define ENC_DATA_PIN    6                  // Encoder data input pin
+#define H1_PIN          A1                 // Hall effect sensor pins.
+#define H2_PIN          A2                 // Generally be used digitally, but
+#define H3_PIN          A3                 // mapped to analog pins for resolution.
+#define C_FORWARD       1                  // Normalized forward vector. Swap to 0 if reversed.
+#define C_REVERSE       abs(C_FORWARD - 1) // Normalized reverse vector. Always opposite of C_FORWARD.
+#define ENC_TOT_BIT_CT  24                 // Total number of bits in encoder packet. Last bit is error bit, success=1.
+#define ENC_DATA_BIT_CT 17                 // Data bits in encoder packet.
+#define ENC_MIN_TIME_US 20                 // Minimum amount of time between data calls, in milliseconds
+// #define F_CPU                  0x10               // HARDWARE DEPENDENT!!! For accurate data reading timings. Eq. to clock cycles/us
+#define WIND_UP_MIN            -10.0                                 // Integral growth bound min const
+#define WIND_UP_MAX            10.0                                  // Integral growth bound max const
+#define ENC_TICS_PER_MOTOR_REV 0x20000                               // Number of encoder tics in mechanical revolution (per datasheet)
+#define GEARBOX_RATIO          15                                    // Revs into gearbox per 1 revolution out
+#define ENC_TICS_PER_VALVE_REV ENC_TICS_PER_MOTOR_REV *GEARBOX_RATIO // Post-gearbox encoder tics per valve revolution
+#define VALVE_OPEN_DEG         90.0                                  // Encoder value for valve being fully open.
+#define VALVE_CLOSED_DEG       0.0                                   // Encoder value for valve being fully closed
+#define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)   // Post-gearbox encoder tics / degree
 #define TARGET_REVS            (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO) // Number of rotations to get almost fully open
 #define HALL_CUTOFF            0xff                                          // Voltage level cutoff for a positive hall effect status
 #define MAG_TIME_TO_FORM_MS    2 // Time in ms for magnetic fields to form large enough to be registered on Hall sensors
