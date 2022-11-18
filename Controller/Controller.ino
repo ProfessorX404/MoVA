@@ -10,7 +10,7 @@ URL: https://us.nanotec.com/products/2870-db59l024035-a
 
 Libraries used (attached in ../lib for convenience):
  - ArduPID https://github.com/PowerBroker2/ArduPID
- - FireTimer https://github.com/PowerBroker2/FireTimer
+ - FireTimer https://github.com/PowerBroker2/FireTimer (ArduPID dependency)
  - ArduinoSTL https://github.com/mike-matera/ArduinoSTL
 
 If using VSCode:
