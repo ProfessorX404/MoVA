@@ -23,7 +23,7 @@ Libraries used (attached in ../lib for convenience):
 
  - ArduPID https://github.com/PowerBroker2/ArduPID
 
- - FireTimer https://github.com/PowerBroker2/FireTimer
+ - FireTimer https://github.com/PowerBroker2/FireTimer (ArduPID dependency)
 
  - ArduinoSTL https://github.com/mike-matera/ArduinoSTL
 
@@ -47,7 +47,7 @@ If using VSCode:
 
           ]
 
-  at the bottom so that the compiler knowns which board it is working with. If hardware does not use a
+  at the bottom so that the compiler knowns which chip it is working with. If hardware does not use a
 
   328P chip (Uno, Nano, etc.) replace the tag with the correct value.
 
@@ -64,8 +64,6 @@ If using VSCode:
   c_cpp_properties.json' includePath is to install them via the Arduino IDE library manager and reload VSCode.
 
   They are attached in ../lib, but the extension includes them from C:/Users/[user]/Documents/Arduino/libraries.
-
-
 
 
 
@@ -96,11 +94,11 @@ TODO:
 - *Count revolutions w Halls
 
 */
-# 51 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 50 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 51 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
 # 52 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
 # 53 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 54 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 80 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 79 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 // Combinations of hall sensors based on motor angle, at 60 deg increments
 static const std::array<std::array<bool, 3>, 6 /* Number of posssible Hall combinations*/> HALL_COMBOS = {
   //    {H1, H2, H3}
@@ -208,9 +206,9 @@ bool updateValvePos() {
 // Returns binary representation of encoder readings
 unsigned long readEncData() {
     
-# 186 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 185 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("cli" ::: "memory")
-# 186 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 185 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                  ; // Deactivate interrupts for more accurate timing
     digitalWrite(5 /* Encoder clock PWM pin*/, 0x0); // First bit is latch, always 1.
     _delay_us(1);
@@ -227,15 +225,15 @@ unsigned long readEncData() {
         data <<= 1;
 
         
-# 201 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 200 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 201 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 200 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
              &= ~(1 << 5 /* Encoder clock PWM pin*/); // clock pin goes low
         _delay_us(1); // Wait for 1us
         
-# 203 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 202 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 203 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 202 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
              |= (1 << 5 /* Encoder clock PWM pin*/); // clock pin goes high
         _delay_us(1); // Wait for 1us
         data |= digitalRead(6 /* Encoder data input pin*/);
@@ -248,22 +246,21 @@ unsigned long readEncData() {
 
     _delay_us(20);
     
-# 214 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 213 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("sei" ::: "memory")
-# 214 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 213 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                ; // Reactivate interrupts
 
     return data >> (24 /* Total number of bits in encoder packet. Last bit is error bit, success=1.*/ - 17 /* Data bits in encoder packet.*/); // Return the first 17 bits of the data
 }
 
 // Outputs error info to serial, if fatal error stalls program
-byte error(bool isFatal) {
+void error(bool isFatal) {
     Serial.println("Error occured!");
     Serial.println("isFatal: " + isFatal);
     Serial.println("errorCode: " + errorCode);
 
     while (isFatal) {};
-    return 1 * 1;
 }
 
 // Returns the index of the entry in HALL_COMBOS which is the same
@@ -279,7 +276,7 @@ byte getHallSensorPosition(std::array<bool, 3> given) {
 
 // Returns Hall sensor readings
 std::array<bool, 3> getHallSensors() {
-    return {(analogRead(A1 /* Hall effect sensor pins.*/) >= 0xff /* Voltage level cutoff for a positive hall effect status*/), (analogRead(A2 /* Generally be used digitally, but*/) >= 0xff /* Voltage level cutoff for a positive hall effect status*/), (analogRead(A3 /* mapped to analog pins for resolution.*/) >= 0xff /* Voltage level cutoff for a positive hall effect status*/)};
+    return {(analogRead(A1 /* Hall effect sensor pins.*/) >= 1023 /* Voltage level cutoff for a positive hall effect status*/), (analogRead(A2 /* Generally be used digitally, but*/) >= 1023 /* Voltage level cutoff for a positive hall effect status*/), (analogRead(A3 /* mapped to analog pins for resolution.*/) >= 1023 /* Voltage level cutoff for a positive hall effect status*/)};
 }
 
 // Updates Hall sensor readings

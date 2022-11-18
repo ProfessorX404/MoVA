@@ -33,7 +33,6 @@ If using VSCode:
   They are attached in ../lib, but the extension includes them from C:/Users/[user]/Documents/Arduino/libraries.
 
 
-
 Before deployment, verify F_CPU is correct for the board you are using. If it is not, all serial communication will break.
 
 TODO:
@@ -57,23 +56,23 @@ TODO:
 #define CLK_PIN                5                  // Encoder clock PWM pin
 #define ENC_DATA_PIN           6                  // Encoder data input pin
 #define H1_PIN                 A1                 // Hall effect sensor pins.
-#define H2_PIN                 A2                 // Generally be used digitally, but
-#define H3_PIN                 A3                 // mapped to analog pins for resolution.
-#define C_FORWARD              1                  // Normalized forward vector. Swap to 0 if reversed.
-#define C_REVERSE              abs(C_FORWARD - 1) // Normalized reverse vector. Always opposite of C_FORWARD.
-#define ENC_TOT_BIT_CT         24                 // Total number of bits in encoder packet. Last bit is error bit, success=1.
-#define ENC_DATA_BIT_CT        17                 // Data bits in encoder packet.
+#define H2_PIN                 A2                 // Generally to be used digitally, but
+#define H3_PIN                 A3                 // mapped to analog pins for noise-filtering
+#define C_FORWARD              1                  // Normalized forward vector. Swap to 0 if reversed
+#define C_REVERSE              abs(C_FORWARD - 1) // Normalized reverse vector. Always opposite of C_FORWARD
+#define ENC_TOT_BIT_CT         24                 // Total number of bits in encoder packet. Last bit is error bit, success=1
+#define ENC_DATA_BIT_CT        17                 // Data bits in encoder packet
 #define ENC_MIN_TIME_US        20                 // Minimum amount of time between data calls, in milliseconds
 #define WIND_UP_MIN            -10.0              // Integral growth bound min const
 #define WIND_UP_MAX            10.0               // Integral growth bound max const
 #define ENC_TICS_PER_MOTOR_REV 0x20000            // Number of encoder tics in mechanical revolution (per datasheet)
 #define GEARBOX_RATIO          15                 // Revs into gearbox per 1 revolution out
 #define ENC_TICS_PER_VALVE_REV ENC_TICS_PER_MOTOR_REV *GEARBOX_RATIO         // Post-gearbox encoder tics per valve revolution
-#define VALVE_OPEN_DEG         90.0                                          // Encoder value for valve being fully open.
+#define VALVE_OPEN_DEG         90.0                                          // Encoder value for valve being fully open
 #define VALVE_CLOSED_DEG       0.0                                           // Encoder value for valve being fully closed
 #define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)           // Post-gearbox encoder tics / degree
 #define TARGET_REVS            (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO) // Number of rotations to get almost fully open
-#define HALL_CUTOFF            0xff                                          // Voltage level cutoff for a positive hall effect status
+#define HALL_CUTOFF            1023                                          // Voltage level cutoff for a positive hall effect status
 #define MAG_TIME_TO_FORM_MS    2 // Time in ms for magnetic fields to form large enough to be registered on Hall sensors
 #define N_COMBOS               6 // Number of posssible Hall combinations
 
@@ -132,8 +131,9 @@ void setup() {
 void loop() {
     if (!f_activated) { // Wait for system to be activated
         while (!isActivated()) {};
+        f_activated = true;
     }
-    f_activated = true;
+
     f_withinOneRev = totalRevs > TARGET_REVS;
 
     if (!f_withinOneRev) { // If system has been activated but hasn't gotten to within 180* of final open position
@@ -143,8 +143,7 @@ void loop() {
             totalRevs = getRevolutions();
         } else {
             delay(MAG_TIME_TO_FORM_MS);
-            updateHallSensors();
-            initHallReading = getHallSensorPosition(hallStatus);
+            initHallReading = getHallSensorPosition(readHallSensors());
             f_motorCharged = true;
         }
         return;
@@ -181,7 +180,7 @@ bool updateValvePos() {
     return false;
 }
 
-// Returns binary representation of encoder readings
+// Returns binary representation of encoder readings. Returns -1 if reading fails.
 unsigned long readEncData() {
     noInterrupts();             // Deactivate interrupts for more accurate timing
     digitalWrite(CLK_PIN, LOW); // First bit is latch, always 1.
@@ -191,7 +190,7 @@ unsigned long readEncData() {
     if (!digitalRead(ENC_DATA_PIN)) { // If latch reads successfully, continue to data bits
         errorCode = 2;
         error(false);
-        return -1.0;
+        return -1;
     }
 
     unsigned long data = 0;
@@ -217,13 +216,12 @@ unsigned long readEncData() {
 }
 
 // Outputs error info to serial, if fatal error stalls program
-byte error(bool isFatal) {
+void error(bool isFatal) {
     Serial.println("Error occured!");
     Serial.println("isFatal: " + isFatal);
     Serial.println("errorCode: " + errorCode);
 
     while (isFatal) {};
-    return 1 * 1;
 }
 
 // Returns the index of the entry in HALL_COMBOS which is the same
@@ -237,14 +235,17 @@ byte getHallSensorPosition(std::array<bool, 3> given) {
     return -1;
 }
 
-// Returns Hall sensor readings
-std::array<bool, 3> getHallSensors() {
-    return {(analogRead(H1_PIN) >= HALL_CUTOFF), (analogRead(H2_PIN) >= HALL_CUTOFF), (analogRead(H3_PIN) >= HALL_CUTOFF)};
+// Updates hallStats and returns Hall sensor readings
+std::array<bool, 3> readHallSensors() {
+    hallStatus[0] = (analogRead(H1_PIN) >= HALL_CUTOFF);
+    hallStatus[1] = (analogRead(H2_PIN) >= HALL_CUTOFF);
+    hallStatus[2] = (analogRead(H3_PIN) >= HALL_CUTOFF);
+    return hallStatus;
 }
 
-// Updates Hall sensor readings
-void updateHallSensors() { hallStatus = getHallSensors(); }
-
+// Returns true if valve has been actuated by master controller.
 bool isActivated() { return true; } // Placeholder
 
+// Returns the number of complete revolutions the motor has completed.
+// Accurate to within 60deg.
 byte getRevolutions() { return 0; } // Placeholder

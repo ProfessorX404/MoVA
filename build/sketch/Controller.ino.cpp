@@ -12,7 +12,7 @@ URL: https://us.nanotec.com/products/2870-db59l024035-a
 
 Libraries used (attached in ../lib for convenience):
  - ArduPID https://github.com/PowerBroker2/ArduPID
- - FireTimer https://github.com/PowerBroker2/FireTimer
+ - FireTimer https://github.com/PowerBroker2/FireTimer (ArduPID dependency)
  - ArduinoSTL https://github.com/mike-matera/ArduinoSTL
 
 If using VSCode:
@@ -24,7 +24,7 @@ If using VSCode:
                   "-D__AVR_ATmega328P__"
               ]
           ]
-  at the bottom so that the compiler knowns which board it is working with. If hardware does not use a
+  at the bottom so that the compiler knowns which chip it is working with. If hardware does not use a
   328P chip (Uno, Nano, etc.) replace the tag with the correct value.
 
   - Arduino extension does not work (for me) with Arduino CLI even though the documentation says it does,
@@ -33,7 +33,6 @@ If using VSCode:
 - The only consistent method I've found for getting the extension to find the libraries and include them in
   c_cpp_properties.json' includePath is to install them via the Arduino IDE library manager and reload VSCode.
   They are attached in ../lib, but the extension includes them from C:/Users/[user]/Documents/Arduino/libraries.
-
 
 
 Before deployment, verify F_CPU is correct for the board you are using. If it is not, all serial communication will break.
@@ -75,7 +74,7 @@ TODO:
 #define VALVE_CLOSED_DEG       0.0                                           // Encoder value for valve being fully closed
 #define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)           // Post-gearbox encoder tics / degree
 #define TARGET_REVS            (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO) // Number of rotations to get almost fully open
-#define HALL_CUTOFF            0xff                                          // Voltage level cutoff for a positive hall effect status
+#define HALL_CUTOFF            1023                                          // Voltage level cutoff for a positive hall effect status
 #define MAG_TIME_TO_FORM_MS    2 // Time in ms for magnetic fields to form large enough to be registered on Hall sensors
 #define N_COMBOS               6 // Number of posssible Hall combinations
 
@@ -109,27 +108,27 @@ bool f_motorCharged = false; // True if motor has been charged long enough for H
 
 ArduPID pid; // PID instance
 
-#line 110 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 109 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup();
-#line 132 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 131 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void loop();
-#line 163 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 162 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void updateEngineSpeed();
-#line 171 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 170 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 bool updateValvePos();
-#line 185 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 184 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 unsigned long readEncData();
-#line 220 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-byte error(bool isFatal);
-#line 231 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 219 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void error(bool isFatal);
+#line 229 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 byte getHallSensorPosition(std::array<bool, 3> given);
-#line 246 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 244 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void updateHallSensors();
-#line 248 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 246 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 bool isActivated();
-#line 250 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 248 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 byte getRevolutions();
-#line 110 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 109 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup() {
     Serial.begin(57600); // Init serial connection
 
@@ -240,13 +239,12 @@ unsigned long readEncData() {
 }
 
 // Outputs error info to serial, if fatal error stalls program
-byte error(bool isFatal) {
+void error(bool isFatal) {
     Serial.println("Error occured!");
     Serial.println("isFatal: " + isFatal);
     Serial.println("errorCode: " + errorCode);
 
     while (isFatal) {};
-    return 1 * 1;
 }
 
 // Returns the index of the entry in HALL_COMBOS which is the same
