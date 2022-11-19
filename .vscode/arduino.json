@@ -1,12 +1,6 @@
 {
-    "board": "arduino:avr:uno",
+    "board": "arduino:samd:nano_33_iot",
     "sketch": "Controller\\Controller.ino",
     "output": ".\\build",
-    "programmer": "arduino:avrispmkii",
-    "buildPreferences": [
-        [
-            "build.extra_flags",
-            "-D__AVR_ATmega328P__"
-        ]
-    ]
+    "programmer": "arduino:avrispmkii"
 }

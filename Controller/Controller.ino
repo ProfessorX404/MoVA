@@ -29,11 +29,10 @@ If using VSCode:
   I have to use legacy Arduino IDE v1.8.19
 
 - The only consistent method I've found for getting the extension to find the libraries and include them in
-  c_cpp_properties.json' includePath is to install them via the Arduino IDE library manager and reload VSCode.
-  They are attached in ../lib, but the extension includes them from C:/Users/[user]/Documents/Arduino/libraries.
+  c_cpp_properties.json' includePath is to install them via the library manager, manual zip extraction does not work.
 
-
-Before deployment, verify F_CPU is correct for the board you are using. If it is not, all serial communication will break.
+IMPORTANT!! Before deployment, verify F_CPU is correct for the board you are using. If it is not, all serial communication will
+break.
 
 TODO:
 - Homing routine (may just end up being manual adjustment)
