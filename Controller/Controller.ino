@@ -15,7 +15,8 @@ Libraries used (attached in ../lib for convenience):
 
 If using VSCode:
 
-- If for some reason you need to reinitialize/regen arduino.json, make sure to add
+- Currently we are using an Arduino Nano 33 IoT. However, if we transfer back to a standard nano,
+  add these lines to arduino.json or stuff will break.
       "buildPreferences": [
               [
                   "build.extra_flags",
