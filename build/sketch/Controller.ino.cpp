@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#line 1 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 1 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 /*
 Xavier Beech
 UW SARP 2022-23
@@ -17,7 +17,8 @@ Libraries used (attached in ../lib for convenience):
 
 If using VSCode:
 
-- If for some reason you need to reinitialize/regen arduino.json, make sure to add
+- Currently we are using an Arduino Nano 33 IoT with a SAMD21 Motorcontroller. However, if we transfer back to a standard nano,
+  add these lines to arduino.json or stuff will break.
       "buildPreferences": [
               [
                   "build.extra_flags",
@@ -107,25 +108,25 @@ bool f_motorCharged = false; // True if motor has been charged long enough for H
 
 ArduPID pid; // PID instance
 
-#line 108 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 109 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup();
-#line 130 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 131 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void loop();
-#line 161 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 162 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void updateEngineSpeed();
-#line 169 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 170 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 bool updateValvePos();
-#line 183 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 184 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 unsigned long readEncData();
-#line 218 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 219 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void error(bool isFatal);
-#line 228 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 229 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 byte getHallSensorPosition(std::array<bool, 3> given);
-#line 246 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 247 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 bool isActivated();
-#line 250 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 251 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 byte getRevolutions();
-#line 108 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 109 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup() {
     Serial.begin(57600); // Init serial connection
 
