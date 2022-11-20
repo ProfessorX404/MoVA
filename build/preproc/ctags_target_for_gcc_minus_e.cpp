@@ -1,4 +1,4 @@
-# 1 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 1 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 /*
 
 Xavier Beech
@@ -33,7 +33,9 @@ If using VSCode:
 
 
 
-- If for some reason you need to reinitialize/regen arduino.json, make sure to add
+- Currently we are using an Arduino Nano 33 IoT with a SAMD21 Motorcontroller. However, if we transfer back to a standard nano,
+
+  add these lines to arduino.json or stuff will break.
 
       "buildPreferences": [
 
@@ -92,11 +94,11 @@ TODO:
 - *Count revolutions w Halls
 
 */
-# 49 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-# 50 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 51 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 52 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 78 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 50 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 51 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 52 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 53 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 79 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 // Combinations of hall sensors based on motor angle, at 60 deg increments
 static const std::array<std::array<bool, 3>, 6 /* Number of posssible Hall combinations*/> HALL_COMBOS = {
   //    {H1, H2, H3}

@@ -15,7 +15,7 @@ Libraries used (attached in ../lib for convenience):
 
 If using VSCode:
 
-- Currently we are using an Arduino Nano 33 IoT. However, if we transfer back to a standard nano,
+- Currently we are using an Arduino Nano 33 IoT with a SAMD21 Motorcontroller. However, if we transfer back to a standard nano,
   add these lines to arduino.json or stuff will break.
       "buildPreferences": [
               [
@@ -24,7 +24,7 @@ If using VSCode:
               ]
           ]
   at the bottom so that the compiler knowns which chip it is working with. If hardware does not use a
-  328P chip (Uno, Nano, etc.) replace the tag with the correct value.
+  328P chip (Uno, Nano, etc.), and the code refuses to compile with out, change the tag to the corresponding value.
 
   - Arduino extension does not work (for me) with Arduino CLI even though the documentation says it does,
   I have to use legacy Arduino IDE v1.8.19
