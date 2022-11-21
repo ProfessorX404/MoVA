@@ -1,0 +1,74 @@
+*Pick And Place List
+*Company=
+*Author=
+*eMail=
+*
+*Project=Controller-Schematic
+*Date=16:58:05
+*CreatedBy=Fritzing 0.9.10b.2022-07-01.CD-2134-0-40d23c29
+*
+*
+*Coordinates in mm, always center of component
+*Origin 0/0=Lower left corner of PCB
+*Rotation in degree (0-360, math. pos.)
+*
+*No;Value;Package;X;Y;Rotation;Side;Name
+1;1k;THT;75.8047;-18.5379;180;Bottom;R8
+2;;;50.9246;-18.5235;0;Bottom;Via39
+3;;;49.037;-15.3745;0;Bottom;TXT3
+4;;;85.5705;-26.7399;0;Bottom;IMG1
+5;;;37.0289;-39.5064;0;Bottom;TXT1
+6;100;THT;74.5693;-48.1029;0;Bottom;R12
+7;;;13.1618;-38.2087;0;Bottom;Via44
+8;;;25.023;-39.6771;0;Bottom;Via42
+9;;;55.2509;-48.3739;0;Bottom;Via23
+10;;;61.7373;-33.2302;0;Bottom;Via36
+11;;;86.8186;-7.78554;0;Bottom;Via50
+12;10k;THT;73.42;-30.7239;-90;Bottom;R2
+13;;;11.7549;-26.7871;0;Bottom;Arduino Nano 33 IoT
+14;;;68.9427;-26.5326;0;Bottom;Via32
+15;;;22.904;-38.2522;0;Bottom;Via45
+16;;dil08;43.5253;-31.6627;90;Bottom;EncDat2
+17;1k;THT;33.7729;-19.1157;180;Bottom;R7
+18;;;35.5969;-36.9877;0;Bottom;Via10
+19;;;47.3353;-36.9877;0;Bottom;Via8
+20;;;14.2051;-11.6098;0;Bottom;Via2
+21;;THT;85.7259;-50.83;-90;Bottom;Adjust-High or Low
+22;;;45.8278;-2.77699;0;Bottom;Via51
+23;100;THT;57.423;-44.6077;0;Bottom;R3
+24;10k;THT;57.423;-49.6877;0;Bottom;R1
+25;;dil08;43.4801;-45.9084;90;Bottom;EncCLK2
+26;;;91.6122;-19.8751;0;Bottom;Hole1
+27;;;16.0415;-46.02;0;Bottom;Via12
+28;;;13.0736;-28.0355;0;Bottom;Via15
+29;;db15;78.8543;-8.88891;0;Bottom;Port2
+30;;dil08;30.4367;-31.717;90;Bottom;EncDat1
+31;;[THT];90.2008;-43.397;180;Bottom;>>
+32;;;60.1948;-33.2524;0;Bottom;Via34
+33;;;58.3768;-47.1657;0;Bottom;Via24
+34;100;THT;57.4608;-35.8177;0;Bottom;R6
+35;;dil08;30.753;-45.8904;90;Bottom;EncCLK1
+36;;;9.37964;-51.1944;0;Bottom;Via41
+37;;;73.5336;-39.5332;0;Bottom;Via18
+38;100;THT;57.4236;-41.9507;0;Bottom;R4
+39;;db15;38.2143;-8.88891;0;Bottom;Port1
+40;100;THT;57.4985;-38.9993;0;Bottom;R5
+41;;;2.47067;-28.0427;0;Bottom;Via14
+42;;;36.0876;-27.6028;0;Bottom;Via29
+43;;[THT];80.0408;-43.4421;180;Bottom;<<
+44;;;37.103;-43.3212;0;Bottom;Via31
+45;10k;THT;51.9877;-22.6129;0;Bottom;R11
+46;;;50.863;-24.3077;0;Bottom;Via40
+47;;;85.7551;-50.9511;0;Bottom;TXT2
+48;;;23.763;-25.479;0;Bottom;Via28
+49;;;3.23636;-50.9375;0;Bottom;Hole2
+50;10k;THT;81.8843;-35.7926;0;Bottom;R10
+51;;;60.3634;-6.80649;0;Bottom;Via38
+52;;;8.25825;-38.1633;0;Bottom;Via43
+53;;;62.6658;-31.5993;0;Bottom;Via33
+54;;;33.378;-17.4557;0;Bottom;Via47
+55;;;26.6621;-11.443;0;Bottom;Via48
+56;;;70.8479;-22.499;0;Bottom;Via46
+57;;;71.8479;-51.5122;0;Bottom;Hole3
+58;;;32.5834;-37.1142;0;Bottom;Via7
+59;;;37.103;-38.176;0;Bottom;Via30
