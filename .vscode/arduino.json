@@ -1,6 +1,13 @@
 {
-    "board": "arduino:samd:nano_33_iot",
+    "board": "arduino:avr:nano",
     "sketch": "Controller\\Controller.ino",
     "output": ".\\build",
-    "programmer": "arduino:avrispmkii"
+    "programmer": "arduino:avrispmkii",
+    "configuration": "cpu=atmega328old",
+    "buildPreferences": [
+        [
+            "build.extra_flags",
+            "-D__AVR_ATmega328P__"
+        ]
+    ]
 }
