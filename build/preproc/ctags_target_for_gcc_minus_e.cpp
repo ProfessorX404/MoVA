@@ -1,4 +1,4 @@
-# 1 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 1 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 /*
 
 Xavier Beech
@@ -51,7 +51,7 @@ If using VSCode:
 
   at the bottom so that the compiler knowns which chip it is working with. If hardware does not use a
 
-  328P chip (Uno, Nano, etc.) replace the tag with the correct value.
+  328P chip (Uno, Nano, etc.), and the code refuses to compile with out, change the tag to the corresponding value.
 
 
 
@@ -75,7 +75,7 @@ break.
 
 TODO:
 
-- Homing routine (may just end up being manual adjustment)
+- Homing routine (probably end up being manual adjustment)
 
 - Placeholders:
 
@@ -94,11 +94,11 @@ TODO:
 - *Count revolutions w Halls
 
 */
-# 50 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-# 51 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 52 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 53 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 79 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 50 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 51 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 52 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 53 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 79 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 // Combinations of hall sensors based on motor angle, at 60 deg increments
 static const std::array<std::array<bool, 3>, 6 /* Number of posssible Hall combinations*/> HALL_COMBOS = {
   //    {H1, H2, H3}
@@ -130,17 +130,17 @@ bool f_motorCharged = false; // True if motor has been charged long enough for H
 ArduPID pid; // PID instance
 
 void setup() {
-    SerialUSB.begin(57600); // Init serial connection
+    Serial.begin(57600); // Init serial connection
 
     // Init pin values
-    pinMode(3 /* Motor control pin*/, OUTPUT); // Motor magnitude control
-    pinMode(5 /* Directional control pin*/, OUTPUT); // Motor direction control
-    pinMode(5 /* Encoder clock PWM pin*/, OUTPUT); // Encoder serial clock
+    pinMode(3 /* Motor control pin*/, 0x1); // Motor magnitude control
+    pinMode(5 /* Directional control pin*/, 0x1); // Motor direction control
+    pinMode(5 /* Encoder clock PWM pin*/, 0x1); // Encoder serial clock
 
-    pinMode(6 /* Encoder data input pin*/, INPUT); // Encoder data
-    pinMode(A1 /* Hall effect sensor pins.*/, INPUT); // Hall effect sensors
-    pinMode(A2 /* Generally to be used digitally, but*/, INPUT);
-    pinMode(A3 /* mapped to analog pins for noise-filtering*/, INPUT);
+    pinMode(6 /* Encoder data input pin*/, 0x0); // Encoder data
+    pinMode(A1 /* Hall effect sensor pins.*/, 0x0); // Hall effect sensors
+    pinMode(A2 /* Generally to be used digitally, but*/, 0x0);
+    pinMode(A3 /* mapped to analog pins for noise-filtering*/, 0x0);
 
     analogWrite(3 /* Motor control pin*/, 0); // Set motor to 0, intiailize correct orientation
     digitalWrite(5 /* Directional control pin*/, 1 /* Normalized forward vector. Swap to 0 if reversed*/);
@@ -205,10 +205,14 @@ bool updateValvePos() {
 
 // Returns binary representation of encoder readings. Returns -1 if reading fails.
 unsigned long readEncData() {
-    __disable_irq(); // Deactivate interrupts for more accurate timing
-    digitalWrite(5 /* Encoder clock PWM pin*/, LOW); // First bit is latch, always 1.
+    
+# 185 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+   __asm__ __volatile__ ("cli" ::: "memory")
+# 185 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+                 ; // Deactivate interrupts for more accurate timing
+    digitalWrite(5 /* Encoder clock PWM pin*/, 0x0); // First bit is latch, always 1.
     _delay_us(1);
-    digitalWrite(5 /* Encoder clock PWM pin*/, HIGH);
+    digitalWrite(5 /* Encoder clock PWM pin*/, 0x1);
     _delay_us(1);
     if (!digitalRead(6 /* Encoder data input pin*/)) { // If latch reads successfully, continue to data bits
         errorCode = 2;
@@ -220,9 +224,17 @@ unsigned long readEncData() {
     for (int i = 0; i < 24 /* Total number of bits in encoder packet. Last bit is error bit, success=1*/ - 1; i++) {
         data <<= 1;
 
-        PORTD &= ~(1 << 5 /* Encoder clock PWM pin*/); // clock pin goes low
+        
+# 200 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+       (*(volatile uint8_t *)((0x0B) + 0x20)) 
+# 200 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+             &= ~(1 << 5 /* Encoder clock PWM pin*/); // clock pin goes low
         _delay_us(1); // Wait for 1us
-        PORTD |= (1 << 5 /* Encoder clock PWM pin*/); // clock pin goes high
+        
+# 202 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+       (*(volatile uint8_t *)((0x0B) + 0x20)) 
+# 202 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+             |= (1 << 5 /* Encoder clock PWM pin*/); // clock pin goes high
         _delay_us(1); // Wait for 1us
         data |= digitalRead(6 /* Encoder data input pin*/);
     }
@@ -233,16 +245,20 @@ unsigned long readEncData() {
     }
 
     _delay_us(20);
-    __enable_irq(); // Reactivate interrupts
+    
+# 213 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+   __asm__ __volatile__ ("sei" ::: "memory")
+# 213 "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+               ; // Reactivate interrupts
 
     return data >> (24 /* Total number of bits in encoder packet. Last bit is error bit, success=1*/ - 17 /* Data bits in encoder packet*/); // Return the first 17 bits of the data
 }
 
 // Outputs error info to serial, if fatal error stalls program
 void error(bool isFatal) {
-    SerialUSB.println("Error occured!");
-    SerialUSB.println("isFatal: " + isFatal);
-    SerialUSB.println("errorCode: " + errorCode);
+    Serial.println("Error occured!");
+    Serial.println("isFatal: " + isFatal);
+    Serial.println("errorCode: " + errorCode);
 
     while (isFatal) {};
 }
