@@ -36,7 +36,7 @@ IMPORTANT!! Before deployment, verify F_CPU is correct for the board you are usi
 break.
 
 TODO:
-- Homing routine (may just end up being manual adjustment)
+- Homing routine (probably end up being manual adjustment)
 - Placeholders:
     - VALVE_OPEN_DEG
     - VALVE_CLOSED_DEG
@@ -45,6 +45,7 @@ TODO:
     - getRevolutions()*
 - TUNE PID AND WIND UP CONSTANTS
 - *Count revolutions w Halls
+- Doc markdown
 */
 
 #include <ArduPID.h>

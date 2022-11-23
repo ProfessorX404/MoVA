@@ -2,275 +2,275 @@
   {
     "Sourcefile": null,
     "Include": "",
-    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\cores\\arduino"
+    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino"
   },
   {
     "Sourcefile": null,
     "Include": "",
-    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\variants\\nano_33_iot"
+    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\variants\\eightanaloginputs"
   },
   {
-    "Sourcefile": "z:\\Documents\\Github\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Sourcefile": "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "ArduPID.h",
-    "Includepath": "Z:\\Documents\\Arduino\\libraries\\ArduPID\\src"
+    "Includepath": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduPID\\src"
   },
   {
-    "Sourcefile": "z:\\Documents\\Github\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Sourcefile": "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "FireTimer.h",
-    "Includepath": "Z:\\Documents\\Arduino\\libraries\\FireTimer\\src"
+    "Includepath": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\FireTimer\\src"
   },
   {
-    "Sourcefile": "z:\\Documents\\Github\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Sourcefile": "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "ArduinoSTL.h",
-    "Includepath": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src"
+    "Includepath": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src"
   },
   {
-    "Sourcefile": "z:\\Documents\\Github\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Sourcefile": "c:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduPID\\src\\ArduPID.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduPID\\src\\ArduPID.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\FireTimer\\src\\FireTimer.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\FireTimer\\src\\FireTimer.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\ArduinoSTL.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\ArduinoSTL.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\abi\\abi.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\abi\\abi.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\algorithm.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\algorithm.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\associative_base.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\associative_base.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\bitset.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\bitset.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\char_traits.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\char_traits.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\complex.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\complex.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_op.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_op.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_opnt.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_opnt.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_ops.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_ops.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_opv.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_opv.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_opvnt.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_opvnt.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_opvs.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\del_opvs.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\deque.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\deque.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\eh_alloc.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\eh_alloc.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\eh_globals.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\eh_globals.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\exception.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\exception.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\func_exception.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\func_exception.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\iomanip.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\iomanip.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\ios.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\ios.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\iostream.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\iostream.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\istream.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\istream.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\iterator.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\iterator.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\limits.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\limits.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\list.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\list.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\locale.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\locale.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\map.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\map.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_handler.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_handler.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_op.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_op.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_opnt.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_opnt.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_opv.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_opv.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_opvnt.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\new_opvnt.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\numeric.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\numeric.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\ostream.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\ostream.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\ostream_helpers.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\ostream_helpers.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\queue.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\queue.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\set.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\set.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\sstream.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\sstream.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\stack.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\stack.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\stdexcept.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\stdexcept.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\streambuf.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\streambuf.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\string.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\string.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\support.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\support.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\typeinfo.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\typeinfo.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\utility.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\utility.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\valarray.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\valarray.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\vector.cpp",
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\vector.cpp",
     "Include": "",
     "Includepath": null
   }
