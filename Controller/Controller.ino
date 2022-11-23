@@ -15,7 +15,8 @@ Libraries used (attached in ../lib for convenience):
 
 If using VSCode:
 
-- Place following lines in arduino.json to allow it to build for AVR boards.
+- Place following lines in arduino.json to allow it to build for AVR boards. Also, if using the Arduino nano
+  in the Avionics cabinet in KWT, you must use the "ATmega328P (Old bootloader)" option in the board manager..
       "buildPreferences": [
               [
                   "build.extra_flags",
@@ -26,14 +27,13 @@ If using VSCode:
   - Arduino extension does not work (for me) with Arduino CLI even though the documentation says it does,
   I have to use legacy Arduino IDE v1.8.19
 
-- The only consistent method I've found for getting the extension to find the libraries and include them in
-  c_cpp_properties.json' includePath is to install them via the library manager, manual zip extraction does not work.
+- Manual zip extraction does not work.for library installation, you must go through the library manager.
 
 IMPORTANT!! Before deployment, verify F_CPU is correct for the board you are using. If it is not, all serial communication will
 break.
 
 TODO:
-- Homing routine (probably end up being manual adjustment)
+- Manual adjustment
 - Placeholders:
     - VALVE_OPEN_DEG
     - VALVE_CLOSED_DEG
@@ -42,7 +42,6 @@ TODO:
     - getRevolutions()*
 - TUNE PID AND WIND UP CONSTANTS
 - *Count revolutions w Halls
-- Doc markdown
 */
 
 #include <ArduPID.h>
