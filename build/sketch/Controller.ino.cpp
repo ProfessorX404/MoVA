@@ -35,7 +35,7 @@ IMPORTANT!! Before deployment, verify F_CPU is correct for the board you are usi
 break.
 
 TODO:
-- Homing routine (may just end up being manual adjustment)
+- Homing routine (probably end up being manual adjustment)
 - Placeholders:
     - VALVE_OPEN_DEG
     - VALVE_CLOSED_DEG
@@ -44,6 +44,7 @@ TODO:
     - getRevolutions()*
 - TUNE PID AND WIND UP CONSTANTS
 - *Count revolutions w Halls
+- Doc markdown
 */
 
 #include <ArduPID.h>
@@ -105,25 +106,25 @@ bool f_motorCharged = false; // True if motor has been charged long enough for H
 
 ArduPID pid; // PID instance
 
-#line 106 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 107 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup();
-#line 128 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 129 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void loop();
-#line 159 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 160 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void updateEngineSpeed();
-#line 167 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 168 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 bool updateValvePos();
-#line 181 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 182 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 unsigned long readEncData();
-#line 216 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 217 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void error(bool isFatal);
-#line 226 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 227 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 byte getHallSensorPosition(std::array<bool, 3> given);
-#line 244 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 245 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 bool isActivated();
-#line 248 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 249 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 byte getRevolutions();
-#line 106 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+#line 107 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup() {
     Serial.begin(57600); // Init serial connection
 
