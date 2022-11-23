@@ -69,7 +69,7 @@ break.
 
 TODO:
 
-- Homing routine (may just end up being manual adjustment)
+- Homing routine (probably end up being manual adjustment)
 
 - Placeholders:
 
@@ -87,12 +87,14 @@ TODO:
 
 - *Count revolutions w Halls
 
+- Doc markdown
+
 */
-# 47 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-# 48 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 48 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 # 49 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
 # 50 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 76 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 51 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 77 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 // Combinations of hall sensors based on motor angle, at 60 deg increments
 static const std::array<std::array<bool, 3>, 6 /* Number of posssible Hall combinations*/> HALL_COMBOS = {
   //    {H1, H2, H3}
@@ -200,9 +202,9 @@ bool updateValvePos() {
 // Returns binary representation of encoder readings. Returns -1 if reading fails.
 unsigned long readEncData() {
     
-# 182 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 183 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("cli" ::: "memory")
-# 182 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 183 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                  ; // Deactivate interrupts for more accurate timing
     digitalWrite(5 /* Encoder clock PWM pin*/, 0x0); // First bit is latch, always 1.
     _delay_us(1);
@@ -219,15 +221,15 @@ unsigned long readEncData() {
         data <<= 1;
 
         
-# 197 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 198 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 197 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 198 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
              &= ~(1 << 5 /* Encoder clock PWM pin*/); // clock pin goes low
         _delay_us(1); // Wait for 1us
         
-# 199 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 200 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 199 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 200 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
              |= (1 << 5 /* Encoder clock PWM pin*/); // clock pin goes high
         _delay_us(1); // Wait for 1us
         data |= digitalRead(6 /* Encoder data input pin*/);
@@ -240,9 +242,9 @@ unsigned long readEncData() {
 
     _delay_us(20);
     
-# 210 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 211 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("sei" ::: "memory")
-# 210 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 211 "z:\\Documents\\Github\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                ; // Reactivate interrupts
 
     return data >> (24 /* Total number of bits in encoder packet. Last bit is error bit, success=1*/ - 17 /* Data bits in encoder packet*/); // Return the first 17 bits of the data
