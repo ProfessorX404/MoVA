@@ -10,22 +10,22 @@
     "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\variants\\eightanaloginputs"
   },
   {
-    "Sourcefile": "z:\\Documents\\Github\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Sourcefile": "z:\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "ArduPID.h",
     "Includepath": "Z:\\Documents\\Arduino\\libraries\\ArduPID\\src"
   },
   {
-    "Sourcefile": "z:\\Documents\\Github\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Sourcefile": "z:\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "FireTimer.h",
     "Includepath": "Z:\\Documents\\Arduino\\libraries\\FireTimer\\src"
   },
   {
-    "Sourcefile": "z:\\Documents\\Github\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Sourcefile": "z:\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "ArduinoSTL.h",
     "Includepath": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src"
   },
   {
-    "Sourcefile": "z:\\Documents\\Github\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Sourcefile": "z:\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "",
     "Includepath": null
   },
