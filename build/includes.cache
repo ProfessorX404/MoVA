@@ -26,6 +26,11 @@
   },
   {
     "Sourcefile": "z:\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Include": "SoftPWM.h",
+    "Includepath": "Z:\\Documents\\Arduino\\libraries\\SoftPWM"
+  },
+  {
+    "Sourcefile": "z:\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
     "Include": "",
     "Includepath": null
   },
@@ -271,6 +276,11 @@
   },
   {
     "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src\\vector.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "Z:\\Documents\\Arduino\\libraries\\SoftPWM\\SoftPWM.cpp",
     "Include": "",
     "Includepath": null
   }

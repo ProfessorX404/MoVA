@@ -3,11 +3,11 @@
 
 Xavier Beech
 
-test
-
 UW SARP 2022-23
 
 Motorized valve actuation controller software for 2022 Pacific Impulse.
+
+Must comment line 22 of [ArduinoSTL location]/ArduinoSTL/src/new_handler.cpp, or code will not compile.
 
 
 
@@ -63,12 +63,6 @@ If using VSCode:
 
 
 
-IMPORTANT!! Before deployment, verify F_CPU is correct for the board you are using. If it is not, all serial communication will
-
-break.
-
-
-
 TODO:
 
 - Manual adjustment
@@ -85,16 +79,19 @@ TODO:
 
     - getRevolutions()*
 
-- TUNE PID AND WIND UP CONSTANTS
+- TUNE pid[fo] AND WIND UP CONSTANTS
 
 - *Count revolutions w Halls
 
 */
-# 48 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 45 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 46 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 47 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 48 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
 # 49 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 50 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 51 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 77 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 81 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+static const int C_FORWARD = 1; // Normalized forward vector. Swap to 0 if reversed
+static const int C_REVERSE = ((C_FORWARD - 1)>0?(C_FORWARD - 1):-(C_FORWARD - 1)); // Normalized reverse vector. Always opposite of C_FORWARD
 // Combinations of hall sensors based on motor angle, at 60 deg increments
 static const std::array<std::array<bool, 3>, 6 /* Number of posssible Hall combinations*/> HALL_COMBOS = {
   //    {H1, H2, H3}
@@ -108,43 +105,48 @@ static const std::array<std::array<bool, 3>, 6 /* Number of posssible Hall combi
 
 // Decimal approximation of how many revolutions each entry in HALL_COMBOS is from 0.
 static const std::array<double, 6 /* Number of posssible Hall combinations*/> HALL_COMBO_DEGS = {0, 60 / 360, 120 / 360, 180 / 360, 240 / 360, 300 / 360};
+static const std::array<std::array<byte, 10>, 2> PIN = {
+  //  fo, Ox
+    {10, 5, 1, 0, A4, A5, A6, 9, 2, A0}, //  CTRL, DIr, ENC_CLK, ENC_DATA, H1, H2, H3, ADJ_L, ADJ_R, ADJ_ACT
+    {8, 4, 12, 11, A3, A2, A1, 9, 2, A7}
+};
 
-double output = 0; // Signed PID output from -255 to 255.
-std::array<double, 3> k_pid = {0.0, 0.0, 0.0}; // PID constants, in format [kP, kI, kD]
-double target = 0.0 /* Encoder value for valve being fully closed*/ * (int)(0x20000 /* Number of encoder tics in mechanical revolution (per datasheet)*/ *15 /* Revs into gearbox per 1 revolution out*/ /* Post-gearbox encoder tics per valve revolution*/ / 360) /* Post-gearbox encoder tics / degree*/; // Current valve position target. Init'ed to closed
-double pos = 0.0; // Current valve position
-int errorCode = 0; // Global error code variable for fault tracking.
-byte totalRevs = 0; // Revolution counter
-std::array<bool, 3> hallStatus = {0, 0, 0}; // Initial hall effect status, 0deg calibration
-byte initHallReading; // Index in HALL_COMBOS of the initial Hall sensor state
+std::array<double, 2> output = {0, 0}; // Signed pid[fo] output from -255 to 255.
+std::array<std::array<double, 3>, 2> k_pid = {
+    {0.0, 0.0, 0.0},
+    {0.0, 0.0, 0.0}
+}; // pid[fo] constants, in format [kP, kI, kD]
+std::array<double, 2> target = {{0.0 /* Encoder value for valve being fully closed*/ * (int)((0x20000 /* Number of encoder tics in mechanical revolution (per datasheet)*/) * (15 /* Revs into gearbox per 1 revolution out*/) /* Post-gearbox encoder tics per valve revolution*/ / 360) /* Post-gearbox encoder tics / degree*/},
+                                {0.0 /* Encoder value for valve being fully closed*/ * (int)((0x20000 /* Number of encoder tics in mechanical revolution (per datasheet)*/) * (15 /* Revs into gearbox per 1 revolution out*/) /* Post-gearbox encoder tics per valve revolution*/ / 360) /* Post-gearbox encoder tics / degree*/}}; // Current valve position target. Init'ed to closed
+std::array<double, 2> pos = {0.0, 0.0}; // Current valve position
+byte errorCode = 0; // Global error code variable for fault tracking.
+std::array<byte, 2> totalRevs = {0, 0}; // Revolution counter
+std::array<std::array<bool, 3>, 2> hallStatus = {
+    {0, 0, 0},
+    {0, 0, 0}
+}; // Initial hall effect status, 0deg calibration
+std::array<byte, 2> initHallReading; // Index in HALL_COMBOS of the initial Hall sensor state
 
 // Status flags
 bool f_activated = false; // True if valve has been activated
-bool f_withinOneRev = false; // True if totalRevs has passed TARGET_REVS
-bool f_motorCharged = false; // True if motor has been charged long enough for Hall sensor readings to be valid.
+std::array<bool, 2> f_withinOneRev = {false, false}; // True if totalRevs has passed TARGET_REVS
+std::array<bool, 2> f_motorCharged = {false, false}; // True if motor has been charged long enough for Hall sensor readings to be valid.
 
-ArduPID pid; // PID instance
+std::array<ArduPID, 2> pid; // pid instances
 
 void setup() {
     Serial.begin(57600); // Init serial connection
+    byte fo = 0;
+    initPins(fo);
+    initPins(1);
 
-    // Init pin values
-    pinMode(3 /* Motor control pin*/, 0x1); // Motor magnitude control
-    pinMode(5 /* Directional control pin*/, 0x1); // Motor direction control
-    pinMode(5 /* Encoder clock PWM pin*/, 0x1); // Encoder serial clock
+    analogWrite(PIN[fo][0], 0); // Set motor to 0, intiailize correct orientation
+    digitalWrite(PIN[fo][1], C_FORWARD);
 
-    pinMode(6 /* Encoder data input pin*/, 0x0); // Encoder data
-    pinMode(A1 /* Hall effect sensor pins.*/, 0x0); // Hall effect sensors
-    pinMode(A2 /* Generally to be used digitally, but*/, 0x0);
-    pinMode(A3 /* mapped to analog pins for noise-filtering*/, 0x0);
-
-    analogWrite(3 /* Motor control pin*/, 0); // Set motor to 0, intiailize correct orientation
-    digitalWrite(5 /* Directional control pin*/, 1 /* Normalized forward vector. Swap to 0 if reversed*/);
-
-    updateValvePos(); // Initialize valve position
-    pid.begin(&pos, &output, &target, k_pid[0], k_pid[1], k_pid[2]); // Initialize PID
-    pid.setOutputLimits(-255, 255); // Motor can be actuated from 0-255 in either direction
-    pid.setWindUpLimits(-10.0 /* Integral growth bound min const*/, 10.0 /* Integral growth bound max const*/); // Growth bounds to prevent integral wind-up
+    updateValvePos(fo); // Initialize valve position
+    pid[fo].begin(&pos[fo], &output[fo], &target[fo], k_pid[fo][0], k_pid[fo][1], k_pid[fo][2]); // Initialize pid[fo]
+    pid[fo].setOutputLimits(-255, 255); // Motor can be actuated from 0-255 in either direction
+    pid[fo].setWindUpLimits(-10.0 /* Integral growth bound min const*/, 10.0 /* Integral growth bound max const*/); // Growth bounds to prevent integral wind-up
 }
 
 void loop() {
@@ -152,65 +154,66 @@ void loop() {
         while (!isActivated()) {};
         f_activated = true;
     }
+    byte fo = fo;
+    f_withinOneRev[fo] = totalRevs[fo] > (fo == fo ? (int)((90.0 /* Encoder value for valve being fully open*/ / 360) * 15 /* Revs into gearbox per 1 revolution out*/) /* Number of rotations to get almost fully open*/ : (int)((90.0 /* Encoder value for valve being fully open*/ / 360) * 15 /* Revs into gearbox per 1 revolution out*/) /* Number of rotations to get almost fully open*/);
 
-    f_withinOneRev = totalRevs > (int)((90.0 /* Encoder value for valve being fully open*/ / 360) * 15 /* Revs into gearbox per 1 revolution out*/) /* Number of rotations to get almost fully open*/;
-
-    if (!f_withinOneRev) { // If system has been activated but hasn't gotten to within 180* of final open position
-        output = 1 /* Normalized forward vector. Swap to 0 if reversed*/ * 255;
-        updateEngineSpeed();
-        if (f_motorCharged) {
-            totalRevs = getRevolutions();
+    if (!f_withinOneRev[fo]) { // If system has been activated but hasn't gotten to within 180* of final open position
+        output[fo] = C_FORWARD * 255;
+        updateEngineSpeed(fo);
+        if (f_motorCharged[fo]) {
+            totalRevs[fo] = getRevolutions();
         } else {
             delay(2 /* Time in ms for magnetic fields to form large enough to be registered on Hall sensors*/);
-            initHallReading = getHallSensorPosition(readHallSensors());
-            f_motorCharged = true;
+            updateHallSensors(fo);
+            initHallReading[fo] = getHallSensorPosition(hallStatus[fo]);
+            f_motorCharged[fo] = true;
         }
         return;
     }
 
-    if (updateValvePos()) { // If getting bad readings from enc, stop pid to prevent damage to system
-        pid.stop();
+    if (updateValvePos(fo)) { // If getting bad readings from enc, stop pid[fo] to prevent damage to system
+        pid[fo].stop();
     } else { // When recovered, continue. Depending on testing, may sub for fatal error.
-        pid.start();
+        pid[fo].start();
     }
-    pid.compute(); // Update motor target
-    updateEngineSpeed(); // Set motor to target
+    pid[fo].compute(); // Update motor target
+    updateEngineSpeed(fo); // Set motor to target
 }
 
 // Takes input from global var, writes to pins accordingly
-void updateEngineSpeed() {
-    digitalWrite(5 /* Directional control pin*/, output > 0 ? 1 /* Normalized forward vector. Swap to 0 if reversed*/ : ((1 /* Normalized forward vector. Swap to 0 if reversed*/ - 1)>0?(1 /* Normalized forward vector. Swap to 0 if reversed*/ - 1):-(1 /* Normalized forward vector. Swap to 0 if reversed*/ - 1)) /* Normalized reverse vector. Always opposite of C_FORWARD*/);
-    analogWrite(3 /* Motor control pin*/, ((output)>0?(output):-(output)));
+void updateEngineSpeed(byte fo) {
+    digitalWrite(PIN[fo][1], output[fo] > 0 ? C_FORWARD : C_REVERSE);
+    analogWrite(PIN[fo][0], ((output[fo])>0?(output[fo]):-(output[fo])));
 }
 
 // Takes two readings from encoders, compares, and if they match, updates global var
 // Possible issues: if the encoder moves enough to update between 20us minimum,
 // it will never return valid value even if encoder is working as designed.
-bool updateValvePos() {
-    unsigned long sample1 = readEncData();
-    unsigned long sample2 = readEncData();
+bool updateValvePos(byte fo) {
+    unsigned long sample1 = readEncData(fo);
+    unsigned long sample2 = readEncData(fo);
 
     if ((sample1 != sample2)) {
         errorCode = 1;
         error(false);
         return true;
     }
-    pos = sample1;
+    pos[fo] = sample1;
     return false;
 }
 
 // Returns binary representation of encoder readings. Returns -1 if reading fails.
-unsigned long readEncData() {
+unsigned long readEncData(byte fo) {
     
-# 183 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 195 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("cli" ::: "memory")
-# 183 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 195 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                  ; // Deactivate interrupts for more accurate timing
-    digitalWrite(5 /* Encoder clock PWM pin*/, 0x0); // First bit is latch, always 1.
+    digitalWrite(PIN[fo][2], 0x0); // First bit is latch, always 1.
     _delay_us(1);
-    digitalWrite(5 /* Encoder clock PWM pin*/, 0x1);
+    digitalWrite(PIN[fo][2], 0x1);
     _delay_us(1);
-    if (!digitalRead(6 /* Encoder data input pin*/)) { // If latch reads successfully, continue to data bits
+    if (!digitalRead(PIN[fo][3])) { // If latch reads successfully, continue to data bits
         errorCode = 2;
         error(false);
         return -1;
@@ -221,18 +224,18 @@ unsigned long readEncData() {
         data <<= 1;
 
         
-# 198 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 210 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 198 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-             &= ~(1 << 5 /* Encoder clock PWM pin*/); // clock pin goes low
+# 210 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+             &= ~(1 << PIN[fo][2]); // clock pin goes low
         _delay_us(1); // Wait for 1us
         
-# 200 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 212 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
        (*(volatile uint8_t *)((0x0B) + 0x20)) 
-# 200 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-             |= (1 << 5 /* Encoder clock PWM pin*/); // clock pin goes high
+# 212 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+             |= (1 << PIN[fo][2]); // clock pin goes high
         _delay_us(1); // Wait for 1us
-        data |= digitalRead(6 /* Encoder data input pin*/);
+        data |= digitalRead(PIN[fo][3]);
     }
 
     if (!(data & ~(~0U << 1))) { // If last error bit is 0, internal encoder error occured
@@ -242,9 +245,9 @@ unsigned long readEncData() {
 
     _delay_us(20);
     
-# 211 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
+# 223 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 3
    __asm__ __volatile__ ("sei" ::: "memory")
-# 211 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 223 "z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
                ; // Reactivate interrupts
 
     return data >> (24 /* Total number of bits in encoder packet. Last bit is error bit, success=1*/ - 17 /* Data bits in encoder packet*/); // Return the first 17 bits of the data
@@ -270,12 +273,11 @@ byte getHallSensorPosition(std::array<bool, 3> given) {
     return -1;
 }
 
-// Updates hallStats and returns Hall sensor readings
-std::array<bool, 3> readHallSensors() {
-    hallStatus[0] = (analogRead(A1 /* Hall effect sensor pins.*/) >= 1023 /* Voltage level cutoff for a positive hall effect status*/);
-    hallStatus[1] = (analogRead(A2 /* Generally to be used digitally, but*/) >= 1023 /* Voltage level cutoff for a positive hall effect status*/);
-    hallStatus[2] = (analogRead(A3 /* mapped to analog pins for noise-filtering*/) >= 1023 /* Voltage level cutoff for a positive hall effect status*/);
-    return hallStatus;
+// Updates hallStatus
+void updateHallSensors(byte fo) {
+    hallStatus[fo][0] = (analogRead(PIN[fo][4]) >= 1023 /* Voltage level cutoff for a positive hall effect status*/);
+    hallStatus[fo][1] = (analogRead(PIN[fo][5]) >= 1023 /* Voltage level cutoff for a positive hall effect status*/);
+    hallStatus[fo][2] = (analogRead(PIN[fo][6]) >= 1023 /* Voltage level cutoff for a positive hall effect status*/);
 }
 
 // Returns true if valve has been actuated by master controller.
@@ -284,3 +286,14 @@ bool isActivated() { return true; } // Placeholder
 // Returns the number of complete revolutions the motor has completed.
 // Accurate to within 60deg.
 byte getRevolutions() { return 0; } // Placeholder
+
+void initPins(byte fo) {
+    pinMode(PIN[fo][0], output[fo]); // Motor magnitude control
+    pinMode(PIN[fo][1], output[fo]); // Motor direction control
+    pinMode(PIN[fo][2], output[fo]); // Encoder serial clock
+
+    pinMode(PIN[fo][3], 0x0); // Encoder data
+    pinMode(PIN[fo][4], 0x0); // Hall effect sensors
+    pinMode(PIN[fo][5], 0x0);
+    pinMode(PIN[fo][6], 0x0);
+}
