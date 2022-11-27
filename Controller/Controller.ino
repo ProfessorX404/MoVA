@@ -143,8 +143,8 @@ void loop() {
         while (!isActivated()) {};
         f_activated = true;
     }
-    byte fo = FUEL;
-    f_withinOneRev[fo] = totalRevs[fo] > (fo == FUEL ? F_TARGET_REVS : O_TARGET_REVS);
+    byte fo = fo;
+    f_withinOneRev[fo] = totalRevs[fo] > (fo == fo ? F_TARGET_REVS : O_TARGET_REVS);
 
     if (!f_withinOneRev[fo]) { // If system has been activated but hasn't gotten to within 180* of final open position
         output[fo] = C_FORWARD * 255;
