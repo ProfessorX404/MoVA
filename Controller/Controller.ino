@@ -44,9 +44,9 @@ TODO:
 */
 
 #include <ArduPID.h>
-#include <ArduinoSTL.h>
-#include <SoftPWM.h>
-#include <array>
+#include <PXPID.h>
+#include <TimerOne.h>
+#include <array.h>
 
 #define FUEL                   0
 #define OX                     1
@@ -82,46 +82,46 @@ TODO:
 static const int C_FORWARD = 1;                  // Normalized forward vector. Swap to 0 if reversed
 static const int C_REVERSE = abs(C_FORWARD - 1); // Normalized reverse vector. Always opposite of C_FORWARD
 // Combinations of hall sensors based on motor angle, at 60 deg increments
-static const std::array<std::array<bool, 3>, N_COMBOS> HALL_COMBOS = {
+static const array<array<bool, 3>, N_COMBOS> HALL_COMBOS = {
   //    {H1, H2, H3}
-    {1, 0, 1}, //  0
-    {0, 0, 1}, //  60
-    {0, 1, 1}, //  120
-    {0, 1, 0}, //  180
-    {1, 1, 0}, //  240
-    {1, 0, 0}  //  300, loop around to 0/360
+    {{1, 0, 1}, //  0
+     {0, 0, 1}, //  60
+     {0, 1, 1}, //  120
+     {0, 1, 0}, //  180
+     {1, 1, 0}, //  240
+     {1, 0, 0}}  //  300, loop around to 0/360
 };
 
 // Decimal approximation of how many revolutions each entry in HALL_COMBOS is from 0.
-static const std::array<double, N_COMBOS> HALL_COMBO_DEGS = {0, 60 / 360, 120 / 360, 180 / 360, 240 / 360, 300 / 360};
-static const std::array<std::array<byte, 10>, 2> PIN = {
+static const array<double, N_COMBOS> HALL_COMBO_DEGS = {0, 60 / 360, 120 / 360, 180 / 360, 240 / 360, 300 / 360};
+static const array<array<byte, 10>, 2> PIN = {
   //  fo, Ox
-    {10, 5, 1,  0,  A4, A5, A6, 9, 2, A0}, //  CTRL, DIr, ENC_CLK, ENC_DATA, H1, H2, H3, ADJ_L, ADJ_R, ADJ_ACT
-    {8,  4, 12, 11, A3, A2, A1, 9, 2, A7}
+    {{10, 5, 1, 0, A4, A5, A6, 9, 2, A0}, //  CTRL, DIR, ENC_CLK, ENC_DATA, H1, H2, H3, ADJ_L, ADJ_R, ADJ_ACT
+     {8, 4, 12, 11, A3, A2, A1, 9, 2, A7}}
 };
 
-std::array<double, 2> output = {0, 0}; // Signed pid[fo] output from -255 to 255.
-std::array<std::array<double, 3>, 2> k_pid = {
-    {0.0, 0.0, 0.0},
-    {0.0, 0.0, 0.0}
+array<double, 2> output = {0, 0}; // Signed pid[fo] output from -255 to 255.
+array<array<double, 3>, 2> k_pid = {
+    {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}
 }; // pid[fo] constants, in format [kP, kI, kD]
-std::array<double, 2> target = {{F_VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG},
-                                {O_VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG}}; // Current valve position target. Init'ed to closed
-std::array<double, 2> pos = {0.0, 0.0};                                         // Current valve position
-byte errorCode = 0;                                                             // Global error code variable for fault tracking.
-std::array<byte, 2> totalRevs = {0, 0};                                         // Revolution counter
-std::array<std::array<bool, 3>, 2> hallStatus = {
-    {0, 0, 0},
-    {0, 0, 0}
-};           // Initial hall effect status, 0deg calibration
-std::array<byte, 2> initHallReading; // Index in HALL_COMBOS of the initial Hall sensor state
+array<double, 2> target = {
+    {{F_VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG},
+     {O_VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG}}
+}; // Current valve position target. Init'ed to closed
+array<double, 2> pos = {0.0, 0.0};                    // Current valve position
+byte errorCode = 0;                                   // Global error code variable for fault tracking.
+array<byte, 2> totalRevs = {0, 0};                    // Revolution counter
+array<array<bool, 3>, 2> hallStatus = {
+    {{0, 0, 0}, {0, 0, 0}}
+};    // Initial hall effect status, 0deg calibration
+array<byte, 2> initHallReading; // Index in HALL_COMBOS of the initial Hall sensor state
 
 // Status flags
-bool f_activated = false;                            // True if valve has been activated
-std::array<bool, 2> f_withinOneRev = {false, false}; // True if totalRevs has passed TARGET_REVS
-std::array<bool, 2> f_motorCharged = {false, false}; // True if motor has been charged long enough for Hall sensor readings to be valid.
+bool f_activated = false;                       // True if valve has been activated
+array<bool, 2> f_withinOneRev = {false, false}; // True if totalRevs has passed TARGET_REVS
+array<bool, 2> f_motorCharged = {false, false}; // True if motor has been charged long enough for Hall sensor readings to be valid.
 
-std::array<ArduPID, 2> pid; // pid instances
+array<ArduPID, 2> pid; // pid instances
 
 void setup() {
     Serial.begin(57600); // Init serial connection
@@ -193,10 +193,10 @@ bool updateValvePos(byte fo) {
 
 // Returns binary representation of encoder readings. Returns -1 if reading fails.
 unsigned long readEncData(byte fo) {
-    noInterrupts();                      // Deactivate interrupts for more accurate timing
-    digitalWrite(PIN[fo][ENC_CLK], LOW); // First bit is latch, always 1.
+    noInterrupts();                    // Deactivate interrupts for more accurate timing
+    PORTD &= ~(1 << PIN[fo][ENC_CLK]); // First bit is latch, always 1.
     _delay_us(1);
-    digitalWrite(PIN[fo][ENC_CLK], HIGH);
+    PORTD |= (1 << PIN[fo][ENC_CLK]);
     _delay_us(1);
     if (!digitalRead(PIN[fo][ENC_DATA])) { // If latch reads successfully, continue to data bits
         errorCode = 2;
@@ -237,7 +237,7 @@ void error(bool isFatal) {
 
 // Returns the index of the entry in HALL_COMBOS which is the same
 // as the given array. Returns -1 if no match found.
-byte getHallSensorPosition(std::array<bool, 3> given) {
+byte getHallSensorPosition(array<bool, 3> given) {
     for (int i = 0; i < HALL_COMBOS.size(); i++) {
         if ((given[0] == HALL_COMBOS[i][0]) && (given[1] == HALL_COMBOS[i][1]) && (given[2] == HALL_COMBOS[i][2])) {
             return i;

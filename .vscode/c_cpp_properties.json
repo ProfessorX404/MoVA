@@ -22,6 +22,7 @@
             "name": "Arduino",
             "compilerPath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\bin\\avr-g++",
             "compilerArgs": [
+                "-Wall",
                 "-std=gnu++11",
                 "-fpermissive",
                 "-fno-exceptions",
@@ -34,10 +35,12 @@
             "includePath": [
                 "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino",
                 "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\variants\\eightanaloginputs",
-                "Z:\\Documents\\Arduino\\libraries\\ArduPID\\src",
-                "Z:\\Documents\\Arduino\\libraries\\FireTimer\\src",
-                "Z:\\Documents\\Arduino\\libraries\\ArduinoSTL\\src",
-                "Z:\\Documents\\Arduino\\libraries\\SoftPWM",
+                "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\ArduPID\\src",
+                "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\FireTimer\\src",
+                "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\PXPID",
+                "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\array",
+                "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\eRCaGuy_Timer2_Counter",
+                "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\TimerOne",
                 "c:\\users\\xsegg\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include",
                 "c:\\users\\xsegg\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include-fixed",
                 "c:\\users\\xsegg\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\avr\\include"
