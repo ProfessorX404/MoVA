@@ -1,17 +1,9 @@
 1: Encoder Clock Positive
 2: Encoder Clock Negative
 3: Enc. Data Pos.
-4: Enc. Data. Neg.
+4: Enc. Data. Neg
 5: H1 sensor lead
-6: H2 sensor lead
 7: H3 sensor lead
-8: 5V in from motor controller (jumpered to adjuster switch + lead*)
-9: GND from motor controller
-10: PWM lead to motor controller
-11: Direction lead to MC
-12: STOP lead to MC
-13: ADJ-L*
-14: ADJ-R*
-15: Adj. Selector*
-
-*Currently inactive, only in use if not using on-board switch and buttons
+6: H2 sensor lead
+8: PWM lead to motor controller
+9: Direction lead to MC
