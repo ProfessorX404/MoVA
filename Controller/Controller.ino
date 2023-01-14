@@ -33,8 +33,6 @@ TODO:
 - TUNE pid[fo] AND WIND UP CONSTANTS
 - *Count revolutions
 */
-#include <PXPID.h>
-#include <TimerOne.h>
 #include <array.h>
 
 #define FUEL                   0 // Array index constants for easy access
@@ -75,6 +73,7 @@ array<array<double, 3>, 2> k_pid = {
 
 array<unsigned long, 2> accumulator = {0.0, 0.0}; // PID integral term accumulator
 array<unsigned long, 2> prev_pos = {0.0, 0.0};    // PID theta_n-1
+array<double, 2> lastTime = {0.0, 0.0};           // time of th_(n-1) for use computing dt
 
 unsigned long target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
 byte errorCode = 0;                                               // Global error code variable for fault tracking.
@@ -86,9 +85,6 @@ array<bool, 2> f_withinOneRev = {false, false}; // True if totalRevs has passed 
 
 void setup() {
     Serial.begin(57600); // Init serial connection
-    byte fo = FUEL;
-    initPins(FUEL);
-    initPins(OX);
 }
 
 void loop() {
@@ -106,7 +102,7 @@ void update(byte fo) {
 
     double O = k_pid[fo][P] * (theta_n - target) + k_pid[fo][I] * accumulator[fo] + k_pid[fo][D] * ((theta_n - prev_pos[fo]) / delta_t);
 
-    if(O < 0 && C_FORWARD){
+    if (O < 0 && C_FORWARD) {
         PORTD |= ~(1 << PIN[fo][DIR]); // off
     } else {
         PORTD &= ~(1 << PIN[fo][DIR]); // on
@@ -115,23 +111,12 @@ void update(byte fo) {
     analogWrite(PIN[fo][CTRL], abs(O) > 255 ? 255 : abs(O));
 }
 
-// Takes two readings from encoders, compares, and if they match, updates global var
+// Takes two readings from encoders, compares, and if they match, returns value.
+// If they do not, discards data and throws non-fatal error.
 // Possible issues: if the encoder moves enough to update between 20us minimum,
 // it will never return valid value even if encoder is working as designed.
-bool updateValvePos(byte fo) {
-    unsigned long sample1 = readEncData(fo);
-    unsigned long sample2 = readEncData(fo);
-
-    if ((sample1 != sample2)) {
-        errorCode = 1;
-        error(false);
-        return true;
-    }
-    pos[fo] = sample1;
-    return false;
-}
-
 // Returns binary representation of encoder readings. Returns -1 if reading fails.
+
 unsigned long readEncData(byte fo) { return 0x64; } // placeholder
 
 // Outputs error info to serial, if fatal error stalls program
@@ -150,10 +135,6 @@ bool isActivated() { return true; } // Placeholder
 // Accurate to within 60deg.
 byte getRevolutions() { return 0; } // Placeholder
 
-void initPins(byte fo) {
-    pinMode(PIN[fo][CTRL], output[fo]);    // Motor magnitude control
-    pinMode(PIN[fo][DIR], output[fo]);     // Motor direction control
-    pinMode(PIN[fo][ENC_CLK], output[fo]); // Encoder serial clock
+void attachPins() {} // Use after de-safing rocket but before launch activation.
 
-    pinMode(PIN[fo][ENC_DATA], INPUT); // Encoder data
-}
+double getMicros() { return -1; } // Placeholder
