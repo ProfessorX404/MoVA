@@ -33,8 +33,6 @@ TODO:
 - TUNE pid[fo] AND WIND UP CONSTANTS
 - *Count revolutions
 */
-#include <PXPID.h>
-#include <TimerOne.h>
 #include <array.h>
 
 #define FUEL                   0 // Array index constants for easy access
@@ -87,8 +85,7 @@ array<bool, 2> f_withinOneRev = {false, false}; // True if totalRevs has passed 
 void setup() {
     Serial.begin(57600); // Init serial connection
     byte fo = FUEL;
-    initPins(FUEL);
-    initPins(OX);
+    pinPeripheral()
 }
 
 void loop() {
@@ -106,7 +103,7 @@ void update(byte fo) {
 
     double O = k_pid[fo][P] * (theta_n - target) + k_pid[fo][I] * accumulator[fo] + k_pid[fo][D] * ((theta_n - prev_pos[fo]) / delta_t);
 
-    if(O < 0 && C_FORWARD){
+    if (O < 0 && C_FORWARD) {
         PORTD |= ~(1 << PIN[fo][DIR]); // off
     } else {
         PORTD &= ~(1 << PIN[fo][DIR]); // on
@@ -150,10 +147,4 @@ bool isActivated() { return true; } // Placeholder
 // Accurate to within 60deg.
 byte getRevolutions() { return 0; } // Placeholder
 
-void initPins(byte fo) {
-    pinMode(PIN[fo][CTRL], output[fo]);    // Motor magnitude control
-    pinMode(PIN[fo][DIR], output[fo]);     // Motor direction control
-    pinMode(PIN[fo][ENC_CLK], output[fo]); // Encoder serial clock
-
-    pinMode(PIN[fo][ENC_DATA], INPUT); // Encoder data
-}
+void attachPins() {}
