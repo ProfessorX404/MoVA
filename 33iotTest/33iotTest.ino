@@ -15,7 +15,7 @@ void setup() {
 
     // Normal (single slope) PWM operation: timer countinuouslys count up to PER register value and then is reset to 0
     TCC0->WAVE.reg |= TCC_WAVE_WAVEGEN_NPWM; // Setup single slope PWM on TCC1
-    while (TCC1->SYNCBUSY.bit.WAVE)
+    while (TCC0->SYNCBUSY.bit.WAVE)
         ; // Wait for synchronization
 
     TCC0->PER.reg = 1262; // Set the frequency of the PWM on TCC1 to 38kHz: 48MHz / (1262 + 1) = 38kHz

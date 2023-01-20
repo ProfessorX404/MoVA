@@ -84,9 +84,8 @@ bool f_activated = false;                       // True if valve has been activa
 array<bool, 2> f_withinOneRev = {false, false}; // True if totalRevs has passed TARGET_REVS
 
 void setup() {
-    Serial.begin(57600); // Init serial connection
+    Serial.begin(115200); // Init serial connection
     byte fo = FUEL;
-    pinPeripheral()
 }
 
 void loop() {
@@ -137,6 +136,20 @@ bool isActivated() { return true; } // Placeholder
 // Accurate to within 60deg.
 byte getRevolutions() { return 0; } // Placeholder
 
-void attachPins() {} // Use after de-safing rocket but before launch activation.
+void attachPins() {
+    // 2, 6 -> PWM
+
+    PORT->Group[g_APinDescription[2].ulPort].PINCFG[g_APinDescription[2].ulPin].bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[6].ulPort].PINCFG[g_APinDescription[6].ulPin].bit.PMUXEN = 1;
+
+    PORT->Group[g_APinDescription[2].ulPort].PMUX[g_APinDescription[2].ulPin >> 1].reg = /*PORT_PMUX_PMUXO_E |*/ PORT_PMUX_PMUXE_F;
+    PORT->Group[g_APinDescription[6].ulPort].PMUX[g_APinDescription[6].ulPin >> 1].reg = /*PORT_PMUX_PMUXO_E |*/ PORT_PMUX_PMUXE_E;
+
+    // 3, 5 -> Output
+    // 11, A1 -> MOSI
+    // 12, A2 -> MISO
+    // 7, 4 -> Input
+
+} // Use after de-safing rocket but before launch activation.
 
 double getMicros() { return -1; } // Placeholder
