@@ -1,5 +1,6 @@
 {
     "board": "arduino:samd:nano_33_iot",
-    "sketch": "Controller\\Controller.ino",
-    "programmer": "arduino:avrispmkii"
+    "sketch": "33iotTest/33iotTest.ino",
+    "programmer": "arduino:avrispmkii",
+    "port": "COM6"
 }
