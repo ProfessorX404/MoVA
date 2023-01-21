@@ -36,12 +36,12 @@ void setup() {
 void loop() {
     digitalWrite(LED_BUILTIN, LOW);
     // Using buffered counter compare registers (CCBx)
-    TCC0->CCB[0].reg = 315; // TCC1 CCB1 - 25% duty cycle on D7
+    TCC0->CCB[0].reg = 2; // TCC1 CCB1 - 25% duty cycle on D7
     while (TCC0->SYNCBUSY.bit.CCB0)
         ;        // Wait for synchronization
     delay(1000); // Wait for 1 second
     digitalWrite(LED_BUILTIN, HIGH);
-    TCC1->CCB[0].reg = 945; // TCC1 CCB1 - 75% duty cycle on D7
+    TCC0->CCB[0].reg = 1261; // TCC1 CCB1 - 75% duty cycle on D7
     while (TCC0->SYNCBUSY.bit.CCB0)
         ;        // Wait for synchronization
     delay(1000); // Wait for 1 second
