@@ -65,31 +65,28 @@ CC3 | WO[3], WO[7]
 #define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)           // Post-gearbox encoder tics / degree
 #define TARGET_REVS            (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO) // Number of rotations to get almost fully open
 #define PWM_FREQ_COEF          1262                                          // 48MHz / (1262 + 1) = 38kHz
-#define TCC_FUEL               TCC1
-#define TCC_OX                 TCC0
 #define REGISTER_MOSI          11
 #define REGISTER_LATCH         8
 
-static const int C_FORWARD = 1;                  // Normalized forward vector. Swap to 0 if reversed
-static const int C_REVERSE = abs(C_FORWARD - 1); // Normalized reverse vector. Opposite of C_FORWARD
+static const signed short int C_FORWARD = 1;                  // Normalized forward vector. Swap to 0 if reversed
+static const signed short int C_REVERSE = abs(C_FORWARD - 1); // Normalized reverse vector. Opposite of C_FORWARD
 
 static const array<array<byte, 10>, 2> PIN = {
   //  Fuel, Ox
-    {{A2, 3, 13, 12, 10}, //  CTRL (PWM), DIR, ENC_CLK (SCK), ENC_DATA (MISO), ADJ_SELECT
-     {A3, 5, 5, 6, 4}}
+    {{A2, x, 13, 12, x}, //  CTRL (PWM), DIR, ENC_CLK (SCK), ENC_DATA (MISO), ADJ_SELECT
+     {A3, x, 5, 6, x}}
 };
 
 array<array<double, 3>, 2> k_pid = {
     {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}
 }; // pid[fo] constants, in format [kP, kI, kD]
 
-array<unsigned long, 2> accumulator = {0, 0}; // PID integral term accumulator
-array<unsigned long, 2> prev_pos = {0, 0};    // PID theta_n-1
-array<double, 2> lastTime = {0.0, 0.0};       // time of th_(n-1) for use computing dt
+array<uint32_t, 2> accumulator = {0, 0}; // PID integral term accumulator
+array<uint16_t, 2> prev_pos = {0, 0};    // PID theta_n-1
 
-unsigned long target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
-byte errorCode = 0;                                               // Global error code variable for fault tracking.
-array<byte, 2> totalRevs = {0, 0};                                // Revolution counter
+uint16_t target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
+byte errorCode = 0;                                          // Global error code variable for fault tracking.
+array<byte, 2> totalRevs = {0, 0};                           // Revolution counter
 
 // Status flags
 bool f_activated = false;                       // True if valve has been activated
@@ -109,26 +106,21 @@ void loop() {
 
 // Takes input from global var, writes to pins accordingly
 void update(byte fo) {
-    unsigned long delta_t = getMicros() - lastTime[fo];
-    unsigned long theta_n = readEncData(fo);
+    uint32_t delta_t = getDeltaT();
+    uint16_t theta_n = readEncData(fo);
     accumulator[fo] += (delta_t << 1) * (theta_n + prev_pos[fo] - (target >> 1));
 
     double O = k_pid[fo][P] * (theta_n - target) + k_pid[fo][I] * accumulator[fo] + k_pid[fo][D] * ((theta_n - prev_pos[fo]) / delta_t);
     O = (O > PWM_FREQ_COEF) ? PWM_FREQ_COEF : O;
+
     if (O < 0 && C_FORWARD) {
 
     } else {
     }
 
-    if (fo == FUEL) {
-        TCC_FUEL->CCB[0].reg = O;
-        while (TCC_FUEL->SYNCBUSY.bit.CCB0)
-            ;
-    } else {
-        TCC_OX->CCB[0].reg = O;
-        while (TCC_OX->SYNCBUSY.bit.CCB0)
-            ;
-    }
+    TCC0->CCB[!FUEL].reg = O;
+    while (fo ? TCC0->SYNCBUSY.bit.CCB1 : TCC0->SYNCBUSY.bit.CCB1)
+        ;
 }
 
 // Takes two readings from encoders, compares, and if they match, returns value.
@@ -164,7 +156,6 @@ void attachPins() {
 
     // Enable the port multiplexer for PWM pins
     PORT->Group[g_APinDescription[PIN[FUEL][CTRL]].ulPort].PINCFG[g_APinDescription[PIN[FUEL][CTRL]].ulPin].bit.PMUXEN = 1;
-
     PORT->Group[g_APinDescription[PIN[OX][CTRL]].ulPort].PINCFG[g_APinDescription[PIN[OX][CTRL]].ulPin].bit.PMUXEN = 1;
 
     // Enable the port multiplexer for Encoder coms and status register pins
@@ -198,37 +189,28 @@ void attachPins() {
     PORT->Group[g_APinDescription[PIN[OX][ENC_DATA]].ulPort].PMUX[g_APinDescription[PIN[OX][ENC_DATA]].ulPin >> 1].reg =
         ((g_APinDescription[PIN[OX][ENC_DATA]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_D : PORT_PMUX_PMUXO_D;
 
-    // Configure PWM timers
+    // Configure TCC0
 
     // Normal (single slope) PWM operation: timer countinuouslys count up to PER register value and then is reset to 0
     TCC0->WAVE.reg |= TCC_WAVE_WAVEGEN_NPWM; // Setup single slope PWM on TCC0
     while (TCC0->SYNCBUSY.bit.WAVE)
-        ;                                    // Wait for synchronization
-    TCC1->WAVE.reg |= TCC_WAVE_WAVEGEN_NPWM; // Setup single slope PWM on TCC1
-    while (TCC1->SYNCBUSY.bit.WAVE)
         ; // Wait for synchronization
 
     TCC0->PER.reg = PWM_FREQ_COEF; // Set the frequency of the PWM on TCC0 to 38kHz: 48MHz / (1262 + 1) = 38kHz
     while (TCC0->SYNCBUSY.bit.PER)
-        ;                          // Wait for synchronization
-    TCC1->PER.reg = PWM_FREQ_COEF; // Set the frequency of the PWM on TCC1 to 38kHz: 48MHz / (1262 + 1) = 38kHz
-    while (TCC1->SYNCBUSY.bit.PER)
         ; // Wait for synchronization
 
-    TCC0->CC[0].reg = .75 * PWM_FREQ_COEF; // TCC0 CC0 - 50% duty cycle on D7
+    TCC0->CC[0].reg = PWM_FREQ_COEF; // TCC0 CC0 - 50% duty cycle on D7
     while (TCC0->SYNCBUSY.bit.CC0)
-        ;                                  // Wait for synchronization
-    TCC1->CC[0].reg = .75 * PWM_FREQ_COEF; // TCC0 CC0 - 50% duty cycle on D6
+        ;                            // Wait for synchronization
+    TCC0->CC[1].reg = PWM_FREQ_COEF; // TCC0 CC0 - 50% duty cycle on D6
     while (TCC1->SYNCBUSY.bit.CC0)
         ; // Wait for synchronization
 
     TCC0->CTRLA.bit.ENABLE = 1; // Enable the TCC1 counter
     while (TCC0->SYNCBUSY.bit.ENABLE)
         ;
-    TCC1->CTRLA.bit.ENABLE = 1; // Enable the TCC1 counter
-    while (TCC1->SYNCBUSY.bit.ENABLE)
-        ; // Wait for synchronization
 
 } // Use after de-safing rocket but before launch activation.
 
-double getMicros() { return -1; } // Placeholder
+uint32_t getDeltaT() { return TC4->COUNT32.COUNT.reg; } // Placeholder
