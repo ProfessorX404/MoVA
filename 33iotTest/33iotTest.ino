@@ -1,3 +1,9 @@
+#define PIN_A 6
+#define PIN_B 7
+#define FREQ  1262
+int increment = 1;
+bool up = true;
+
 // Output 38kHz PWM on digital pin D7 on Nano33
 void setup() {
     // Feed GCLK0 at 48MHz to TCC0 and TCC1
@@ -8,45 +14,59 @@ void setup() {
         ; // Wait for synchronization
 
     // Enable the port multiplexer for pins D7
-    PORT->Group[g_APinDescription[2].ulPort].PINCFG[g_APinDescription[2].ulPin].bit.PMUXEN = 1;
-    PORT->Group[g_APinDescription[6].ulPort].PINCFG[g_APinDescription[6].ulPin].bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[PIN_A].ulPort].PINCFG[g_APinDescription[PIN_A].ulPin].bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[PIN_B].ulPort].PINCFG[g_APinDescription[PIN_B].ulPin].bit.PMUXEN = 1;
 
     // D7 is on EVEN port pin PA06 and TCC1/WO[0] channel 0 is on peripheral E
-    PORT->Group[g_APinDescription[2].ulPort].PMUX[g_APinDescription[2].ulPin >> 1].reg = /*PORT_PMUX_PMUXO_E |*/ PORT_PMUX_PMUXE_F;
-    PORT->Group[g_APinDescription[6].ulPort].PMUX[g_APinDescription[6].ulPin >> 1].reg = /*PORT_PMUX_PMUXO_E |*/ PORT_PMUX_PMUXE_E;
+    PORT->Group[g_APinDescription[PIN_A].ulPort].PMUX[g_APinDescription[PIN_A].ulPin >> 1].reg =
+        ((g_APinDescription[PIN_A].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
+    PORT->Group[g_APinDescription[PIN_B].ulPort].PMUX[g_APinDescription[PIN_B].ulPin >> 1].reg =
+        ((g_APinDescription[PIN_B].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
 
     // Normal (single slope) PWM operation: timer countinuouslys count up to PER register value and then is reset to 0
     TCC0->WAVE.reg |= TCC_WAVE_WAVEGEN_NPWM; // Setup single slope PWM on TCC1
     while (TCC0->SYNCBUSY.bit.WAVE)
+        ;                                    // Wait for synchronization
+    TCC1->WAVE.reg |= TCC_WAVE_WAVEGEN_NPWM; // Setup single slope PWM on TCC1
+    while (TCC1->SYNCBUSY.bit.WAVE)
         ; // Wait for synchronization
 
-    TCC0->PER.reg = 1262; // Set the frequency of the PWM on TCC1 to 38kHz: 48MHz / (1262 + 1) = 38kHz
+    TCC0->PER.reg = FREQ; // Set the frequency of the PWM on TCC1 to 38kHz: 48MHz / (1262 + 1) = 38kHz
     while (TCC0->SYNCBUSY.bit.PER)
+        ;                 // Wait for synchronization
+    TCC1->PER.reg = FREQ; // Set the frequency of the PWM on TCC1 to 38kHz: 48MHz / (1262 + 1) = 38kHz
+    while (TCC1->SYNCBUSY.bit.PER)
+        ; // Wait for synchronization
+
+    TCC0->CC[0].reg = .75 * FREQ; // TCC0 CC0 - 50% duty cycle on D7
+    while (TCC0->SYNCBUSY.bit.CC0)
+        ;                         // Wait for synchronization
+    TCC1->CC[0].reg = .75 * FREQ; // TCC0 CC0 - 50% duty cycle on D7
+    while (TCC1->SYNCBUSY.bit.CC0)
         ; // Wait for synchronization
 
     TCC0->CTRLA.bit.ENABLE = 1; // Enable the TCC1 counter
     while (TCC0->SYNCBUSY.bit.ENABLE)
+        ;
+    TCC1->CTRLA.bit.ENABLE = 1; // Enable the TCC1 counter
+    while (TCC1->SYNCBUSY.bit.ENABLE)
         ; // Wait for synchronization
-
-    pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
-    digitalWrite(LED_BUILTIN, LOW);
+    if (increment >= FREQ - 1) {
+        up = false;
+    } else if (increment <= 0) {
+        up = true;
+    }
+    increment += (((int)up) * 2) - 1;
     // Using buffered counter compare registers (CCBx)
-    TCC0->CCB[0].reg = 0; // TCC1 CCB1 - 25% duty cycle on D2
+    TCC0->CCB[0].reg = increment; // TCC1 CCB1 - 25% duty cycle on D7
     while (TCC0->SYNCBUSY.bit.CCB0)
-        ;                    // Wait for synchronization
-    TCC0->CCB[1].reg = 1261; // TCC1 CCB1 - 25% duty cycle on D6
-    while (TCC0->SYNCBUSY.bit.CCB1)
-        ;        // Wait for synchronization
-    delay(1000); // Wait for 1 second
-    digitalWrite(LED_BUILTIN, HIGH);
-    TCC0->CCB[0].reg = 1261; // TCC1 CCB1 - 75% duty cycle on D2
-    while (TCC0->SYNCBUSY.bit.CCB0)
-        ;                 // Wait for synchronization
-    TCC0->CCB[1].reg = 0; // TCC1 CCB1 - 75% duty cycle on D6
-    while (TCC0->SYNCBUSY.bit.CCB1)
-        ;        // Wait for synchronization
-    delay(1000); // Wait for 1 second
+        ;                                // Wait for synchronization
+    TCC1->CCB[0].reg = FREQ - increment; // TCC1 CCB1 - 25% duty cycle on D7
+    while (TCC1->SYNCBUSY.bit.CCB0)
+        ; // Wait for synchronization
+
+    delay(1);
 }

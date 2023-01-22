@@ -32,6 +32,13 @@ TODO:
     - getRevolutions()*
 - TUNE pid[fo] AND WIND UP CONSTANTS
 - *Count revolutions
+
+OTMX Values:
+CCx | WO[n]
+CC0 | WO[0], WO[4]
+CC1 | WO[1], WO[5]
+CC2 | WO[2], WO[6]
+CC3 | WO[3], WO[7]
 */
 #include <array.h>
 
@@ -57,23 +64,28 @@ TODO:
 #define VALVE_CLOSED_DEG       0.0                                           // Encoder value for valve being fully closed
 #define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)           // Post-gearbox encoder tics / degree
 #define TARGET_REVS            (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO) // Number of rotations to get almost fully open
+#define PWM_FREQ_COEF          1262                                          // 48MHz / (1262 + 1) = 38kHz
+#define TCC_FUEL               TCC1
+#define TCC_OX                 TCC0
+#define REGISTER_MOSI          11
+#define REGISTER_LATCH         8
 
 static const int C_FORWARD = 1;                  // Normalized forward vector. Swap to 0 if reversed
 static const int C_REVERSE = abs(C_FORWARD - 1); // Normalized reverse vector. Opposite of C_FORWARD
 
 static const array<array<byte, 10>, 2> PIN = {
   //  Fuel, Ox
-    {{2, 3, 11, 12, 7}, //  CTRL (PWM), DIR, ENC_CLK (MOSI), ENC_DATA (MISO), ADJ_SELECT
-     {6, 5, A1, A2, 4}}
+    {{A2, 3, 13, 12, 10}, //  CTRL (PWM), DIR, ENC_CLK (SCK), ENC_DATA (MISO), ADJ_SELECT
+     {A3, 5, 5, 6, 4}}
 };
 
 array<array<double, 3>, 2> k_pid = {
     {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}
 }; // pid[fo] constants, in format [kP, kI, kD]
 
-array<unsigned long, 2> accumulator = {0.0, 0.0}; // PID integral term accumulator
-array<unsigned long, 2> prev_pos = {0.0, 0.0};    // PID theta_n-1
-array<double, 2> lastTime = {0.0, 0.0};           // time of th_(n-1) for use computing dt
+array<unsigned long, 2> accumulator = {0, 0}; // PID integral term accumulator
+array<unsigned long, 2> prev_pos = {0, 0};    // PID theta_n-1
+array<double, 2> lastTime = {0.0, 0.0};       // time of th_(n-1) for use computing dt
 
 unsigned long target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
 byte errorCode = 0;                                               // Global error code variable for fault tracking.
@@ -102,14 +114,21 @@ void update(byte fo) {
     accumulator[fo] += (delta_t << 1) * (theta_n + prev_pos[fo] - (target >> 1));
 
     double O = k_pid[fo][P] * (theta_n - target) + k_pid[fo][I] * accumulator[fo] + k_pid[fo][D] * ((theta_n - prev_pos[fo]) / delta_t);
-
+    O = (O > PWM_FREQ_COEF) ? PWM_FREQ_COEF : O;
     if (O < 0 && C_FORWARD) {
-        PORTD |= ~(1 << PIN[fo][DIR]); // off
+
     } else {
-        PORTD &= ~(1 << PIN[fo][DIR]); // on
     }
 
-    analogWrite(PIN[fo][CTRL], abs(O) > 255 ? 255 : abs(O));
+    if (fo == FUEL) {
+        TCC_FUEL->CCB[0].reg = O;
+        while (TCC_FUEL->SYNCBUSY.bit.CCB0)
+            ;
+    } else {
+        TCC_OX->CCB[0].reg = O;
+        while (TCC_OX->SYNCBUSY.bit.CCB0)
+            ;
+    }
 }
 
 // Takes two readings from encoders, compares, and if they match, returns value.
@@ -137,18 +156,78 @@ bool isActivated() { return true; } // Placeholder
 byte getRevolutions() { return 0; } // Placeholder
 
 void attachPins() {
-    // 2, 6 -> PWM
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_CLKEN |       // Enable GCLK0 as a clock source
+                        GCLK_CLKCTRL_GEN_GCLK0 |   // Select GCLK0 at 48MHz
+                        GCLK_CLKCTRL_ID_TCC0_TCC1; // Feed GCLK0 to TCC0 and TCC1
+    while (GCLK->STATUS.bit.SYNCBUSY)
+        ; // Wait for synchronization
 
-    PORT->Group[g_APinDescription[2].ulPort].PINCFG[g_APinDescription[2].ulPin].bit.PMUXEN = 1;
-    PORT->Group[g_APinDescription[6].ulPort].PINCFG[g_APinDescription[6].ulPin].bit.PMUXEN = 1;
+    // Enable the port multiplexer for PWM pins
+    PORT->Group[g_APinDescription[PIN[FUEL][CTRL]].ulPort].PINCFG[g_APinDescription[PIN[FUEL][CTRL]].ulPin].bit.PMUXEN = 1;
 
-    PORT->Group[g_APinDescription[2].ulPort].PMUX[g_APinDescription[2].ulPin >> 1].reg = /*PORT_PMUX_PMUXO_E |*/ PORT_PMUX_PMUXE_F;
-    PORT->Group[g_APinDescription[6].ulPort].PMUX[g_APinDescription[6].ulPin >> 1].reg = /*PORT_PMUX_PMUXO_E |*/ PORT_PMUX_PMUXE_E;
+    PORT->Group[g_APinDescription[PIN[OX][CTRL]].ulPort].PINCFG[g_APinDescription[PIN[OX][CTRL]].ulPin].bit.PMUXEN = 1;
 
-    // 3, 5 -> Output
-    // 11, A1 -> MOSI
-    // 12, A2 -> MISO
-    // 7, 4 -> Input
+    // Enable the port multiplexer for Encoder coms and status register pins
+    PORT->Group[g_APinDescription[PIN[FUEL][ENC_CLK]].ulPort].PINCFG[g_APinDescription[PIN[FUEL][ENC_CLK]].ulPin].bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[PIN[FUEL][ENC_DATA]].ulPort].PINCFG[g_APinDescription[PIN[FUEL][ENC_DATA]].ulPin].bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[REGISTER_MOSI].ulPort].PINCFG[g_APinDescription[REGISTER_MOSI].ulPin].bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[REGISTER_LATCH].ulPort].PINCFG[g_APinDescription[REGISTER_LATCH].ulPin].bit.PMUXEN = 1;
+    // Status register MOSI and CS technically part of the FUEL encoder SERCOM
+
+    PORT->Group[g_APinDescription[PIN[OX][ENC_CLK]].ulPort].PINCFG[g_APinDescription[PIN[OX][ENC_CLK]].ulPin].bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[PIN[OX][ENC_DATA]].ulPort].PINCFG[g_APinDescription[PIN[OX][ENC_DATA]].ulPin].bit.PMUXEN = 1;
+
+    // Attach PWM pins to timer peripherals
+    PORT->Group[g_APinDescription[PIN[FUEL][CTRL]].ulPort].PMUX[g_APinDescription[PIN[FUEL][CTRL]].ulPin >> 1].reg =
+        ((g_APinDescription[PIN[FUEL][CTRL]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
+    PORT->Group[g_APinDescription[PIN[OX][CTRL]].ulPort].PMUX[g_APinDescription[PIN[OX][CTRL]].ulPin >> 1].reg =
+        ((g_APinDescription[PIN[OX][CTRL]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
+
+    // Attach Encoder coms and status register pins to SERCOM peripherals
+    PORT->Group[g_APinDescription[PIN[FUEL][ENC_CLK]].ulPort].PMUX[g_APinDescription[PIN[FUEL][ENC_CLK]].ulPin >> 1].reg =
+        ((g_APinDescription[PIN[FUEL][ENC_CLK]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[g_APinDescription[PIN[FUEL][ENC_DATA]].ulPort].PMUX[g_APinDescription[PIN[FUEL][ENC_DATA]].ulPin >> 1].reg =
+        ((g_APinDescription[PIN[FUEL][ENC_DATA]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[g_APinDescription[REGISTER_MOSI].ulPort].PMUX[g_APinDescription[REGISTER_MOSI].ulPin >> 1].reg =
+        ((g_APinDescription[REGISTER_MOSI].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[g_APinDescription[REGISTER_LATCH].ulPort].PMUX[g_APinDescription[REGISTER_LATCH].ulPin >> 1].reg =
+        ((g_APinDescription[REGISTER_LATCH].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
+    PORT->Group[g_APinDescription[PIN[OX][ENC_CLK]].ulPort].PMUX[g_APinDescription[PIN[OX][ENC_CLK]].ulPin >> 1].reg =
+        ((g_APinDescription[PIN[OX][ENC_CLK]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_D : PORT_PMUX_PMUXO_D;
+    PORT->Group[g_APinDescription[PIN[OX][ENC_DATA]].ulPort].PMUX[g_APinDescription[PIN[OX][ENC_DATA]].ulPin >> 1].reg =
+        ((g_APinDescription[PIN[OX][ENC_DATA]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_D : PORT_PMUX_PMUXO_D;
+
+    // Configure PWM timers
+
+    // Normal (single slope) PWM operation: timer countinuouslys count up to PER register value and then is reset to 0
+    TCC0->WAVE.reg |= TCC_WAVE_WAVEGEN_NPWM; // Setup single slope PWM on TCC0
+    while (TCC0->SYNCBUSY.bit.WAVE)
+        ;                                    // Wait for synchronization
+    TCC1->WAVE.reg |= TCC_WAVE_WAVEGEN_NPWM; // Setup single slope PWM on TCC1
+    while (TCC1->SYNCBUSY.bit.WAVE)
+        ; // Wait for synchronization
+
+    TCC0->PER.reg = PWM_FREQ_COEF; // Set the frequency of the PWM on TCC0 to 38kHz: 48MHz / (1262 + 1) = 38kHz
+    while (TCC0->SYNCBUSY.bit.PER)
+        ;                          // Wait for synchronization
+    TCC1->PER.reg = PWM_FREQ_COEF; // Set the frequency of the PWM on TCC1 to 38kHz: 48MHz / (1262 + 1) = 38kHz
+    while (TCC1->SYNCBUSY.bit.PER)
+        ; // Wait for synchronization
+
+    TCC0->CC[0].reg = .75 * PWM_FREQ_COEF; // TCC0 CC0 - 50% duty cycle on D7
+    while (TCC0->SYNCBUSY.bit.CC0)
+        ;                                  // Wait for synchronization
+    TCC1->CC[0].reg = .75 * PWM_FREQ_COEF; // TCC0 CC0 - 50% duty cycle on D6
+    while (TCC1->SYNCBUSY.bit.CC0)
+        ; // Wait for synchronization
+
+    TCC0->CTRLA.bit.ENABLE = 1; // Enable the TCC1 counter
+    while (TCC0->SYNCBUSY.bit.ENABLE)
+        ;
+    TCC1->CTRLA.bit.ENABLE = 1; // Enable the TCC1 counter
+    while (TCC1->SYNCBUSY.bit.ENABLE)
+        ; // Wait for synchronization
 
 } // Use after de-safing rocket but before launch activation.
 
