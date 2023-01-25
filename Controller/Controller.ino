@@ -45,6 +45,7 @@ CC3 | WO[3], WO[7]
 
 #define FUEL                   0u // Array index constants for easy access
 #define OX                     1u
+#define LED                    FUEL
 #define CTRL                   0u
 #define DIR                    1u
 #define ENC_CLK                2u
@@ -78,10 +79,10 @@ CC3 | WO[3], WO[7]
 static const signed short int C_FORWARD = 1;                  // Normalized forward vector. Swap to 0 if reversed
 static const signed short int C_REVERSE = abs(C_FORWARD - 1); // Normalized reverse vector. Opposite of C_FORWARD
 
-static const array<array<byte, 10>, 2> PIN = {
+static const array<array<byte, 6>, 2> PIN = {
   //  Fuel, Ox
-    {{A2, x, 13, 12, x}, //  CTRL (PWM), DIR, ENC_CLK (SCK), ENC_DATA (MISO), ADJ_SELECT
-     {A3, x, 5, 6, x}}
+    {{A2, x, 13, 12, x, 8}, //  CTRL (PWM), DIR, ENC_CLK (SCK), ENC_DATA (MISO), ADJ_SELECT, CS
+     {A3, x, 5, 6, x, 0}}
 };
 
 array<array<double, 3>, 2> k_pid = {
@@ -378,13 +379,11 @@ void attachPins() {
     // the encoders do not have a CS input, and so it is not possible to place them on the same SPI port without some circuit
     // modifications on our end. Though this is not impossible (all it would take is a discrete AND gate IC), it was decided
     // to maintain separate SPI ports in case we decide to explore parallelization in the future. The configuration for the
-    // SPI SERCOMs is fairly self explanatory, as we are using many default configuration parameters. The only thing worth
-    // noting is the MSSEN parameter, which enables hardware CS control. It is possible to use software-defined CS pins,
-    // however it was decided to use hardware control to keep configuration and hardware design simple, and timings tight.
-    // When using SPI with a shift register (in this case the SN74HC595 acting as our LED parallel display), connections
-    // should be made as follows: MOSI->Serial input (SER), SCK->Serial clock (SRCLK), and CS->Storage register clock/latch
-    // pin (RCLK). See Chapter 27 in the MC datasheet, the datasheets for the NME2 (encoder) and SN74HC595 (LED shift
-    // register), and the circuit schematic for more info.
+    // SPI SERCOMs is fairly self explanatory, as we are using many default configuration parameters. When using SPI with a
+    // shift register (in this case the SN74HC595 acting as our LED parallel display), connections should be made as follows:
+    // MOSI->Serial input (SER), SCK->Serial clock (SRCLK), and CS->Storage register clock/latch pin (RCLK). See Chapter 27
+    // in the MC datasheet, the datasheets for the NME2 (encoder) and SN74HC595 (LED shift register), and the circuit
+    // schematic for more info.
 
     // The other notable configuration step is the baudrate, or data transfer speed. The encoders support up to 10MHz (the
     // shift register much more than that), but we do not necessarily want to approach that as our system needs to be
@@ -395,7 +394,6 @@ void attachPins() {
     // MC datasheet for more info.
 
     // Note that SERCOM0 does not require a chip select pin, as it is only reading in data from the OX encoder.
-    // However, the MSSEN pin is still set to make sure there is no confusion as to software-defined CS.
     SERCOM0->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |     // MISO is Pad 3
                              SERCOM_SPI_CTRLA_DOPO(0x0u) |     // MOSI pad 0, SCK Pad 1, CS Pad 2
                              SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
@@ -403,20 +401,18 @@ void attachPins() {
 
     SERCOM0->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
 
-    // Same as SERCOM0. All of this should already be configured by Arduino by default, but it is
-    // worth defining explicitly. Note that unlike SERCOM0, the MSSEN is explicitly required as
-    // we need to output to the LED shift register.
+    // Same as SERCOM0. Most of this should already be configured by Arduino by default, but it should still be defined
+    // explicitly.
     SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |     // MISO is Pad 3
                              SERCOM_SPI_CTRLA_DOPO(0x0u) |     // MOSI pad 0, SCK Pad 1, CS Pad 2
                              SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
-    SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN |           // Enable reciever/full-duplex operation
-                             SERCOM_SPI_CTRLB_MSSEN;           // Enable hardware chip select
+    SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;            // Enable reciever/full-duplex operation
     SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
     // TODO: I2C
-    //  TODO: Configure IO lines, pull up resistors?
+    //  TODO: Configure IO lines/SS, pull up resistors
 }
 
-// TODO: Document GCLK
+// TODO: Document GCLK, Config APB masks
 void configureClocks() {
 
     // Link timer periphs to GCLK for PWM
