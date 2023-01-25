@@ -350,6 +350,7 @@ void attachPins() {
     SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD);
 }
 
+// TODO: Document GCLK
 void configureClocks() {
 
     // Link timer periphs to GCLK for PWM
