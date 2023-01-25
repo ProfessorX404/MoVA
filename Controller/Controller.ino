@@ -71,9 +71,9 @@ CC3 | WO[3], WO[7]
 #define syncClock()                                                                                                         \
     while (GCLK->STATUS.bit.SYNCBUSY)                                                                                       \
         ;               // Wait for clock synchronization
-#define TC_FUEL     TC4 // Timers for each PID loop
+#define TC_FUEL     TC4 // Timer pointers for each PID loop
 #define TC_OX       TC5
-#define SERCOM_BAUD 0
+#define SERCOM_BAUD 3u
 
 static const signed short int C_FORWARD = 1;                  // Normalized forward vector. Swap to 0 if reversed
 static const signed short int C_REVERSE = abs(C_FORWARD - 1); // Normalized reverse vector. Opposite of C_FORWARD
@@ -292,6 +292,11 @@ void attachPins() {
     // Configure TCC0
     // Setup basic dual slope PWM on TCC0 (See 31.6.2.5.6 in SAMD datasheet). Note that we are writing, not ORing, the
     // registers as we need them to only contain the value we give it and do not care about any previous settings.
+    // THE PWM pins on the Arduino were chosen such that both pins connect to the same TCC (in this case TCC0) on separate
+    // waveform outputs, which means we only have to spin up and configure a single peripheral, and just change the
+    // corresponding CCBx value to change the outputs. Note that every TCC does not neccessarily share the same configuration
+    // options or parameters. Should it be neccesary to change pins and spin up a different TCC, while it may be possible to
+    // just copy-paste the original config routine, that should not be assumed.
     TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
     while (TCC0->SYNCBUSY.bit.WAVE)
         ; // Sync
@@ -309,7 +314,9 @@ void attachPins() {
     // need any waveform generation from them. The counter increments from 0 or decrements from the max value depending on
     // configuration, and COUNT register is compared to the value in the Compare/Capture register (CCx). Every time the count
     // hits CCx, it resets to 0/max and triggers an event. See Chapter 30 for more details. TC4 and TC5 are configured
-    // identically, as we are using them to run the FUEL and OX PID controllers.
+    // identically, as we are using them to run the FUEL and OX PID controllers respectively.
+
+    //
     TC4->COUNT16.CTRLA.reg =
         TC_CTRLA_MODE_COUNT16 |   // Select 16 bit mode for TC4
         TC_CTRLA_PRESCALER_DIV8 | // Divides frequency by 8, to get f_TC of 1MHz, or period 1us
@@ -317,37 +324,96 @@ void attachPins() {
 
     while (TC4->COUNT16.STATUS.bit.SYNCBUSY)
         ; // sync
-    TC4->COUNT16.READREQ.reg =
-        TC_READREQ_RCONT | TC_READREQ_RREQ | TC_READREQ_ADDR(0x10); // Sets continuous read synchronization of count register
-    while (TC4->COUNT16.STATUS.bit.SYNCBUSY)
-        ; // sync
 
+    // Sets continuous read synchronization of count register. This means it is not neccesary to set the RREQ flag and
+    // wait to synchronize every time we want to read the COUNT value.See section 30.10.2 in MC datasheet.
+    TC4->COUNT16.READREQ.reg = TC_READREQ_RCONT | // Sets RCONT flag, disabling automatic clearing of RREQ flag after sync
+                               TC_READREQ_RREQ |  // Read sync request flag, synchronizes COUNT register for reading
+                               TC_READREQ_ADDR(0x10); // COUNT register address
+
+    // Same as TC4
     TC5->COUNT16.CTRLA.reg =
-        TC_CTRLA_MODE_COUNT16 |   // Select 16 bit mode for TC5
-        TC_CTRLA_PRESCALER_DIV8 | // Divides frequency by 8, to get f_TC of 1MHz, or period 1us
+        TC_CTRLA_MODE_COUNT16 |   // Select 16-bit mode for TC5.
+        TC_CTRLA_PRESCALER_DIV8 | // Divides GCLK frequency by 8, to get f_TC of 8Mhz/8=1MHz, or period 1us
         TC_CTRLA_PRESCSYNC_PRESC; // Clock reset is connected to prescaler clock not GCLK. Keeps 1us period.
-
     while (TC5->COUNT16.STATUS.bit.SYNCBUSY)
         ; // sync
-    TC5->COUNT16.READREQ.reg =
-        TC_READREQ_RCONT | TC_READREQ_RREQ | TC_READREQ_ADDR(0x10); // Sets continuous read synchronization of count register
-    while (TC5->COUNT16.STATUS.bit.SYNCBUSY)
-        ; // sync
+    // Same as TC4
+    TC5->COUNT16.READREQ.reg = TC_READREQ_RCONT | // Sets RCONT flag, disabling automatic clearing of RREQ flag after sync
+                               TC_READREQ_RREQ |  // Read sync request flag, synchronizes COUNT register for reading
+                               TC_READREQ_ADDR(0x10); // COUNT register address
 
-    // TODO: Document SERCOM configuration
-    SERCOM0->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3) |      // MISO is Pad 3
-                             SERCOM_SPI_CTRLA_DOPO(0x0) |      // MOSI pad 0, SCK Pad 1, CS Pad 2
-                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device as host
-    SERCOM0->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN |           // Enable reciever
-                             SERCOM_SPI_CTRLB_MSSEN;           // Enable hardware chip select
-    SERCOM0->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD);
+    // The MC has 6 SERCOM, or SERial COMmunication, peripherals, SERCOM0:SERCOM5. Each SERCOM peripheral has 4 pads
+    // associated with it. "Pad" just means an IO line for the peripheral, similar to channels in TCCs. MC pins are
+    // associated with both a SERCOM and a pad. Some MC pins have a primary and alternate set. This is why the FUEL pins are
+    // attached to peripheral E, while OX is attached to peripheral D. Both are attached to SERCOMs, but system requirements
+    // meant that we had to use the alternate set for FUEL (note that the FUEL pins do not actually have a primary set, as
+    // seen in the variant table). The function of each pad is defined by the chosen SERCOM operation protocol and
+    // configuration. SERCOMs 1:5 are already reserved by the Arduino (this can be seen in variant.h), which leaves us with
+    // only SERCOM0 to use as we want (without overriding an existing serial port connection). Fortunately, SERCOM1 has been
+    // reserved as the stock SPI port, which means we actually have enough to do what we need.
 
-    SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3) |      // MISO is Pad 3
-                             SERCOM_SPI_CTRLA_DOPO(0x0) |      // MOSI pad 0, SCK Pad 1, CS Pad 2
-                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device as host
-    SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN |           // Enable reciever
+    // SPI, or Serial Peripheral Interface, is a communications protocol developed for low level communications between
+    // things like sensors, ICs, encoders, or other peripherals. It is what we are using on SERCOM0 and SERCOM 1. Our
+    // encoders use a subset of SPI functionality to output their readings (they only output data, not take it in). The SPI
+    // protocol is based around the shift register digital circuit, which Ben Eater has several fantastic YouTube videos on.
+    // This means that we can also use it directly with any compatible shift register IC, even without a peripheral
+    // abstraction. SAMD SERCOM's SPI mode supports full-duplex communications, which means it can read and write at the same
+    // time. What this means for our application is we can control up to 4 single-direction devices with just two SERCOM
+    // interfaces (2 inputs and 2 outputs). There are many online resources that do a better job of explaining SPI, but the
+    // basics are as follows: full-duplex SPI has 4 pins: MISO, MOSI, SCK, and CS. MOSI and MISO are data pins, standing for
+    // Master-Out-Slave-In and Master-In-Slave-Out. Fairly self-explanatory, in our case as the host MISO is the input and
+    // MOSI is the output pin for the SERCOM. SCK is the Serial ClocK. SPI does not have a native baudrate, instead data is
+    // only sent through MOSI and MISO on the leading or trailing edge of SCK's clock pulse (depending on configuration).
+    // This type of shared-clock communication is described as Synchronous. This is in contrast to Asynchronous communication
+    // protocols like UART (which SERCOM also supports), in which the devices decide on the communication frequency during
+    // the initial handshake and then send data based on that with no regard for the other device's timing. The CS/Chip
+    // Select, or SS/SPI Select (it has been called different things through different version of the protocol) line is for,
+    // as the name suggests, selecting which chip the data is going to/coming from along MOSI and MISO. Notably, MISO, MOSI,
+    // and SCK all can be connected to peripherals in parallel. There is one CS line ran from the host to each peripheral.
+    // This means that SPI can scale to many devices relatively well, as you only need to allocate 1 extra pin per added
+    // device. Pulling CS low unlatches the peripheral's shift register, allowing for data transfer to that device. We will
+    // use this fact along with the full-duplex support to allow us to interact with multiple devices on the same SPI port,
+    // in this case both the FUEL encoder and the LED status shift register, as was mentioned briefly above. Unfortunately
+    // the encoders do not have a CS input, and so it is not possible to place them on the same SPI port without some circuit
+    // modifications on our end. Though this is not impossible (all it would take is a discrete AND gate IC), it was decided
+    // to maintain separate SPI ports in case we decide to explore parallelization in the future. The configuration for the
+    // SPI SERCOMs is fairly self explanatory, as we are using many default configuration parameters. The only thing worth
+    // noting is the MSSEN parameter, which enables hardware CS control. It is possible to use software-defined CS pins,
+    // however it was decided to use hardware control to keep configuration and hardware design simple, and timings tight.
+    // When using SPI with a shift register (in this case the SN74HC595 acting as our LED parallel display), connections
+    // should be made as follows: MOSI->Serial input (SER), SCK->Serial clock (SRCLK), and CS->Storage register clock/latch
+    // pin (RCLK). See Chapter 27 in the MC datasheet, the datasheets for the NME2 (encoder) and SN74HC595 (LED shift
+    // register), and the circuit schematic for more info.
+
+    // The other notable configuration step is the baudrate, or data transfer speed. The encoders support up to 10MHz (the
+    // shift register much more than that), but we do not necessarily want to approach that as our system needs to be
+    // reliable and tolerant of suboptimal EMI conditions. 1MHz was chosen due to it's convenient bitrate of 1 bit/us,
+    // allowing for easy timing calculations. Depending on the operating mode of the SERCOM, the BAUD register
+    // influences baudrate differently, but for synchronous operations (as is the case for SPI), the baud rate is defined as
+    // f_ref/(2*(BAUD+1)), where f_ref is the reference frequency fed to the SERCOM by the GCLK. See section 25.6.2.3 in
+    // MC datasheet for more info.
+
+    // Note that SERCOM0 does not require a chip select pin, as it is only reading in data from the OX encoder.
+    // However, the MSSEN pin is still set to make sure there is no confusion as to software-defined CS.
+    SERCOM0->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |     // MISO is Pad 3
+                             SERCOM_SPI_CTRLA_DOPO(0x0u) |     // MOSI pad 0, SCK Pad 1, CS Pad 2
+                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
+    SERCOM0->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;            // Enable reciever/full-duplex operation
+
+    SERCOM0->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
+
+    // Same as SERCOM0. All of this should already be configured by Arduino by default, but it is
+    // worth defining explicitly. Note that unlike SERCOM0, the MSSEN is explicitly required as
+    // we need to output to the LED shift register.
+    SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |     // MISO is Pad 3
+                             SERCOM_SPI_CTRLA_DOPO(0x0u) |     // MOSI pad 0, SCK Pad 1, CS Pad 2
+                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
+    SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN |           // Enable reciever/full-duplex operation
                              SERCOM_SPI_CTRLB_MSSEN;           // Enable hardware chip select
-    SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD);
+    SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
+    // TODO: I2C
+    //  TODO: Configure IO lines, pull up resistors?
 }
 
 // TODO: Document GCLK
@@ -372,9 +438,9 @@ void configureClocks() {
                         GCLK_GENCTRL_SRC_OSC8M; // Link to 8MHz source
     syncClock();
 
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 | // Select GCLK5 at 48MHz to edit |
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 | // Select GCLK5 at 8MHz to edit |
                         GCLK_CLKCTRL_CLKEN |     // Enable GCLK5 as a clock source
-                        GCLK_CLKCTRL_ID_TC4_TC5; // Feed GCLK4 to TC4 and TC5
+                        GCLK_CLKCTRL_ID_TC4_TC5; // Feed GCLK5 to TC4 and TC5
     syncClock();
 
     // Link timer periphs to SERCOM0
@@ -384,20 +450,20 @@ void configureClocks() {
                         GCLK_GENCTRL_SRC_OSC8M; // Link to 8MHz source
     syncClock();
 
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK6 |      // Select GCLK6 at 48MHz to edit |
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK6 |      // Select GCLK6 at 8MHz to edit |
                         GCLK_CLKCTRL_CLKEN |          // Enable GCLK6 as a clock source
-                        GCLK_CLKCTRL_ID_SERCOM0_CORE; // Feed GCLK4 to SERCOM0 Baud Generator
+                        GCLK_CLKCTRL_ID_SERCOM0_CORE; // Feed GCLK6 to SERCOM0 Baud Generator
     syncClock();
 
     // Link timer periph to SERCOM1
-    GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(7u) |   // Edit GCLK6
+    GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(7u) |   // Edit GCLK7
                         GCLK_GENCTRL_IDC |      // Improve 50/50 PWM
                         GCLK_GENCTRL_GENEN |    // Enable generic clock
                         GCLK_GENCTRL_SRC_OSC8M; // Link to 8MHz source
     syncClock();
 
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK7 |      // Select GCLK6 at 48MHz to edit |
-                        GCLK_CLKCTRL_CLKEN |          // Enable GCLK6 as a clock source
-                        GCLK_CLKCTRL_ID_SERCOM1_CORE; // Feed GCLK4 to SERCOM0 Baud Generator
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK7 |      // Select GCLK7 at 8MHz to edit |
+                        GCLK_CLKCTRL_CLKEN |          // Enable GCLK7 as a clock source
+                        GCLK_CLKCTRL_ID_SERCOM1_CORE; // Feed GCLK7 to SERCOM0 Baud Generator
     syncClock();
 }
