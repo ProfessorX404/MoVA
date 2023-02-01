@@ -23,17 +23,6 @@ If using VSCode:
 
 - Manual zip extraction does not work.for library installation, you must go through the library manager.
 
-TODO:
-- Manual adjustment
-- Placeholders:
-    - VALVE_OPEN_DEG
-    - VALVE_CLOSED_DEG
-    - HALL_CUTOFF
-    - isActivated()
-    - getRevolutions()*
-- TUNE pid[fo] AND WIND UP CONSTANTS
-- *Count revolutions
-
 OTMX Values:
 CCx | WO[n]
 CC0 | WO[0], WO[4]
@@ -45,12 +34,19 @@ CC3 | WO[3], WO[7]
 
 #define FUEL                   0u // Array index constants for easy access
 #define OX                     1u
-#define LED                    FUEL
+#define EXT                    2u
 #define CTRL                   0u
 #define DIR                    1u
-#define ENC_CLK                2u
-#define ENC_DATA               3u
-#define ADJ_SELECT             4u
+#define STOP                   2u
+#define ENC_CLK                3u
+#define ENC_DATA               4u
+#define SER_OUT                5u
+#define CS                     6u
+#define BUTTON_ONE             0u
+#define BUTTON_TWO             1u
+#define SEL_SWITCH             2u
+#define TX                     3u
+#define RX                     4u
 #define P                      0u
 #define I                      1u
 #define D                      2u
@@ -67,8 +63,6 @@ CC3 | WO[3], WO[7]
 #define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)        // Post-gearbox encoder tics / degree
 #define TARGET_REVS            (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO) // Number of rotations to get almost fully open
 #define PWM_FREQ_COEF          480u                                          // 48MHz / (2 + 480) = .05MHz = 50KHz
-#define REGISTER_MOSI          11u
-#define REGISTER_LATCH         8u
 #define syncClock()                                                                                                         \
     while (GCLK->STATUS.bit.SYNCBUSY)                                                                                       \
         ;               // Wait for clock synchronization
@@ -79,10 +73,11 @@ CC3 | WO[3], WO[7]
 static const signed short int C_FORWARD = 1;                  // Normalized forward vector. Swap to 0 if reversed
 static const signed short int C_REVERSE = abs(C_FORWARD - 1); // Normalized reverse vector. Opposite of C_FORWARD
 
-static const array<array<byte, 6>, 2> PIN = {
-  //  Fuel, Ox
-    {{A2, x, 13, 12, x, 8}, //  CTRL (PWM), DIR, ENC_CLK (SCK), ENC_DATA (MISO), ADJ_SELECT, CS
-     {A3, x, 5, 6, x, 0}}
+static const array<array<byte, 7>, 3> PIN = {
+  //  Fuel, Ox, External; 255 = no pin needed for that role
+    {{A2, 10, A1, 13, 12, 11, 8}, //  CTRL (PWM), DIR, STOP, ENC_CLK (SCK), ENC_DATA (MISO), SER_OUT (MOSI), CS
+     {A3, 9, A0, 5, 6, 255, 255}, // Pull down, down, down, null, down/null, down/null, up/null
+     {4, 3, 2, 0, 1, 255, 255}}  //  BUTTON_ONE, BUTTON_TWO, SEL_SWITCH, TX, RX, null, null
 };
 
 array<array<double, 3>, 2> k_pid = {
@@ -189,7 +184,6 @@ byte getRevolutions() { return 0; } // Placeholder
 // by the time the CPU has completed the operation and is ready to move on. This can cause undocumented
 // behavior if the CPU then turns around and tries to re-access the data for whatever reason.
 void attachPins() {
-
     // PORT is the name of the multiplexer controller. It is what controls which microcontroller (MC) pins
     // connect to which internal peripherals. Though it is not in itself a peripheral, it still requires
     // configuration. The port has several PORT Groups, and the ones we care about are Groups 0 and 1,
@@ -220,8 +214,10 @@ void attachPins() {
     PORT->Group[g_APinDescription[PIN[FUEL][ENC_DATA]].ulPort]
         .PINCFG[g_APinDescription[PIN[FUEL][ENC_DATA]].ulPin]
         .bit.PMUXEN = 1;
-    PORT->Group[g_APinDescription[REGISTER_MOSI].ulPort].PINCFG[g_APinDescription[REGISTER_MOSI].ulPin].bit.PMUXEN = 1;
-    PORT->Group[g_APinDescription[REGISTER_LATCH].ulPort].PINCFG[g_APinDescription[REGISTER_LATCH].ulPin].bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[PIN[FUEL][SER_OUT]].ulPort]
+        .PINCFG[g_APinDescription[PIN[FUEL][SER_OUT]].ulPin]
+        .bit.PMUXEN = 1;
+    PORT->Group[g_APinDescription[PIN[FUEL][CS]].ulPort].PINCFG[g_APinDescription[PIN[FUEL][CS]].ulPin].bit.PMUXEN = 1;
     // Status LED shift register MOSI and CS technically part of the FUEL encoder SERCOM. As it is not neccesary to
     // write data to the encoders, and we are out of SERCOMs to communicate with the register, it has been connected to
     // the output pins (MOSI and CS, as well as SCK in parallel) for SERCOM1, which is associated with the FUEL valve
@@ -265,10 +261,10 @@ void attachPins() {
         ((g_APinDescription[PIN[FUEL][ENC_CLK]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
     PORT->Group[g_APinDescription[PIN[FUEL][ENC_DATA]].ulPort].PMUX[g_APinDescription[PIN[FUEL][ENC_DATA]].ulPin >> 1].reg |=
         ((g_APinDescription[PIN[FUEL][ENC_DATA]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
-    PORT->Group[g_APinDescription[REGISTER_MOSI].ulPort].PMUX[g_APinDescription[REGISTER_MOSI].ulPin >> 1].reg |=
-        ((g_APinDescription[REGISTER_MOSI].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
-    PORT->Group[g_APinDescription[REGISTER_LATCH].ulPort].PMUX[g_APinDescription[REGISTER_LATCH].ulPin >> 1].reg |=
-        ((g_APinDescription[REGISTER_LATCH].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[g_APinDescription[PIN[FUEL][SER_OUT]].ulPort].PMUX[g_APinDescription[PIN[FUEL][SER_OUT]].ulPin >> 1].reg |=
+        ((g_APinDescription[PIN[FUEL][SER_OUT]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[g_APinDescription[PIN[FUEL][CS]].ulPort].PMUX[g_APinDescription[PIN[FUEL][CS]].ulPin >> 1].reg |=
+        ((g_APinDescription[PIN[FUEL][CS]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
     PORT->Group[g_APinDescription[PIN[OX][ENC_CLK]].ulPort].PMUX[g_APinDescription[PIN[OX][ENC_CLK]].ulPin >> 1].reg |=
         ((g_APinDescription[PIN[OX][ENC_CLK]].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_D : PORT_PMUX_PMUXO_D;
@@ -380,10 +376,10 @@ void attachPins() {
     // modifications on our end. Though this is not impossible (all it would take is a discrete AND gate IC), it was decided
     // to maintain separate SPI ports in case we decide to explore parallelization in the future. The configuration for the
     // SPI SERCOMs is fairly self explanatory, as we are using many default configuration parameters. When using SPI with a
-    // shift register (in this case the SN74HC595 acting as our LED parallel display), connections should be made as follows:
-    // MOSI->Serial input (SER), SCK->Serial clock (SRCLK), and CS->Storage register clock/latch pin (RCLK). See Chapter 27
-    // in the MC datasheet, the datasheets for the NME2 (encoder) and SN74HC595 (LED shift register), and the circuit
-    // schematic for more info.
+    // shift register (in this case the SN74HCT595 acting as our LED parallel display), connections should be made as
+    // follows: MOSI->Serial input (SER), SCK->Serial clock (SRCLK), and CS->Storage register clock/latch pin (RCLK). See
+    // Chapter 27 in the MC datasheet, the datasheets for the NME2 (encoder) and SN74HC595 (LED shift register), and the
+    // circuit schematic for more info.
 
     // The other notable configuration step is the baudrate, or data transfer speed. The encoders support up to 10MHz (the
     // shift register much more than that), but we do not necessarily want to approach that as our system needs to be
@@ -409,11 +405,16 @@ void attachPins() {
     SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;            // Enable reciever/full-duplex operation
     SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
     // TODO: I2C
-    //  TODO: Configure IO lines/SS, pull up resistors
+    //  TODO: Configure IO lines/SS, pull up/down resistors
 }
 
-// TODO: Document GCLK, Config APB masks
+// TODO: Document GCLK,
 void configureClocks() {
+
+    // No TCC3?
+    PM->APBCMASK.reg |= PM_APBCMASK_SERCOM0 | PM_APBCMASK_SERCOM1 | PM_APBCMASK_SERCOM2 | PM_APBCMASK_SERCOM3 |
+                        PM_APBCMASK_SERCOM4 | PM_APBCMASK_SERCOM5 | PM_APBCMASK_TCC0 | PM_APBCMASK_TCC1 | PM_APBCMASK_TCC2 |
+                        PM_APBCMASK_TC3 | PM_APBCMASK_TC4 | PM_APBCMASK_TC5 | PM_APBCMASK_TC6 | PM_APBCMASK_TC7;
 
     // Link timer periphs to GCLK for PWM
     GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(4u) |     // Edit GCLK4
@@ -451,15 +452,14 @@ void configureClocks() {
                         GCLK_CLKCTRL_ID_SERCOM0_CORE; // Feed GCLK6 to SERCOM0 Baud Generator
     syncClock();
 
-    // Link timer periph to SERCOM1
+    // Link timer periph connected to SERCOM1
     GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(7u) |   // Edit GCLK7
                         GCLK_GENCTRL_IDC |      // Improve 50/50 PWM
                         GCLK_GENCTRL_GENEN |    // Enable generic clock
                         GCLK_GENCTRL_SRC_OSC8M; // Link to 8MHz source
     syncClock();
-
     GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK7 |      // Select GCLK7 at 8MHz to edit |
                         GCLK_CLKCTRL_CLKEN |          // Enable GCLK7 as a clock source
-                        GCLK_CLKCTRL_ID_SERCOM1_CORE; // Feed GCLK7 to SERCOM0 Baud Generator
+                        GCLK_CLKCTRL_ID_SERCOM1_CORE; // Feed GCLK7 to SERCOM1 Baud Generator
     syncClock();
 }
