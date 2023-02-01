@@ -76,8 +76,8 @@ static const signed short int C_REVERSE = abs(C_FORWARD - 1); // Normalized reve
 static const array<array<byte, 7>, 3> PIN = {
   //  Fuel, Ox, External; 255 = no pin needed for that role
     {{A2, 10, A1, 13, 12, 11, 8}, //  CTRL (PWM), DIR, STOP, ENC_CLK (SCK), ENC_DATA (MISO), SER_OUT (MOSI), CS
-     {A3, 9, A0, 5, 6, 255, 255}, // Pull down, down, down, null, down/null, down/null, up/null
-     {4, 3, 2, 0, 1, 255, 255}}  //  BUTTON_ONE, BUTTON_TWO, SEL_SWITCH, TX, RX, null, null
+     {A3, 9, A0, 5, 4, 6, 7}, // Pull down, down, down, null, down/null, down/null, up/null
+     {A6, A7, 2, 0, 1, 255, 255}}  //  BUTTON_ONE, BUTTON_TWO, SEL_SWITCH, TX, RX, null, null
 };
 
 array<array<double, 3>, 2> k_pid = {
@@ -399,11 +399,11 @@ void attachPins() {
 
     // Same as SERCOM0. Most of this should already be configured by Arduino by default, but it should still be defined
     // explicitly.
-    SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |     // MISO is Pad 3
-                             SERCOM_SPI_CTRLA_DOPO(0x0u) |     // MOSI pad 0, SCK Pad 1, CS Pad 2
-                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
-    SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;            // Enable reciever/full-duplex operation
-    SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
+    SERCOM1->CTRL.SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |     // MISO is Pad 3
+                                           SERCOM_SPI_CTRLA_DOPO(0x0u) |     // MOSI pad 0, SCK Pad 1, CS Pad 2
+                                           SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
+    SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;                          // Enable reciever/full-duplex operation
+    SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD);               // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
     // TODO: I2C
     //  TODO: Configure IO lines/SS, pull up/down resistors
 }
