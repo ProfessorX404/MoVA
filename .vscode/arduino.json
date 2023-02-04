@@ -1,11 +1,6 @@
 {
-    "board": "arduino:avr:nano",
+    "board": "arduino:samd:nano_33_iot",
     "sketch": "Controller\\Controller.ino",
     "programmer": "arduino:atmel_ice",
-    "buildPreferences": [
-        [
-            "build.extra_flags",
-            "-D__AVR_ATmega328P__"
-        ]
-    ]
+    "port": "COM3"
 }
