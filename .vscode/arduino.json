@@ -1,8 +1,7 @@
 {
     "board": "arduino:avr:nano",
     "sketch": "Controller\\Controller.ino",
-    "programmer": "arduino:avrispmkii",
-    "configuration": "cpu=atmega328old",
+    "programmer": "arduino:atmel_ice",
     "buildPreferences": [
         [
             "build.extra_flags",
