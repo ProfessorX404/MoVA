@@ -399,12 +399,12 @@ void attachPins() {
 
     // Same as SERCOM0. Most of this should already be configured by Arduino by default, but it should still be defined
     // explicitly.
-    SERCOM1->CTRL.SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |     // MISO is Pad 3
-                                           SERCOM_SPI_CTRLA_DOPO(0x0u) |     // MOSI pad 0, SCK Pad 1, CS Pad 2
-                                           SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
-    SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;                          // Enable reciever/full-duplex operation
-    SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD);               // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
-    // TODO: I2C
+    SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |     // MISO is Pad 3
+                             SERCOM_SPI_CTRLA_DOPO(0x0u) |     // MOSI pad 0, SCK Pad 1, CS Pad 2
+                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
+    SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;            // Enable reciever/full-duplex operation
+    SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
+    // TODO: Serial
     //  TODO: Configure IO lines/SS, pull up/down resistors
 }
 
