@@ -4,7 +4,7 @@
 *eMail=
 *
 *Project=Controller-Schematic-Rev_D
-*Date=22:53:31
+*Date=23:15:19
 *CreatedBy=Fritzing 0.9.10b.2022-07-01.CD-2134-0-40d23c29
 *
 *
@@ -13,16 +13,16 @@
 *Rotation in degree (0-360, math. pos.)
 *
 *No;Value;Package;X;Y;Rotation;Side;Name
-1;;DIP (Dual Inline) [THT];42.0511;-28.5044;90;Bottom;EXT
-2;;DIP16 [THT];63.3589;-17.2437;90;Bottom;74AHC595
-3;;db9;11.2762;-5.452;0;Bottom;FUEL
-4;;DIP (Dual Inline) [THT];42.0511;-28.5044;0;Bottom;RES_2
-5;;led_bargaph_10;72.1405;-23.1735;0;Bottom;XGURU_RED
-6;;db9;42.0511;-28.5044;0;Bottom;OX1
-7;150;THT;62.7592;-40.1122;0;Bottom;R2
-8;1µF;100 mil [THT, electrolytic];68.9892;-27.5307;90;Bottom;C3
-9;;SSOP;42.0511;-28.5044;0;Top;STEP DOWN
-10;;led_bargaph_10;72.1405;-23.1735;0;Bottom;YGURU_GRN
-11;68;THT;62.7592;-40.1122;0;Bottom;R1
-12;;DIP16 [THT];42.0511;-28.5044;90;Bottom;74AHC596
-13;;db9;11.2762;-23.232;0;Bottom;OX
+1;68;THT;62.7592;-40.1122;0;Bottom;R1
+2;150;THT;62.7592;-40.1122;0;Bottom;R2
+3;;db9;42.0511;-28.5044;0;Bottom;OX1
+4;;led_bargaph_10;72.1405;-23.1735;0;Bottom;XGURU_RED
+5;;DIP (Dual Inline) [THT];42.0511;-28.5044;90;Bottom;EXT
+6;;db9;11.2762;-5.452;0;Bottom;FUEL
+7;;DIP (Dual Inline) [THT];42.0511;-28.5044;0;Bottom;RES_ARR
+8;;db9;11.2762;-23.232;0;Bottom;OX
+9;;DIP16 [THT];63.3589;-17.2437;90;Bottom;74AHC595
+10;;QFN;42.0511;-28.5044;0;Top;STEP DOWN
+11;;led_bargaph_10;72.1405;-23.1735;0;Bottom;YGURU_GRN
+12;1µF;100 mil [THT, electrolytic];68.9892;-27.5307;90;Bottom;C3
+13;;DIP16 [THT];42.0511;-28.5044;90;Bottom;74AHC596
