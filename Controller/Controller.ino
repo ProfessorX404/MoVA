@@ -47,6 +47,7 @@ CC3 | WO[3], WO[7]
 #define SEL_SWITCH             2u
 #define TX                     3u
 #define RX                     4u
+#define SER_EN                 3u // External serial enable sensor pin. SERCOM if low, Digital-In if high.
 #define P                      0u
 #define I                      1u
 #define D                      2u
@@ -404,8 +405,7 @@ void attachPins() {
                              SERCOM_SPI_CTRLA_MODE_SPI_MASTER; // Sets device mode as host
     SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;            // Enable reciever/full-duplex operation
     SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
-    // TODO: Serial
-    //  TODO: Configure IO lines/SS, pull up/down resistors
+    // TODO: Serial2 setup, Configure GPIO lines, pull up/down resistors - Pull SER_EN high
 }
 
 // TODO: Document GCLK,
