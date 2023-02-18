@@ -217,9 +217,9 @@ void attachPins() {
     // = Group[PORTA]
     // =Group[0]
     //
-    // Since the Group 0 control register is the first in the
-    // series, the offset turns out to be 0x0. A similar process can be used to assess the pin # using PMUX (or other
-    // pin-number-dependent register) instead of Group and ulPin instead of ulPort.
+    // Since the Group 0 control register is the first in the series, the offset turns out to be 0x0. A similar process can
+    // be used to assess the pin # using PMUX (or other pin-number-dependent register) instead of Group and ulPin instead of
+    // ulPort.
 
     // Also included in the variant tables mentioned previously is the list of which Arduino pins connect
     // to which MC pins. For example, the Arduinos digital GPIO pin 7 (D7) connects to pin PA06
