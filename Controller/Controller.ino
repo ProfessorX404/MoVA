@@ -193,6 +193,34 @@ void attachPins() {
     // pin output set and input read controls, peripheral multiplexing for its associated pins.
     // The SAMD-defined PA/PB/etc pins should not be confused with the numbered GPIO pins on the Arduino.
 
+    // g_APinDescription is a constant array of PinDescription structs which contain the metadata for each Arduino pin (eg.
+    // DI/O pin #7, A4, whatever), defined inside variant.cpp. If you do the same on the PinDescription,
+    // you can see that ulPort is the first member of the struct, of type EPortType. EPortType is an enum
+    // which contains 3 values (plus a null value), which map to PortA, PortB, and PortC (which I believe in this
+    // microcontroller is not used). Each of the first entries in the array are mapped to either PORTA or PORTB, which again
+    // are just predefined ints from EPortType. A similar process is used for ulPin, which when combined with ulPort gives
+    // the MC all the data it needs to figure out which pin is being referenced (Pin group + pin number in that group). For
+    // example, the following is a breakdown of a reference to the fuel valve control pin, which outputs a PWM signal to the
+    // driver board to control the power output of the valve motor. The Group and PMUX objects are arrays of integer memory
+    // location offsets to access the correct portion of memory (Group[n] and PMUX[n] can be thought of to be basically
+    // equivalent to returning [Group|PMUX register start location] + n*[Group|PMUX register width]). However, this requires
+    // the ID (Group and pin #) of the microcontroller pin, while only having the Arduino GPIO number available (in this
+    // case, PIN[FUEL][CTRL]=A2, which is in itself a macro that expands to 16u, the index used for the PinDescription
+    // struct associated with the 2nd analog pin in g_APinDescription).  To assess the Group #, read the ulPort value inside
+    // the PinDescription struct at index A2=16u in the g_APinDescription array. This whole process simplies like so:
+    //
+    // Group[g_APinDescription[PIN[FUEL][CTRL]].ulPort]
+    // = Group[g_APinDescription[PIN[0][0]].ulPort]
+    // = Group[g_APinDescription[A2].ulPort]
+    // = Group[g_APinDescription[16u].ulPort
+    // = Group[{ PORTA, 11, PIO_ANALOG,...}.ulPort]
+    // = Group[PORTA]
+    // =Group[0]
+    //
+    // Since the Group 0 control register is the first in the
+    // series, the offset turns out to be 0x0. A similar process can be used to assess the pin # using PMUX (or other
+    // pin-number-dependent register) instead of Group and ulPin instead of ulPort.
+
     // Also included in the variant tables mentioned previously is the list of which Arduino pins connect
     // to which MC pins. For example, the Arduinos digital GPIO pin 7 (D7) connects to pin PA06
     // on the MC. To reference, eg, the PMUXEN bit for D7 we would use:PORT->Group[0].PINCFG[6].bit.PMUXEN
