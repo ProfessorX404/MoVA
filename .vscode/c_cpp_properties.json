@@ -24,6 +24,7 @@
             "compilerArgs": [
                 "-mcpu=cortex-m0plus",
                 "-mthumb",
+                "-w",
                 "-std=gnu++11",
                 "-ffunction-sections",
                 "-fdata-sections",
@@ -56,7 +57,7 @@
             "cppStandard": "c++11",
             "defines": [
                 "F_CPU=48000000L",
-                "ARDUINO=10819",
+                "ARDUINO=10607",
                 "ARDUINO_SAMD_NANO_33_IOT",
                 "ARDUINO_ARCH_SAMD",
                 "CRYSTALLESS",
