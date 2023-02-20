@@ -93,18 +93,15 @@ CC3 | WO[3], WO[7]
 #define OX_I   0.0
 #define OX_D   0.0
 
-#define ENC_TOT_BIT_CT         24u      // Total number of bits in encoder packet. Last bit is error bit, success=1
-#define ENC_DATA_BIT_CT        17u      // Data bits in encoder packet
-#define ENC_MIN_TIME_US        20000u   // Minimum amount of time between data calls, in us
-#define WIND_UP_MIN            -10.0    // Integral growth bound min const
-#define WIND_UP_MAX            10.0     // Integral growth bound max const
+#define ENC_TOT_BIT_CT         24u // Total number of bits in encoder packet.
+#define ENC_DATA_BIT_CT        17
+#define ENC_DATA_MASK          0b011111111111111111000000 // Bits [22:6]
+#define ENC_END_SHIFT          6        // Number of digits to drop at right to read from data after masking
 #define ENC_TICS_PER_MOTOR_REV 0x20000u // Number of encoder tics in mechanical revolution (per datasheet)
 #define GEARBOX_RATIO          15u      // Revs into gearbox per 1 revolution out
 #define ENC_TICS_PER_VALVE_REV (ENC_TICS_PER_MOTOR_REV) * (GEARBOX_RATIO) // Post-gearbox encoder tics per valve revolution
-#define VALVE_OPEN_DEG         90.0                                       // Encoder value for valve being fully open
-#define VALVE_CLOSED_DEG       0.0                                        // Encoder value for valve being fully closed
-#define ENC_TICS_PER_VALVE_DEG (int)(ENC_TICS_PER_VALVE_REV / 360)        // Post-gearbox encoder tics / degree
-#define TARGET_REVS            (int)((VALVE_OPEN_DEG / 360) * GEARBOX_RATIO) // Number of rotations to get almost fully open
+#define ENC_TICS_PER_VALVE_DEG (uint32_t)(ENC_TICS_PER_VALVE_REV / 360)   // Post-gearbox encoder tics / degree
+#define TARGET_REVS            (byte)((90 / 360) * GEARBOX_RATIO) // Number of rotations to get within one rev of fully open
 
 #define PWM_FREQ_COEF 480u // 48MHz / (2 + 480) = .05MHz = 50KHz
 #define syncClock()                                                                                                         \
@@ -128,22 +125,35 @@ CC3 | WO[3], WO[7]
 #define FUEL_ERROR_MASK    0b00001111
 #define OX_ERROR_MASK      0b11110000
 
-#define PORT_WRITE(p, n, b)   (b ? PORT_IOBUS->Group[p].OUTSET.reg = (1 << n) : PORT_IOBUS->Group[p].OUTCLR.reg = (1 << n))
+// Error codes, 2-15
+#define ERR_CLR      1u // No error present
+#define ERR_ENC_CONN 2u // Bad connection with encoder
+#define ERR_ENC_INT  3u // Encoder passes internal error state
+
+// Status codes, 0-7
+#define STATUS_INIT        0u
+#define STATUS_HOME        1u
+#define STATUS_IDLE        2u
+#define STATUS_HOLD_CLOSED 3u
+#define STATUS_ACTIVATE    4u
+#define STATUS_SPRINT      5u
+#define STATUS_PID         6u
+#define STATUS_ABORT       7u
+
+#define PORT_WRITE(p, n, b)   (b ? PORT_IOBUS->Group[p].OUTSET.reg |= (1 << n) : PORT_IOBUS->Group[p].OUTCLR.reg |= (1 << n))
 #define PORT_READ(p, n)       (!!(PORT_IOBUS->Group[p].IN.reg & (1 << n)))
 #define incrementFuelStatus() status &= (((status >> FUEL_ERROR_OFFSET) + 1) << FUEL_ERROR_OFFSET) & FUEL_STATUS_MASK
 #define incrementOxStatus()   status &= (((status >> OX_ERROR_OFFSET) + 1) << OX_ERROR_OFFSET) & OX_STATUS_MASK
 #define setFuelError(error)   errorCode &= (error << FUEL_ERROR_OFFSET) & FUEL_ERROR_MASK
 #define setOxError(error)     errorCode &= (error << OX_ERROR_OFFSET) & OX_ERROR_MASK
 
-array<uint32_t, 2> accumulator = {0, 0}; // PID integral term accumulator
-array<uint16_t, 2> prev_pos = {0, 0};    // PID theta_n-1
+array<double, 2> accumulator = {0, 0}; // PID integral term accumulator
+array<uint16_t, 2> prev_pos = {0, 0};  // PID theta_n-1
+array<uint32_t, 2> prev_t = {0, 0};    // PID t_n-1
 
-uint16_t target = VALVE_CLOSED_DEG * ENC_TICS_PER_VALVE_DEG; // Current valve position target. Init'ed to closed
-array<byte, 2> totalRevs = {0, 0};                           // Revolution counter
-
-// Status flags
-bool f_activated = false;                       // True if valve has been activated
-array<bool, 2> f_withinOneRev = {false, false}; // True if totalRevs has passed TARGET_REVS
+array<uint32_t, 2> target = {0, 0}; // Current valve position target. Requires initialization after valve homing.
+array<byte, 2> totalRevs = {0, 0};  // Revolution counter
+array<uint32_t, 2> home = {0, 0};   // Encoder readings when valve completely closed.
 
 byte errorCode = 0; // Global error code variable for fault tracking. Write to red LEDs. [0:3]=fuel, [4:7]=ox
 byte status = 0; // Status readout for motor sequencing. Write to green LEDs. [0:2]=fuel, [3:5]=ox,[6:7]=hardware controlled
@@ -154,46 +164,74 @@ void setup() {
 }
 
 void loop() {
-    //  Home motors routine.
-    if (!f_activated) { // Wait for system to be activated
-        while (!isActivated()) {};
-        f_activated = true;
-    }
-    // Record start position of motors.
-
-    TC_FUEL->COUNT16.CTRLA.bit.ENABLE = 1;
-    TC_OX->COUNT16.CTRLA.bit.ENABLE = 1;
-    // Start motors
+    // switch(fuelStatus):
+    //  STATUS_INIT:
+    //      -Init periphs
+    //      -Establish coms
+    //      -Status->STATUS_HOME
+    //  STATUS_HOME
+    //      -Home motors routine.
+    //      -Set target as 90 deg off home.
+    //      -Status->STATUS_IDLE
+    //  STATUS_IDLE:
+    //      -If SER_EN, receive data from SERCOM5
+    //          -If data=launch:
+    //              -Status->STATUS_ACTIVATE
+    //          -If data=abort:
+    //              -Status->STATUS_ABORT
+    //      -If !SER_EN:
+    //          -If PORT_READ(PORT_EXT_TX, PIN_EXT_TX):
+    //              -Status->STATUS_ACTIVATE
+    //      -holdClosed();
+    //  STATUS_ACTIVATE:
+    //      -Begin timers
+    //      -Start motors
+    //      -Status->STATUS_SPRINT;
+    //  STATUS_SPRINT:
+    //      -If position overflow:
+    //          -Increment totalRevs[0|1]
+    //          -If totalRevs[0|1] > TargetRevs:
+    //              -Status->STATUS_PID
+    //  STATUS_PID:
+    //      -updateFuel(target[0]);
+    //      -updateOx(target[1]);
+    //
+    //  switch(oxStatus):
+    //      -''
 }
 
-// PID loop for Fuel valve. Activated via interrupt.
-void updateFuel() {
-    // uint16_t dt = TC_FUEL->COUNT16.COUNT.reg;
-    uint16_t dt = ENC_MIN_TIME_US;
+// PID loop for Fuel valve.
+void updateFuel(double SP) {
+    uint16_t dt = TC_FUEL->COUNT16.COUNT.reg;
     TC_FUEL->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
-    uint16_t theta_n = readFuelEncData();
+    signed int theta_n = readFuelEncData();
 
-    //
-    accumulator[0] += (dt << 1) * (theta_n + prev_pos[0] - (target >> 1));
+    // Integral approximation based on trapezoidal Riemann sum
+    accumulator[0] += (1 / 2) * dt * SP * (theta_n + prev_pos[0] - 2);
 
-    uint32_t O = (FUEL_P * (theta_n - target)) + (FUEL_I * accumulator[0]) + (FUEL_D * ((theta_n - prev_pos[0]) / dt));
+    // Calculate PID output
+    signed int O = (FUEL_P * (theta_n - SP)) + (FUEL_I * accumulator[0]) + (FUEL_D * ((theta_n - prev_pos[0]) / dt));
 
     PORT_WRITE(PORT_FUEL_DIR_SEL, PIN_FUEL_DIR_SEL, O > 0);
 
-    TCC0->CCB[CCB_FUEL].reg = (O > PWM_FREQ_COEF) ? PWM_FREQ_COEF : O;
+    TCC0->CCB[CCB_FUEL].reg = (O > PWM_FREQ_COEF) ? PWM_FREQ_COEF : abs(O);
     while (TCC0->SYNCBUSY.bit.CCB0)
         ;
+
     prev_pos[0] = theta_n;
 }
 
-void TC4_Handler(void) {
-    updateFuel();
-    TC_FUEL->COUNT16.INTFLAG.bit.MC0 = 1;
+// Returns fuel encoder position, centered on the home value established during startup. For use with PID loop, as this
+// enables it to pick the most efficient route to the target position.
+signed int readFuelEncData() {
+    //                  Mask out garbage bits          Center value at closed position
+    return (((readRawFuelEncData() & ENC_DATA_MASK) >> ENC_END_SHIFT) - home[0]);
 }
 
-// Takes reading from fuel encoder. Throws fatal error if reading fails. .
-uint32_t readFuelEncData() {
-    uint32_t data = 0;
+// Takes reading from fuel encoder. Throws error if first latch bit is not 1, or encoder reading returns internal error state
+// (last bit is 0).
+uint32_t readRawFuelEncData() {
+    uint32_t rawData = 0;
     for (byte i = 0; i < ENC_TOT_BIT_CT; i += 8) {
         while (!FUEL_SERCOM->SPI.INTFLAG.bit.DRE)
             ;
@@ -201,36 +239,22 @@ uint32_t readFuelEncData() {
 
         while (!FUEL_SERCOM->SPI.INTFLAG.bit.RXC)
             ;
-        data |= FUEL_SERCOM->SPI.DATA.reg << ENC_TOT_BIT_CT - (i * 8);
+        rawData |= FUEL_SERCOM->SPI.DATA.reg << ENC_TOT_BIT_CT - (i * 8);
     }
 
-    if (data & 1) { // last bit is error bit.
-        errorCode = ERROR_ENC_FAIL << 5;
-        error(true);
+    if (rawData & 1 << ENC_TOT_BIT_CT) {
+        setFuelError(ERROR_ENC_CONN);
+        error(false);
     }
-
-    return (data << 1) >> (ENC_TOT_BIT_CT - ENC_DATA_BIT_CT); // Data bits are [22:6], so drop first (latch) bit and last 7.
+    if (!(rawData & 1)) { // Error bit is 0.
+        setFuelError(ERROR_ENC_INT_ERR);
+        error(false);
+    }
 }
-
-uint32_t readOxEncData() {
-    uint32_t data = 0;
-    for (byte i = 0; i < ENC_TOT_BIT_CT; i += 8) {
-        while (!OX_SERCOM->SPI.INTFLAG.bit.DRE)
-            ;
-        OX_SERCOM->SPI.DATA.reg = status;
-
-        while (!OX_SERCOM->SPI.INTFLAG.bit.RXC)
-            ;
-        data |= OX_SERCOM->SPI.DATA.reg << ENC_TOT_BIT_CT - (i * 8);
-    }
-
-    return (data << 1) >> (ENC_TOT_BIT_CT - ENC_DATA_BIT_CT); // Data bits are [22:6], so drop first (latch) bit and last 7.
-}
-
-// Outputs error info to serial, if fatal error stalls program
-void error(bool isFatal) {
+// Outputs error info to serial, if fatal error closes valves.
+void error(bool fatal) {
     Serial.println("Error occured!");
-    Serial.println("isFatal: " + isFatal);
+    Serial.println("isFatal: " + fatal);
     Serial.println("errorCode: " + errorCode);
     Serial.println("Status: " + status);
 
@@ -238,8 +262,14 @@ void error(bool isFatal) {
         ;
     SERCOM0->SPI.DATA.reg = errorCode;
 
-    while (isFatal)
-        ;
+    while (fatal) {
+        holdClosed();
+    }
+}
+
+void holdClosed() {
+    updateFuel(home[0]);
+    updateOx(home[0]);
 }
 
 // Returns true if valve has been actuated by master controller.
@@ -415,15 +445,6 @@ void attachPins() {
                                TC_READREQ_RREQ |  // Read sync request flag, synchronizes COUNT register for reading
                                TC_READREQ_ADDR(0x10); // COUNT register address
 
-    // Configure interrupts
-    NVIC_DisableIRQ(TC4_IRQn);
-    NVIC_ClearPendingIRQ(TC4_IRQn);
-    NVIC_SetPriority(TC4_IRQn, 0);
-    NVIC_EnableIRQ(TC4_IRQn);
-
-    TC4->COUNT16.CC[0].reg = ENC_MIN_TIME_US;
-    TC4->COUNT16.INTENSET.bit.MC0 = 1; // Enables compare match interupt.
-
     // Same as TC4
     TC5->COUNT16.CTRLA.reg =
         TC_CTRLA_MODE_COUNT16 |   // Select 16-bit mode for TC5.
@@ -435,15 +456,6 @@ void attachPins() {
     TC5->COUNT16.READREQ.reg = TC_READREQ_RCONT | // Sets RCONT flag, disabling automatic clearing of RREQ flag after sync
                                TC_READREQ_RREQ |  // Read sync request flag, synchronizes COUNT register for reading
                                TC_READREQ_ADDR(0x10); // COUNT register address
-
-    // Configure interrupts
-    NVIC_DisableIRQ(TC5_IRQn);
-    NVIC_ClearPendingIRQ(TC5_IRQn);
-    NVIC_SetPriority(TC5_IRQn, 0);
-    NVIC_EnableIRQ(TC5_IRQn);
-
-    TC5->COUNT16.CC[0].reg = ENC_MIN_TIME_US;
-    TC5->COUNT16.INTENSET.bit.MC0 = 1; // Enables compare match interupt.
 
     // The MC has 6 SERCOM, or SERial COMmunication, peripherals, SERCOM0:SERCOM5. Each SERCOM peripheral has 4 pads
     // associated with it. "Pad" just means an IO line for the peripheral, similar to channels in TCCs. MC pins are
@@ -557,6 +569,7 @@ bool serialEnabled() {
     return !PORT_READ(PORT_SER_EN, PIN_SER_EN);
 }
 
+// Configure GPIO pins per 23.6.3 of SAMD datasheet
 void configureGPIO(byte portNo, byte pinNo, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0) {
 
     if (DIR == OUTPUT) {
@@ -569,11 +582,12 @@ void configureGPIO(byte portNo, byte pinNo, bool DIR, bool INEN = 0, bool PULLEN
     }
 }
 
-// TODO: Document GCLK,
+// TODO: Documentation
 void configureClocks() {
 
     PM->APBCMASK.reg |= PM_APBCMASK_SERCOM0 | PM_APBCMASK_SERCOM1 | PM_APBCMASK_SERCOM2 | PM_APBCMASK_SERCOM3 |
-                        PM_APBCMASK_SERCOM4 | PM_APBCMASK_SERCOM5 | PM_APBCMASK_TCC0 | PM_APBCMASK_TC4 | PM_APBCMASK_TC5;
+                        PM_APBCMASK_SERCOM4 | PM_APBCMASK_SERCOM5 | PM_APBCMASK_TCC0 | PM_APBCMASK_TC4 | PM_APBCMASK_TC5 |
+                        PM_APBCMASK_TC6 | PM_APBCMASK_TC7;
 
     // Link timer periphs to GCLK for PWM
     GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(4u) |     // Edit GCLK4
@@ -602,6 +616,10 @@ void configureClocks() {
     GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 | // Select GCLK5 at 8MHz to edit |
                         GCLK_CLKCTRL_CLKEN |     // Enable GCLK5 as a clock source
                         GCLK_CLKCTRL_ID_TC4_TC5; // Feed GCLK5 to TC4 and TC5
+
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 | // Select GCLK5 at 8MHz to edit |
+                        GCLK_CLKCTRL_CLKEN |     // Enable GCLK5 as a clock source
+                        GCLK_CLKCTRL_ID_TC6_TC7; // Feed GCLK5 to TC4 and TC5
 
     GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 |      // Select GCLK5 at 8MHz to edit |
                         GCLK_CLKCTRL_CLKEN |          // Enable GCLK5 as a clock source
