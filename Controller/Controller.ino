@@ -118,12 +118,8 @@ CC3 | WO[3], WO[7]
 #define SERCOM_BAUD        3u // Baud value for SERCOM communications
 #define FUEL_STATUS_OFFSET 5u
 #define OX_STATUS_OFFSET   2u
-#define FUEL_ERROR_OFFSET  4u
-#define OX_ERROR_OFFSET    0u
-#define FUEL_STATUS_MASK   0b00011111
-#define OX_STATUS_MASK     0b11100011
-#define FUEL_ERROR_MASK    0b00001111
-#define OX_ERROR_MASK      0b11110000
+#define FUEL_ERR_OFFSET    4u
+#define OX_ERR_OFFSET      0u
 
 // Error codes, 2-15
 #define ERR_CLR      1u // No error present
@@ -140,12 +136,10 @@ CC3 | WO[3], WO[7]
 #define STATUS_PID         6u
 #define STATUS_ABORT       7u
 
-#define PORT_WRITE(p, n, b)   (b ? PORT_IOBUS->Group[p].OUTSET.reg |= (1 << n) : PORT_IOBUS->Group[p].OUTCLR.reg |= (1 << n))
-#define PORT_READ(p, n)       (!!(PORT_IOBUS->Group[p].IN.reg & (1 << n)))
-#define incrementFuelStatus() status &= (((status >> FUEL_ERROR_OFFSET) + 1) << FUEL_ERROR_OFFSET) & FUEL_STATUS_MASK
-#define incrementOxStatus()   status &= (((status >> OX_ERROR_OFFSET) + 1) << OX_ERROR_OFFSET) & OX_STATUS_MASK
-#define setFuelError(error)   errorCode &= (error << FUEL_ERROR_OFFSET) & FUEL_ERROR_MASK
-#define setOxError(error)     errorCode &= (error << OX_ERROR_OFFSET) & OX_ERROR_MASK
+#define PORT_WRITE(p, n, b) (b ? PORT_IOBUS->Group[p].OUTSET.reg |= (1 << n) : PORT_IOBUS->Group[p].OUTCLR.reg |= (1 << n))
+#define PORT_READ(p, n)     (!!(PORT_IOBUS->Group[p].IN.reg & (1 << n)))
+#define status              ((fuelStatus << FUEL_STATUS_OFFSET) | (oxStatus << OX_STATUS_OFFSET)) // Merge errors/statuses for LED output
+#define errorCode           ((fuelErr << FUEL_ERR_OFFSET) | (oxErr << OX_ERR_OFFSET))
 
 array<double, 2> accumulator = {0, 0}; // PID integral term accumulator
 array<uint16_t, 2> prev_pos = {0, 0};  // PID theta_n-1
@@ -155,16 +149,14 @@ array<uint32_t, 2> target = {0, 0}; // Current valve position target. Requires i
 array<byte, 2> totalRevs = {0, 0};  // Revolution counter
 array<uint32_t, 2> home = {0, 0};   // Encoder readings when valve completely closed.
 
-byte errorCode = 0; // Global error code variable for fault tracking. Write to red LEDs. [0:3]=fuel, [4:7]=ox
-byte status = 0; // Status readout for motor sequencing. Write to green LEDs. [0:2]=fuel, [3:5]=ox,[6:7]=hardware controlled
+byte fuelErr = ERR_CLR; // Global error code variable for fault tracking.
+byte oxErr = ERR_CLR;
+byte fuelStatus = STATUS_INIT; // Status readout for motor sequencing. 0->8
+byte oxStatus = STATUS_INIT;
 
 void setup() {
     configureClocks();
     attachPins();
-}
-
-void loop() {
-    // switch(fuelStatus):
     //  STATUS_INIT:
     //      -Init periphs
     //      -Establish coms
@@ -183,6 +175,38 @@ void loop() {
     //          -If PORT_READ(PORT_EXT_TX, PIN_EXT_TX):
     //              -Status->STATUS_ACTIVATE
     //      -holdClosed();
+}
+
+void loop() {
+    switch (fuelStatus) {
+        case STATUS_INIT:
+            attachPins();
+            break;
+        case STATUS_HOME:
+
+            break;
+        case STATUS_IDLE:
+
+            break;
+        case STATUS_HOLD_CLOSED:
+
+            break;
+        case STATUS_ACTIVATE:
+
+            break;
+        case STATUS_SPRINT:
+
+            break;
+        case STATUS_PID:
+
+            break;
+        case STATUS_ABORT:
+
+            break;
+
+        default:
+            break;
+    }
     //  STATUS_ACTIVATE:
     //      -Begin timers
     //      -Start motors
@@ -221,6 +245,10 @@ void updateFuel(double SP) {
     prev_pos[0] = theta_n;
 }
 
+void updateOx(double SP) {
+    return; // Duplicate updateFuel once confirmed to work.
+}
+
 // Returns fuel encoder position, centered on the home value established during startup. For use with PID loop, as this
 // enables it to pick the most efficient route to the target position.
 signed int readFuelEncData() {
@@ -243,13 +271,14 @@ uint32_t readRawFuelEncData() {
     }
 
     if (rawData & 1 << ENC_TOT_BIT_CT) {
-        setFuelError(ERROR_ENC_CONN);
+        fuelErr = ERR_ENC_CONN;
         error(false);
     }
     if (!(rawData & 1)) { // Error bit is 0.
-        setFuelError(ERROR_ENC_INT_ERR);
+        fuelErr = ERR_ENC_INT;
         error(false);
     }
+    return rawData;
 }
 // Outputs error info to serial, if fatal error closes valves.
 void error(bool fatal) {
@@ -262,14 +291,15 @@ void error(bool fatal) {
         ;
     SERCOM0->SPI.DATA.reg = errorCode;
 
-    while (fatal) {
-        holdClosed();
+    if (fatal) {
+        fuelStatus = STATUS_HOLD_CLOSED;
+        oxStatus = STATUS_HOLD_CLOSED;
     }
 }
 
 void holdClosed() {
     updateFuel(home[0]);
-    updateOx(home[0]);
+    updateOx(home[1]);
 }
 
 // Returns true if valve has been actuated by master controller.
@@ -586,8 +616,7 @@ void configureGPIO(byte portNo, byte pinNo, bool DIR, bool INEN = 0, bool PULLEN
 void configureClocks() {
 
     PM->APBCMASK.reg |= PM_APBCMASK_SERCOM0 | PM_APBCMASK_SERCOM1 | PM_APBCMASK_SERCOM2 | PM_APBCMASK_SERCOM3 |
-                        PM_APBCMASK_SERCOM4 | PM_APBCMASK_SERCOM5 | PM_APBCMASK_TCC0 | PM_APBCMASK_TC4 | PM_APBCMASK_TC5 |
-                        PM_APBCMASK_TC6 | PM_APBCMASK_TC7;
+                        PM_APBCMASK_SERCOM4 | PM_APBCMASK_SERCOM5 | PM_APBCMASK_TCC0 | PM_APBCMASK_TC4 | PM_APBCMASK_TC5;
 
     // Link timer periphs to GCLK for PWM
     GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(4u) |     // Edit GCLK4
