@@ -11,17 +11,7 @@ Motor used is Nanotec DB59l024035-A
 URL: https://us.nanotec.com/products/2870-db59l024035-a
 
 Libraries used (attached in ../lib for convenience):
- - ArduPID https://github.com/PowerBroker2/ArduPID
- - FireTimer https://github.com/PowerBroker2/FireTimer (ArduPID dependency)
  - ArduinoSTL https://github.com/mike-matera/ArduinoSTL
- - SoftPWM https://github.com/bhagman/SoftPWM
-
-If using VSCode:
-
-  - Arduino extension does not work (for me) with Arduino CLI even though the documentation says it does,
-  I have to use legacy Arduino IDE v1.8.19
-
-- Manual zip extraction does not work.for library installation, you must go through the library manager.
 
 OTMX Values:
 CCx | WO[n]
@@ -32,67 +22,15 @@ CC3 | WO[3], WO[7]
 */
 #include <array.h>
 
-// I/O Pin definitions
-#define PORT_FUEL_CTRL      A2 // PWM
-#define PORT_FUEL_DIR_SEL   10 // Output
-#define PORT_FUEL_STOP      A1 // Output
-#define PORT_FUEL_ENC_CLK   13 // SPI-SCK
-#define PORT_FUEL_ENC_DATA  12 // SPI-MISO
-#define PORT_FUEL_SER_OUT   11 // SPI-MOSI
-#define PORT_FUEL_CS        8  // SPI-CS
-#define PORT_OX_CTRL        A3 // PWM
-#define PORT_OX_DIR_SEL     9  // Output
-#define PORT_OX_STOP        A0 // Output
-#define PORT_OX_ENC_CLK     5  // SPI-SCK
-#define PORT_OX_ENC_DATA    4  // SPI-MISO
-#define PORT_OX_SER_OUT     6  // SPI-MOSI
-#define PORT_OX_CS          7  // SPI-CS
-#define PORT_EXT_BUTTON_ONE A6 // Input
-#define PORT_EXT_BUTTON_TWO A7 // Input
-#define PORT_EXT_SEL_SWITCH 2  // Input
-#define PORT_EXT_TX         0  // UART-TX
-#define PORT_EXT_RX         1  // UART-RX
-
-#define PIN_FUEL_CTRL      A2 // PWM
-#define PIN_FUEL_DIR_SEL   10 // Output
-#define PIN_FUEL_STOP      A1 // Output
-#define PIN_FUEL_ENC_CLK   13 // SPI-SCK
-#define PIN_FUEL_ENC_DATA  12 // SPI-MISO
-#define PIN_FUEL_SER_OUT   11 // SPI-MOSI
-#define PIN_FUEL_CS        8  // SPI-CS
-#define PIN_OX_CTRL        A3 // PWM
-#define PIN_OX_DIR_SEL     9  // Output
-#define PIN_OX_STOP        A0 // Output
-#define PIN_OX_ENC_CLK     5  // SPI-SCK
-#define PIN_OX_ENC_DATA    4  // SPI-MISO
-#define PIN_OX_SER_OUT     6  // SPI-MOSI
-#define PIN_OX_CS          7  // SPI-CS
-#define PIN_EXT_BUTTON_ONE A6 // Input
-#define PIN_EXT_BUTTON_TWO A7 // Input
-#define PIN_EXT_SEL_SWITCH 2  // Input
-#define PIN_EXT_TX         0  // UART-TX
-#define PIN_EXT_RX         1  // UART-RX
-
-#define PORT_SER_EN 3u // External serial enable sensor pin. Active low.
-#define PIN_SER_EN  3u
-
 #define RES_EXT_BUTTON_ONE INPUT_PULLUP
 #define RES_EXT_BUTTON_TWO INPUT_PULLUP
 #define RES_EXT_SEL_SWITCH INPUT_PULLUP
 #define RES_SER_EN         INPUT_PULLUP
 
-#define INPUT_PULLUP   1
-#define INPUT_PULLDOWN 0
-#define OUTPUT         1
-#define INPUT          0
-
-#define FUEL_P 0.0
-#define FUEL_I 0.0
-#define FUEL_D 0.0
-#define OX_P   0.0
-#define OX_I   0.0
-#define OX_D   0.0
-
+#define INPUT_PULLUP           1
+#define INPUT_PULLDOWN         0
+#define OUTPUT                 1
+#define INPUT                  0
 #define ENC_TOT_BIT_CT         24u // Total number of bits in encoder packet.
 #define ENC_DATA_BIT_CT        17
 #define ENC_DATA_MASK          0b011111111111111111000000 // Bits [22:6]
@@ -103,212 +41,262 @@ CC3 | WO[3], WO[7]
 #define ENC_TICS_PER_VALVE_DEG (uint32_t)(ENC_TICS_PER_VALVE_REV / 360)   // Post-gearbox encoder tics / degree
 #define TARGET_REVS            (byte)((90 / 360) * GEARBOX_RATIO) // Number of rotations to get within one rev of fully open
 
-#define PWM_FREQ_COEF 480u // 48MHz / (2 + 480) = .05MHz = 50KHz
+#define PWM_FREQ_COEF 480u // 48MHz / (2 + [480]) = .05MHz = 50KHz
 #define syncClock()                                                                                                         \
     while (GCLK->STATUS.bit.SYNCBUSY)                                                                                       \
-        ;                      // Wait for clock synchronization
-#define TC_FUEL            TC4 // Timer pointers for each PID loop
-#define TC_OX              TC5
-#define CCB_FUEL           1u
-#define CCB_OX             0u
-#define FUEL_SERCOM        SERCOM0
-#define OX_SERCOM          SERCOM1
-#define GREEN              OX_SERCOM
-#define RED                FUEL_SERCOM
+        ; // Wait for clock synchronization
+
+// Error codes, 2-15
+#define ERR_CLR          1u // No error present
+#define ERR_ENC_CONN     2u // Bad connection with encoder
+#define ERR_ENC_INT      3u // Encoder passes internal error state
+#define ERR_ENC_MISMATCH 4u // Encoder reads do not match
+
+// Status codes, 0-7
+#define STATUS_INIT     0u
+#define STATUS_CONN     1u
+#define STATUS_HOME     2u
+#define STATUS_WAIT     3u
+#define STATUS_IDLE     4u
+#define STATUS_ACTIVATE 5u
+#define STATUS_RUN      6u
+#define STATUS_ABORT    7u
+
+#define LED_GREEN          SERCOM1
+#define LED_RED            SERCOM0
 #define SERCOM_BAUD        3u // Baud value for SERCOM communications
 #define FUEL_STATUS_OFFSET 5u
 #define OX_STATUS_OFFSET   2u
 #define FUEL_ERR_OFFSET    4u
 #define OX_ERR_OFFSET      0u
 
-// Error codes, 2-15
-#define ERR_CLR      1u // No error present
-#define ERR_ENC_CONN 2u // Bad connection with encoder
-#define ERR_ENC_INT  3u // Encoder passes internal error state
-
-// Status codes, 0-7
-#define STATUS_INIT        0u
-#define STATUS_HOME        1u
-#define STATUS_IDLE        2u
-#define STATUS_HOLD_CLOSED 3u
-#define STATUS_ACTIVATE    4u
-#define STATUS_SPRINT      5u
-#define STATUS_PID         6u
-#define STATUS_ABORT       7u
-
 #define PORT_WRITE(p, n, b) (b ? PORT_IOBUS->Group[p].OUTSET.reg |= (1 << n) : PORT_IOBUS->Group[p].OUTCLR.reg |= (1 << n))
 #define PORT_READ(p, n)     (!!(PORT_IOBUS->Group[p].IN.reg & (1 << n)))
-#define status              ((fuelStatus << FUEL_STATUS_OFFSET) | (oxStatus << OX_STATUS_OFFSET)) // Merge errors/statuses for LED output
-#define errorCode           ((fuelErr << FUEL_ERR_OFFSET) | (oxErr << OX_ERR_OFFSET))
+#define statusCode          ((Fuel.err << FUEL_STATUS_OFFSET) | (Ox.err << OX_STATUS_OFFSET)) // Merge errors/statuses for LED output
+#define errorCode           ((Fuel.err << FUEL_ERR_OFFSET) | (Ox.err << OX_ERR_OFFSET))
+#define neg(x, y)           (((x ^ y) + (y & 1))) // Negates x if y (bit) is 1, only works for 2s complement
+#define homeShift(x, y)     ((x - y.origin) + ((x < y.origin) & (1 << ENC_DATA_BIT_CT)))
 
-array<double, 2> accumulator = {0, 0}; // PID integral term accumulator
-array<uint16_t, 2> prev_pos = {0, 0};  // PID theta_n-1
-array<uint32_t, 2> prev_t = {0, 0};    // PID t_n-1
+typedef struct {
+    uint8_t port;
+    uint8_t pin;
+} PIN;
 
-array<uint32_t, 2> target = {0, 0}; // Current valve position target. Requires initialization after valve homing.
-array<byte, 2> totalRevs = {0, 0};  // Revolution counter
-array<uint32_t, 2> home = {0, 0};   // Encoder readings when valve completely closed.
+typedef struct {
+    uint32_t origin;   // Encoder readings when valve completely closed.
+    uint32_t prev_t;   // t_n-1, in ticks
+    float target;      // PID setpoint, in revs
+    float totalRevs;   // Current position in revs
+    float accumulator; // PID integral term accumulator
+    byte err;          // Error code
+    byte status;       // Status code
+    float P;
+    float I;
+    float D;
+    Tc *TC;
+    byte CCB;
+    Sercom *SERCOM;
+    PIN CTRL;
+    PIN DIR_SEL;
+    PIN STOP;
+    PIN ENC_CLK;
+    PIN ENC_DATA;
+    PIN SER_OUT;
+    PIN CS;
+} Encoder;
 
-byte fuelErr = ERR_CLR; // Global error code variable for fault tracking.
-byte oxErr = ERR_CLR;
-byte fuelStatus = STATUS_INIT; // Status readout for motor sequencing. 0->8
-byte oxStatus = STATUS_INIT;
+struct {
+    PIN BUTTON_ONE = {(uint8_t)g_APinDescription[A6].ulPort, (uint8_t)g_APinDescription[A6].ulPin};
+    PIN BUTTON_TWO = {(uint8_t)g_APinDescription[A7].ulPort, (uint8_t)g_APinDescription[A7].ulPin};
+    PIN SEL_SWITCH = {(uint8_t)g_APinDescription[2].ulPort, (uint8_t)g_APinDescription[2].ulPin};
+    PIN TX = {(uint8_t)g_APinDescription[0].ulPort, (uint8_t)g_APinDescription[0].ulPin};
+    PIN RX = {(uint8_t)g_APinDescription[1].ulPort, (uint8_t)g_APinDescription[1].ulPin};
+} EXT;
+
+Encoder Fuel, Ox;
+Encoder *enc;
+
+bool serEn = false;
+
+PIN SER_EN = {1, 11}; // External serial enable sensor pin. Active low.
 
 void setup() {
+    Fuel = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC4, 1u, SERCOM0};
+    Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, SERCOM1};
+
+    Fuel.CTRL = {(uint8_t)g_APinDescription[A2].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
+    Fuel.DIR_SEL = {(uint8_t)g_APinDescription[10].ulPort, (uint8_t)g_APinDescription[10].ulPin};
+    Fuel.STOP = {(uint8_t)g_APinDescription[A1].ulPort, (uint8_t)g_APinDescription[A1].ulPin};
+    Fuel.ENC_CLK = {(uint8_t)g_APinDescription[13].ulPort, (uint8_t)g_APinDescription[13].ulPin};
+    Fuel.ENC_DATA = {(uint8_t)g_APinDescription[12].ulPort, (uint8_t)g_APinDescription[12].ulPin};
+    Fuel.SER_OUT = {(uint8_t)g_APinDescription[11].ulPort, (uint8_t)g_APinDescription[11].ulPin};
+    Fuel.CS = {(uint8_t)g_APinDescription[8].ulPort, (uint8_t)g_APinDescription[8].ulPin};
+
+    Ox.CTRL = {(uint8_t)g_APinDescription[A3].ulPort, (uint8_t)g_APinDescription[A3].ulPin};
+    Ox.DIR_SEL = {(uint8_t)g_APinDescription[9].ulPort, (uint8_t)g_APinDescription[9].ulPin};
+    Ox.STOP = {(uint8_t)g_APinDescription[A0].ulPort, (uint8_t)g_APinDescription[A0].ulPin};
+    Ox.ENC_CLK = {(uint8_t)g_APinDescription[5].ulPort, (uint8_t)g_APinDescription[5].ulPin};
+    Ox.ENC_DATA = {(uint8_t)g_APinDescription[4].ulPort, (uint8_t)g_APinDescription[4].ulPin};
+    Ox.SER_OUT = {(uint8_t)g_APinDescription[6].ulPort, (uint8_t)g_APinDescription[6].ulPin};
+    Ox.CS = {(uint8_t)g_APinDescription[7].ulPort, (uint8_t)g_APinDescription[7].ulPin};
+
+    enc = &Fuel;
     configureClocks();
     attachPins();
-    //  STATUS_INIT:
-    //      -Init periphs
-    //      -Establish coms
-    //      -Status->STATUS_HOME
-    //  STATUS_HOME
-    //      -Home motors routine.
-    //      -Set target as 90 deg off home.
-    //      -Status->STATUS_IDLE
-    //  STATUS_IDLE:
-    //      -If SER_EN, receive data from SERCOM5
-    //          -If data=launch:
-    //              -Status->STATUS_ACTIVATE
-    //          -If data=abort:
-    //              -Status->STATUS_ABORT
-    //      -If !SER_EN:
-    //          -If PORT_READ(PORT_EXT_TX, PIN_EXT_TX):
-    //              -Status->STATUS_ACTIVATE
-    //      -holdClosed();
+    // -TODO: Init periphs
+    Fuel.status = STATUS_CONN;
+    Ox.status = STATUS_CONN;
+    // -TODO: Establish coms
+    Fuel.status = STATUS_HOME;
+    Ox.status = STATUS_HOME;
 }
 
 void loop() {
-    switch (fuelStatus) {
-        case STATUS_INIT:
-            attachPins();
-            break;
-        case STATUS_HOME:
 
+    switch (enc->status) {
+        case STATUS_HOME:
+            // TODO:
+            // -Home motors routine.
+            //  -Set target as 90 deg off home.
+            //  enc->status = STATUS_WAIT;
+            break;
+        case STATUS_WAIT:
+            if (Fuel.status == STATUS_WAIT && Ox.status == STATUS_WAIT) {
+                Fuel.status = STATUS_IDLE;
+                Ox.status = STATUS_IDLE;
+            }
             break;
         case STATUS_IDLE:
-
-            break;
-        case STATUS_HOLD_CLOSED:
-
+            // TODO:
+            // -If serEn, receive data from SERCOM5
+            //     -If data=launch:
+            //         enc->status = STATUS_ACTIVATE;
+            //     -If data=abort:
+            //         enc->status = STATUS_ABORT;
+            // -If !serEn:
+            //     -If PORT_READ(PORT_EXT_TX, PIN_EXT_TX):
+            //         enc->status = STATUS_ACTIVATE;
             break;
         case STATUS_ACTIVATE:
-
+            enc->TC->COUNT16.CTRLA.bit.ENABLE = 1;
+            enc->status = STATUS_RUN;
             break;
-        case STATUS_SPRINT:
-
-            break;
-        case STATUS_PID:
-
+        case STATUS_RUN:
+            update(*enc);
             break;
         case STATUS_ABORT:
-
+            enc->target = enc->origin;
             break;
 
         default:
             break;
     }
-    //  STATUS_ACTIVATE:
-    //      -Begin timers
-    //      -Start motors
-    //      -Status->STATUS_SPRINT;
-    //  STATUS_SPRINT:
-    //      -If position overflow:
-    //          -Increment totalRevs[0|1]
-    //          -If totalRevs[0|1] > TargetRevs:
-    //              -Status->STATUS_PID
-    //  STATUS_PID:
-    //      -updateFuel(target[0]);
-    //      -updateOx(target[1]);
-    //
-    //  switch(oxStatus):
-    //      -''
+    enc = (enc == &Fuel) ? &Ox : &Fuel;
 }
 
-// PID loop for Fuel valve.
-void updateFuel(double SP) {
-    uint16_t dt = TC_FUEL->COUNT16.COUNT.reg;
-    TC_FUEL->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
-    signed int theta_n = readFuelEncData();
+// PID loop. General implementation.
+void update(Encoder enc) {
+    uint16_t dt = enc.TC->COUNT16.COUNT.reg; // Time since last loop, in us
+    enc.TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
+    float theta_n = enc.totalRevs + getPos(enc);
 
     // Integral approximation based on trapezoidal Riemann sum
-    accumulator[0] += (1 / 2) * dt * SP * (theta_n + prev_pos[0] - 2);
+    enc.accumulator += (1 / 2) * dt * enc.target * (theta_n + enc.totalRevs - 2);
 
     // Calculate PID output
-    signed int O = (FUEL_P * (theta_n - SP)) + (FUEL_I * accumulator[0]) + (FUEL_D * ((theta_n - prev_pos[0]) / dt));
+    float O = (enc.P * (theta_n - enc.target)) + (enc.I * enc.accumulator) + (enc.D * ((theta_n - enc.totalRevs) / dt));
 
-    PORT_WRITE(PORT_FUEL_DIR_SEL, PIN_FUEL_DIR_SEL, O > 0);
+    PORT_WRITE(enc.DIR_SEL.port, enc.DIR_SEL.pin, O > 0);
 
-    TCC0->CCB[CCB_FUEL].reg = (O > PWM_FREQ_COEF) ? PWM_FREQ_COEF : abs(O);
-    while (TCC0->SYNCBUSY.bit.CCB0)
+    TCC0->CCB[enc.CCB].reg = (abs(O) > PWM_FREQ_COEF) ? PWM_FREQ_COEF : abs(O);
+
+    enc.totalRevs = theta_n;
+}
+
+// Returns encoder position, centered on the home value established during startup. For use with PID loop, as this
+// enables it to pick the most efficient route to the target position. Must reset clock before calling.
+float getPos(Encoder enc) {
+    uint32_t npos = readRawEncData(enc);
+    uint32_t ppos = enc.prev_t;
+    while (enc.TC->COUNT16.COUNT.reg < 20)
         ;
+    if (readRawEncData(enc) ^ npos != 0) {
+        enc.err = ERR_ENC_MISMATCH;
+        error(false);
+    } else {
+        enc.TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
 
-    prev_pos[0] = theta_n;
-}
+        npos = (npos ^ ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
+        npos = homeShift(npos, enc);
 
-void updateOx(double SP) {
-    return; // Duplicate updateFuel once confirmed to work.
-}
-
-// Returns fuel encoder position, centered on the home value established during startup. For use with PID loop, as this
-// enables it to pick the most efficient route to the target position.
-signed int readFuelEncData() {
-    //                  Mask out garbage bits          Center value at closed position
-    return (((readRawFuelEncData() & ENC_DATA_MASK) >> ENC_END_SHIFT) - home[0]);
+        enc.prev_t = npos;
+        if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 1))) {
+            return (npos - ppos) / (1 << ENC_DATA_BIT_CT);
+        } else {
+            return (npos - ppos) + ((neg((int32_t)(1 << ENC_DATA_BIT_CT), (npos > ppos))));
+        }
+    }
 }
 
 // Takes reading from fuel encoder. Throws error if first latch bit is not 1, or encoder reading returns internal error state
 // (last bit is 0).
-uint32_t readRawFuelEncData() {
+uint32_t readRawEncData(Encoder enc) {
     uint32_t rawData = 0;
     for (byte i = 0; i < ENC_TOT_BIT_CT; i += 8) {
-        while (!FUEL_SERCOM->SPI.INTFLAG.bit.DRE)
+        while (!enc.SERCOM->SPI.INTFLAG.bit.DRE)
             ;
-        FUEL_SERCOM->SPI.DATA.reg = errorCode;
+        enc.SERCOM->SPI.DATA.reg = errorCode;
 
-        while (!FUEL_SERCOM->SPI.INTFLAG.bit.RXC)
+        while (!enc.SERCOM->SPI.INTFLAG.bit.RXC)
             ;
-        rawData |= FUEL_SERCOM->SPI.DATA.reg << ENC_TOT_BIT_CT - (i * 8);
+        rawData |= enc.SERCOM->SPI.DATA.reg << ENC_TOT_BIT_CT - (i * 8);
     }
 
     if (rawData & 1 << ENC_TOT_BIT_CT) {
-        fuelErr = ERR_ENC_CONN;
+        enc.err = ERR_ENC_CONN;
         error(false);
     }
     if (!(rawData & 1)) { // Error bit is 0.
-        fuelErr = ERR_ENC_INT;
+        enc.err = ERR_ENC_INT;
         error(false);
     }
     return rawData;
 }
+
 // Outputs error info to serial, if fatal error closes valves.
 void error(bool fatal) {
     Serial.println("Error occured!");
     Serial.println("isFatal: " + fatal);
     Serial.println("errorCode: " + errorCode);
-    Serial.println("Status: " + status);
+    Serial.println("Status: " + statusCode);
 
     while (!SERCOM0->SPI.INTFLAG.bit.DRE)
         ;
     SERCOM0->SPI.DATA.reg = errorCode;
 
     if (fatal) {
-        fuelStatus = STATUS_HOLD_CLOSED;
-        oxStatus = STATUS_HOLD_CLOSED;
+        Fuel.status = STATUS_ABORT;
+        Ox.status = STATUS_ABORT;
     }
 }
 
-void holdClosed() {
-    updateFuel(home[0]);
-    updateOx(home[1]);
+// Configure GPIO pins per 23.6.3 of SAMD datasheet
+void configureGPIO(byte portNo, byte pinNo, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0) {
+
+    if (DIR == OUTPUT) {
+        PORT->Group[portNo].DIRSET.reg |= 1 << pinNo;
+    } else {
+        PORT->Group[portNo].DIRCLR.reg |= 1 << pinNo;
+        PORT->Group[portNo].PINCFG[pinNo].bit.INEN = INEN;
+        PORT->Group[portNo].PINCFG[pinNo].bit.PULLEN = PULLEN;
+        PORT->Group[portNo].OUT.reg |= 1 << pinNo;
+    }
 }
-
-// Returns true if valve has been actuated by master controller.
-bool isActivated() { return true; } // Placeholder
-
-// Returns the number of complete revolutions the motor has completed.
-// Accurate to within 60deg.
-byte getRevolutions() { return 0; } // Placeholder
-
+// Checks to see if Serial communications port has been enabled (active low)
+bool serialEnabled() {
+    configureGPIO(SER_EN.port, SER_EN.pin, INPUT, 1, 1, RES_SER_EN);
+    return !PORT_READ(SER_EN.port, SER_EN.pin);
+}
 // Configures internal peripherals and attaches to physical Arduino pins.
 // A peripheral is an internal microcontroller node that has functions
 // independent of the main controller thread. For example, TCs (Timer/Counters)
@@ -348,14 +336,14 @@ void attachPins() {
     // description for pin configuration.
 
     // Enable the port multiplexer for PWM pins
-    PORT->Group[PORT_FUEL_CTRL].PINCFG[PIN_FUEL_CTRL].bit.PMUXEN = 1;
-    PORT->Group[PORT_OX_CTRL].PINCFG[PORT_OX_CTRL].bit.PMUXEN = 1;
+    PORT->Group[Fuel.CTRL.port].PINCFG[Fuel.CTRL.pin].bit.PMUXEN = 1;
+    PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.port].bit.PMUXEN = 1;
 
     // Enable the port multiplexer for Encoder coms and status register pins
-    PORT->Group[PORT_FUEL_ENC_CLK].PINCFG[PIN_FUEL_ENC_CLK].bit.PMUXEN = 1;
-    PORT->Group[PORT_FUEL_ENC_DATA].PINCFG[PIN_FUEL_ENC_DATA].bit.PMUXEN = 1;
-    PORT->Group[PORT_FUEL_SER_OUT].PINCFG[PIN_FUEL_SER_OUT].bit.PMUXEN = 1;
-    PORT->Group[PORT_FUEL_CS].PINCFG[PIN_FUEL_CS].bit.PMUXEN = 1;
+    PORT->Group[Fuel.ENC_CLK.port].PINCFG[Fuel.ENC_CLK.pin].bit.PMUXEN = 1;
+    PORT->Group[Fuel.ENC_DATA.port].PINCFG[Fuel.ENC_DATA.pin].bit.PMUXEN = 1;
+    PORT->Group[Fuel.SER_OUT.port].PINCFG[Fuel.SER_OUT.pin].bit.PMUXEN = 1;
+    PORT->Group[Fuel.CS.port].PINCFG[Fuel.CS.pin].bit.PMUXEN = 1;
     // Status LED shift registers MOSI and CS technically part of the encoder SERCOMs. As it is not neccesary to
     // write data to the encoders, and we are out of SERCOMs to communicate with the registers, they have been connected to
     // the communication pins (MOSI and CS, as well as SCK in parallel) for the encoders (Green->FUEL, Red->OX). This means
@@ -367,14 +355,14 @@ void attachPins() {
     // SERCOM0 SCK and MISO pins for OX
 
     // Enable the port multiplexer for PWM pins
-    PORT->Group[PORT_OX_CTRL].PINCFG[PIN_OX_CTRL].bit.PMUXEN = 1;
-    PORT->Group[PORT_OX_CTRL].PINCFG[PORT_OX_CTRL].bit.PMUXEN = 1;
+    PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.pin].bit.PMUXEN = 1;
+    PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.port].bit.PMUXEN = 1;
 
     // Enable the port multiplexer for Encoder coms and status register pins
-    PORT->Group[PORT_OX_ENC_CLK].PINCFG[PIN_OX_ENC_CLK].bit.PMUXEN = 1;
-    PORT->Group[PORT_OX_ENC_DATA].PINCFG[PIN_OX_ENC_DATA].bit.PMUXEN = 1;
-    PORT->Group[PORT_OX_SER_OUT].PINCFG[PIN_OX_SER_OUT].bit.PMUXEN = 1;
-    PORT->Group[PORT_OX_CS].PINCFG[PIN_OX_CS].bit.PMUXEN = 1;
+    PORT->Group[Ox.ENC_CLK.port].PINCFG[Ox.ENC_CLK.pin].bit.PMUXEN = 1;
+    PORT->Group[Ox.ENC_DATA.port].PINCFG[Ox.ENC_DATA.pin].bit.PMUXEN = 1;
+    PORT->Group[Ox.SER_OUT.port].PINCFG[Ox.SER_OUT.pin].bit.PMUXEN = 1;
+    PORT->Group[Ox.CS.port].PINCFG[Ox.CS.pin].bit.PMUXEN = 1;
 
     // Now that we are able to connect the pins to peripherals, now we actually need to tell the MC which peripherals to
     // attach them to. As seen in the variant tables, each pin has as many as 8 peripherals to choose from (3bits),
@@ -396,27 +384,27 @@ void attachPins() {
     // More info can be found in 23.8.12
 
     // Attach PWM pins to timer peripherals
-    PORT->Group[PORT_FUEL_CTRL].PMUX[PIN_FUEL_CTRL >> 1].reg |=
-        ((PIN_FUEL_CTRL % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
-    PORT->Group[PORT_OX_CTRL].PMUX[PIN_OX_CTRL >> 1].reg |= ((PIN_OX_CTRL % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
+    PORT->Group[Fuel.CTRL.port].PMUX[Fuel.CTRL.pin >> 1].reg |=
+        ((Fuel.CTRL.pin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
+    PORT->Group[Ox.CTRL.port].PMUX[Ox.CTRL.pin >> 1].reg |= ((Ox.CTRL.pin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
 
     // Attach Encoder coms and status register pins to FUEL SERCOM
-    PORT->Group[PORT_FUEL_ENC_CLK].PMUX[PIN_FUEL_ENC_CLK >> 1].reg |=
-        ((PIN_FUEL_ENC_CLK % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
-    PORT->Group[PORT_FUEL_ENC_DATA].PMUX[PIN_FUEL_ENC_DATA >> 1].reg |=
-        ((PIN_FUEL_ENC_DATA % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
-    PORT->Group[PORT_FUEL_SER_OUT].PMUX[PIN_FUEL_SER_OUT >> 1].reg |=
-        ((PIN_FUEL_SER_OUT % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
-    PORT->Group[PORT_FUEL_CS].PMUX[PIN_FUEL_CS >> 1].reg |= ((PIN_FUEL_CS % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[Fuel.ENC_CLK.port].PMUX[Fuel.ENC_CLK.pin >> 1].reg |=
+        ((Fuel.ENC_CLK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[Fuel.ENC_DATA.port].PMUX[Fuel.ENC_DATA.pin >> 1].reg |=
+        ((Fuel.ENC_DATA.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[Fuel.SER_OUT.port].PMUX[Fuel.SER_OUT.pin >> 1].reg |=
+        ((Fuel.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[Fuel.CS.port].PMUX[Fuel.CS.pin >> 1].reg |= ((Fuel.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
     // Attach Encoder coms and status register pins to OX SERCOM
-    PORT->Group[PORT_OX_ENC_CLK].PMUX[PIN_OX_ENC_CLK >> 1].reg |=
-        ((PIN_OX_ENC_CLK % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
-    PORT->Group[PORT_OX_ENC_DATA].PMUX[PIN_OX_ENC_DATA >> 1].reg |=
-        ((PIN_OX_ENC_DATA % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
-    PORT->Group[PORT_OX_SER_OUT].PMUX[PIN_OX_SER_OUT >> 1].reg |=
-        ((PIN_OX_SER_OUT % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
-    PORT->Group[PORT_OX_CS].PMUX[PIN_OX_CS >> 1].reg |= ((PIN_OX_CS % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[Ox.ENC_CLK.port].PMUX[Ox.ENC_CLK.pin >> 1].reg |=
+        ((Ox.ENC_CLK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[Ox.ENC_DATA.port].PMUX[Ox.ENC_DATA.pin >> 1].reg |=
+        ((Ox.ENC_DATA.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[Ox.SER_OUT.port].PMUX[Ox.SER_OUT.pin >> 1].reg |=
+        ((Ox.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    PORT->Group[Ox.CS.port].PMUX[Ox.CS.pin >> 1].reg |= ((Ox.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
     // See configureClocks() for information regarding GCLK configuration and linking to periphs.
 
@@ -570,6 +558,7 @@ void attachPins() {
         ;
 
     if (serialEnabled()) {
+        serEn = true;
         // TODO: Configure Serial1 USART, Initialize coms with other end
     } else {
         // Disable Serial1 USART
@@ -580,36 +569,18 @@ void attachPins() {
         while (SERCOM5->USART.SYNCBUSY.bit.SWRST)
             ;
         // Configure TX as plain input
-        configureGPIO(PORT_EXT_TX, PIN_EXT_TX, INPUT, 1, 1, INPUT_PULLDOWN);
+        configureGPIO(EXT.TX.port, EXT.TX.pin, INPUT, 1, 1, INPUT_PULLDOWN);
     }
 
-    configureGPIO(PORT_FUEL_DIR_SEL, PIN_FUEL_DIR_SEL, OUTPUT);
-    configureGPIO(PORT_FUEL_STOP, PIN_FUEL_STOP, OUTPUT);
+    configureGPIO(Fuel.DIR_SEL.port, Fuel.DIR_SEL.pin, OUTPUT);
+    configureGPIO(Fuel.STOP.port, Fuel.STOP.pin, OUTPUT);
 
-    configureGPIO(PORT_OX_DIR_SEL, PIN_OX_DIR_SEL, OUTPUT);
-    configureGPIO(PORT_OX_STOP, PIN_OX_STOP, OUTPUT);
+    configureGPIO(Ox.DIR_SEL.port, Ox.DIR_SEL.pin, OUTPUT);
+    configureGPIO(Ox.STOP.port, Ox.STOP.pin, OUTPUT);
 
-    configureGPIO(PORT_EXT_BUTTON_ONE, PIN_EXT_BUTTON_ONE, INPUT, 0, 1, RES_EXT_BUTTON_ONE);
-    configureGPIO(PORT_EXT_BUTTON_TWO, PIN_EXT_BUTTON_ONE, INPUT, 0, 1, RES_EXT_BUTTON_TWO);
-    configureGPIO(PORT_EXT_SEL_SWITCH, PIN_EXT_BUTTON_ONE, INPUT, 0, 1, RES_EXT_SEL_SWITCH);
-}
-
-bool serialEnabled() {
-    configureGPIO(PORT_SER_EN, PIN_SER_EN, INPUT, 1, 1, RES_SER_EN);
-    return !PORT_READ(PORT_SER_EN, PIN_SER_EN);
-}
-
-// Configure GPIO pins per 23.6.3 of SAMD datasheet
-void configureGPIO(byte portNo, byte pinNo, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0) {
-
-    if (DIR == OUTPUT) {
-        PORT->Group[portNo].DIRSET.reg |= 1 << pinNo;
-    } else {
-        PORT->Group[portNo].DIRCLR.reg |= 1 << pinNo;
-        PORT->Group[portNo].PINCFG[pinNo].bit.INEN = INEN;
-        PORT->Group[portNo].PINCFG[pinNo].bit.PULLEN = PULLEN;
-        PORT->Group[portNo].OUT.reg |= 1 << pinNo;
-    }
+    configureGPIO(EXT.BUTTON_ONE.port, EXT.BUTTON_ONE.pin, INPUT, 0, 1, RES_EXT_BUTTON_ONE);
+    configureGPIO(EXT.BUTTON_TWO.port, EXT.BUTTON_TWO.pin, INPUT, 0, 1, RES_EXT_BUTTON_TWO);
+    configureGPIO(EXT.SEL_SWITCH.port, EXT.BUTTON_TWO.pin, INPUT, 0, 1, RES_EXT_SEL_SWITCH);
 }
 
 // TODO: Documentation

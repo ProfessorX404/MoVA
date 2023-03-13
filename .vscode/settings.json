@@ -51,7 +51,11 @@
         "typeinfo": "cpp",
         "utility": "cpp",
         "valarray": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "cstdarg": "cpp",
+        "cstdint": "cpp",
+        "*.tcc": "cpp",
+        "cinttypes": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled",
     "C_Cpp.intelliSenseEngineFallback": "Enabled"
