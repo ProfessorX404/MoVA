@@ -32,6 +32,8 @@ class PID(object):
     ):
 
         self.Kp, self.Ki, self.Kd = Kp, Ki, Kd
+        self.prev_tunings = (Kp, Ki, Kd)
+        self.prev_itae = 0
         self._setpoint = setpoint
         self._min_output, self._max_output = 0, 100
         self._model_params = model_params
@@ -279,10 +281,12 @@ def timeToStable(t, PV, SP, percent_err):
     return t[-1]
 
 
-def gradient(curr, prev, dx):
-    grad = np.zeros(len(curr))
-    for i in range(len(curr)):
-        grad[i] = (curr[i] - prev[i]) / dx
+def _jac(Ks, itae, prev_itae):
+    global pid
+    grad = np.zeros(len(Ks))
+    for i in range(len(Ks)):
+        grad[i] = (Ks[i] - pid.prev_tunings[i]) / (itae - prev_itae)
+    pid.prev_tunings = Ks
     return grad
 
 
@@ -309,13 +313,15 @@ def optimize():
         1], data(Ks)[2])
 
     def itae_func(Ks): return calcITAE(
-        data(Ks)[1], data(Ks)[2], startofstep)  # / 150
+        data(Ks)[1], data(Ks)[2], startofstep) / 150
+
+    def jac(Ks): return _jac(Ks, itae_func(Ks), itae_func(pid.prev_tunings))
     # tts_con = NonlinearConstraint(tts, 0, act_time)
     # err_con = NonlinearConstraint(itae_func, 0., max_itae / 150)
-    # results = minimize(
-    #     itae_func, (p, i, d), method="Newton-CG", tol=tolerance, constraints=(err_con), options={'maxiter': n_iter, 'disp': True}, callback=update_graphs)
-    results = fmin(itae_func, (p, i, d), ftol=tolerance,
-                   maxiter=n_iter, disp=True, callback=update_graphs)
+    results = minimize(itae_func, (p, i, d), method="Newton-CG", jac=np.gradient,
+                       tol=tolerance, options={'maxiter': n_iter, 'disp': True}, callback=update_graphs)
+    # results = fmin(itae_func, (p, i, d), ftol=tolerance,
+    #    maxiter=n_iter, disp=True, callback=update_graphs)
     print(results)
     # print(kP_opt, kI_opt, kD_opt)
     # buttons[5].insert(10, str(kP_opt))
