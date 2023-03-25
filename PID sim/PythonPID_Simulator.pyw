@@ -316,7 +316,7 @@ def optimize():
     p, i, d, sp = pid_params
     max_itae, n_iter, perm_error, tolerance, back_steps, act_time, pc_err = gc_params
     igain, itau, ideadtime, ibias, startofstep = model_params
-    print(p, i, d, sp)
+    print("Inputs: ", p, i, d, sp)
     def data(Ks): return _data(Ks, sp, model_params)
 
     def tts(Ks): return timeToStable(data(Ks)[0], data(Ks)[
@@ -344,7 +344,8 @@ def optimize():
 def update_graphs(Ks):
     global buttons, pid
     tKp, tKi, tKd = buttons[5:8]
-    print(pid.iterations, Ks, calcITAE(pid.results[1], pid.results[2], 10))
+    print("Iteration #:", pid.iterations, "; inputs:", Ks,
+          "; ITAE:", calcITAE(pid.results[1], pid.results[2], 10))
     tKp.delete(0, tk.END)
     tKp.insert(10, str(Ks[0]))
     tKi.delete(0, tk.END)
