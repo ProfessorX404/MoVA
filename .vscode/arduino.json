@@ -1,6 +1,6 @@
 {
     "board": "arduino:samd:nano_33_iot",
-    "sketch": "Controller\\Controller.ino",
+    "sketch": "Serial1Test\\Serial1Test.ino",
     "programmer": "arduino:atmel_ice",
-    "port": "COM3"
+    "port": "COM6"
 }

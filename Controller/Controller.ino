@@ -118,9 +118,23 @@ Encoder *enc;
 
 bool serEn = false;
 
-PIN SER_EN = {1, 11}; // External serial enable sensor pin. Active low.
+PIN SER_EN = {1, 11}; // External Serial1 enable sensor pin. Active low.
 
 void setup() {
+    Serial.begin(9600);
+    Serial1.begin(115200);
+    delay(100);
+    Serial.println("trying usb");
+    while (!Serial.available())
+        ;
+    Serial.println("testing usb");
+    delay(200);
+    Serial1.println("trying s2");
+    while (!Serial1.available())
+        ;
+    Serial1.println("testing");
+    while (true)
+        ;
     Fuel = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC4, 1u, SERCOM0};
     Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, SERCOM1};
 
@@ -141,24 +155,45 @@ void setup() {
     Ox.CS = {(uint8_t)g_APinDescription[7].ulPort, (uint8_t)g_APinDescription[7].ulPin};
 
     enc = &Fuel;
+
+    Serial1.println("before");
     configureClocks();
+    Serial1.println("clocks");
     attachPins();
+    Serial1.println("after");
     // -TODO: Init periphs
     Fuel.status = STATUS_CONN;
     Ox.status = STATUS_CONN;
     // -TODO: Establish coms
     Fuel.status = STATUS_HOME;
     Ox.status = STATUS_HOME;
+    Serial1.println("waiting");
+    while (!Serial1.available())
+        ;
+    Serial1.println("testing");
 }
 
 void loop() {
 
     switch (enc->status) {
         case STATUS_HOME:
-            // TODO:
-            // -Home motors routine.
-            //  -Set target as 90 deg off home.
-            //  enc->status = STATUS_WAIT;
+            while (PORT_READ(EXT.SEL_SWITCH.port, EXT.SEL_SWITCH.pin)) {
+                if (!PORT_READ(EXT.BUTTON_ONE.port, EXT.BUTTON_ONE.pin)) {
+                    PORT_WRITE(enc->DIR_SEL.port, enc->DIR_SEL.pin, true);
+                    TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
+                } else if (!PORT_READ(EXT.BUTTON_TWO.port, EXT.BUTTON_TWO.pin)) {
+                    PORT_WRITE(enc->DIR_SEL.port, enc->DIR_SEL.pin, false);
+                    TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
+                } else {
+                    TCC0->CCB[enc->CCB].reg = 0;
+                }
+            }
+            if (!PORT_READ(EXT.BUTTON_ONE.port, EXT.BUTTON_ONE.pin) && !PORT_READ(EXT.BUTTON_TWO.port, EXT.BUTTON_TWO.pin)) {
+                if (!PORT_READ(EXT.SEL_SWITCH.port, EXT.SEL_SWITCH.pin)) {
+                    enc->target = TARGET_REVS;
+                    enc->status = STATUS_WAIT;
+                }
+            }
             break;
         case STATUS_WAIT:
             if (Fuel.status == STATUS_WAIT && Ox.status == STATUS_WAIT) {
@@ -176,6 +211,16 @@ void loop() {
             // -If !serEn:
             //     -If PORT_READ(PORT_EXT_TX, PIN_EXT_TX):
             //         enc->status = STATUS_ACTIVATE;
+            if (serEn) {
+                //-If data=launch:
+                //    enc->status = STATUS_ACTIVATE;
+                //-If data=abort:
+                //    enc->status = STATUS_ABORT;
+            } else {
+                if (!PORT_READ(EXT.TX.port, EXT.TX.pin)) {
+                    enc->status = STATUS_ACTIVATE;
+                }
+            }
             break;
         case STATUS_ACTIVATE:
             enc->TC->COUNT16.CTRLA.bit.ENABLE = 1;
@@ -191,7 +236,7 @@ void loop() {
         default:
             break;
     }
-    enc = (enc == &Fuel) ? &Ox : &Fuel;
+    // enc = (enc == &Fuel) ? &Ox : &Fuel;
 }
 
 // PID loop. General implementation.
@@ -227,7 +272,6 @@ float getPos(Encoder enc) {
         enc.TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
 
         npos = (npos ^ ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
-        npos = homeShift(npos, enc);
 
         enc.prev_t = npos;
         if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 1))) {
@@ -263,12 +307,12 @@ uint32_t readRawEncData(Encoder enc) {
     return rawData;
 }
 
-// Outputs error info to serial, if fatal error closes valves.
+// Outputs error info to Serial1, if fatal error closes valves.
 void error(bool fatal) {
-    Serial.println("Error occured!");
-    Serial.println("isFatal: " + fatal);
-    Serial.println("errorCode: " + errorCode);
-    Serial.println("Status: " + statusCode);
+    Serial1.println("Error occured!");
+    Serial1.println("isFatal: " + fatal);
+    Serial1.println("errorCode: " + errorCode);
+    Serial1.println("Status: " + statusCode);
 
     while (!SERCOM0->SPI.INTFLAG.bit.DRE)
         ;
@@ -292,17 +336,18 @@ void configureGPIO(byte portNo, byte pinNo, bool DIR, bool INEN = 0, bool PULLEN
         PORT->Group[portNo].OUT.reg |= 1 << pinNo;
     }
 }
-// Checks to see if Serial communications port has been enabled (active low)
+// Checks to see if Serial1 communications port has been enabled (active low)
 bool serialEnabled() {
     configureGPIO(SER_EN.port, SER_EN.pin, INPUT, 1, 1, RES_SER_EN);
+    return true;
     return !PORT_READ(SER_EN.port, SER_EN.pin);
 }
 // Configures internal peripherals and attaches to physical Arduino pins.
 // A peripheral is an internal microcontroller node that has functions
 // independent of the main controller thread. For example, TCs (Timer/Counters)
 // maintain a clock rate, but do not have to be toggled on and off (eg. by interrupts)
-// once they have been started. SERCOM (or SERial COMmunication ports) allow for communication
-// through various serial interfaces to external devices, but once they have been given data
+// once they have been started. SERCOM (or Serial1 COMmunication ports) allow for communication
+// through various Serial1 interfaces to external devices, but once they have been given data
 // to transmit or receive they handle all pin modulation, clock timing, etc. independently.
 // All one has to do is configure the SERCOM (or whatever peripheral)
 // and read/write the associated data register and it handles everything else.
@@ -338,12 +383,14 @@ void attachPins() {
     // Enable the port multiplexer for PWM pins
     PORT->Group[Fuel.CTRL.port].PINCFG[Fuel.CTRL.pin].bit.PMUXEN = 1;
     PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.port].bit.PMUXEN = 1;
+    Serial1.println("375");
 
     // Enable the port multiplexer for Encoder coms and status register pins
     PORT->Group[Fuel.ENC_CLK.port].PINCFG[Fuel.ENC_CLK.pin].bit.PMUXEN = 1;
     PORT->Group[Fuel.ENC_DATA.port].PINCFG[Fuel.ENC_DATA.pin].bit.PMUXEN = 1;
     PORT->Group[Fuel.SER_OUT.port].PINCFG[Fuel.SER_OUT.pin].bit.PMUXEN = 1;
     PORT->Group[Fuel.CS.port].PINCFG[Fuel.CS.pin].bit.PMUXEN = 1;
+    Serial1.println("382");
     // Status LED shift registers MOSI and CS technically part of the encoder SERCOMs. As it is not neccesary to
     // write data to the encoders, and we are out of SERCOMs to communicate with the registers, they have been connected to
     // the communication pins (MOSI and CS, as well as SCK in parallel) for the encoders (Green->FUEL, Red->OX). This means
@@ -357,12 +404,14 @@ void attachPins() {
     // Enable the port multiplexer for PWM pins
     PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.pin].bit.PMUXEN = 1;
     PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.port].bit.PMUXEN = 1;
+    Serial1.println("396");
 
     // Enable the port multiplexer for Encoder coms and status register pins
     PORT->Group[Ox.ENC_CLK.port].PINCFG[Ox.ENC_CLK.pin].bit.PMUXEN = 1;
     PORT->Group[Ox.ENC_DATA.port].PINCFG[Ox.ENC_DATA.pin].bit.PMUXEN = 1;
     PORT->Group[Ox.SER_OUT.port].PINCFG[Ox.SER_OUT.pin].bit.PMUXEN = 1;
     PORT->Group[Ox.CS.port].PINCFG[Ox.CS.pin].bit.PMUXEN = 1;
+    Serial1.println("403");
 
     // Now that we are able to connect the pins to peripherals, now we actually need to tell the MC which peripherals to
     // attach them to. As seen in the variant tables, each pin has as many as 8 peripherals to choose from (3bits),
@@ -387,6 +436,7 @@ void attachPins() {
     PORT->Group[Fuel.CTRL.port].PMUX[Fuel.CTRL.pin >> 1].reg |=
         ((Fuel.CTRL.pin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
     PORT->Group[Ox.CTRL.port].PMUX[Ox.CTRL.pin >> 1].reg |= ((Ox.CTRL.pin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
+    Serial1.println("428");
 
     // Attach Encoder coms and status register pins to FUEL SERCOM
     PORT->Group[Fuel.ENC_CLK.port].PMUX[Fuel.ENC_CLK.pin >> 1].reg |=
@@ -396,6 +446,7 @@ void attachPins() {
     PORT->Group[Fuel.SER_OUT.port].PMUX[Fuel.SER_OUT.pin >> 1].reg |=
         ((Fuel.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
     PORT->Group[Fuel.CS.port].PMUX[Fuel.CS.pin >> 1].reg |= ((Fuel.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    Serial1.println("438");
 
     // Attach Encoder coms and status register pins to OX SERCOM
     PORT->Group[Ox.ENC_CLK.port].PMUX[Ox.ENC_CLK.pin >> 1].reg |=
@@ -405,6 +456,7 @@ void attachPins() {
     PORT->Group[Ox.SER_OUT.port].PMUX[Ox.SER_OUT.pin >> 1].reg |=
         ((Ox.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
     PORT->Group[Ox.CS.port].PMUX[Ox.CS.pin >> 1].reg |= ((Ox.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+    Serial1.println("448");
 
     // See configureClocks() for information regarding GCLK configuration and linking to periphs.
 
@@ -441,6 +493,8 @@ void attachPins() {
     while (TCC0->SYNCBUSY.bit.ENABLE)
         ; // Sync
 
+    Serial1.println("485");
+
     // Much of the TCC information applies with TCs as well. The biggest difference is that TCs lack a double buffered
     // input, and instead only have CCx. This is fine as we are only using TC4 and TC5 as timers for the PID controllers,
     // and do not need any waveform generation from them. The counter increments from 0 or decrements from the max value
@@ -463,6 +517,7 @@ void attachPins() {
                                TC_READREQ_RREQ |  // Read sync request flag, synchronizes COUNT register for reading
                                TC_READREQ_ADDR(0x10); // COUNT register address
 
+    Serial1.println("509");
     // Same as TC4
     TC5->COUNT16.CTRLA.reg =
         TC_CTRLA_MODE_COUNT16 |   // Select 16-bit mode for TC5.
@@ -475,18 +530,20 @@ void attachPins() {
                                TC_READREQ_RREQ |  // Read sync request flag, synchronizes COUNT register for reading
                                TC_READREQ_ADDR(0x10); // COUNT register address
 
-    // The MC has 6 SERCOM, or SERial COMmunication, peripherals, SERCOM0:SERCOM5. Each SERCOM peripheral has 4 pads
+    Serial1.println("522");
+
+    // The MC has 6 SERCOM, or Serial1 COMmunication, peripherals, SERCOM0:SERCOM5. Each SERCOM peripheral has 4 pads
     // associated with it. "Pad" just means an IO line for the peripheral, similar to channels in TCCs. MC pins are
     // associated with both a SERCOM and a pad. Some MC pins have a primary and alternate set. This is why the FUEL pins
     // are attached to peripheral E, while OX is attached to peripheral D. Both are attached to SERCOMs, but system
     // requirements meant that we had to use the alternate set for FUEL (note that the FUEL pins do not actually have a
     // primary set, as seen in the variant table). The function of each pad is defined by the chosen SERCOM operation
     // protocol and configuration. SERCOMs 1:5 are already reserved by the Arduino (this can be seen in variant.h), which
-    // leaves us with only SERCOM0 to use as we want (without overriding an existing serial port connection).
+    // leaves us with only SERCOM0 to use as we want (without overriding an existing Serial1 port connection).
     // Fortunately, SERCOM1 has been reserved as the stock SPI port, which means we actually have enough to do what we
     // need.
 
-    // SPI, or Serial Peripheral Interface, is a communications protocol developed for low level communications between
+    // SPI, or Serial1 Peripheral Interface, is a communications protocol developed for low level communications between
     // things like sensors, ICs, encoders, or other peripherals. It is what we are using on SERCOM0 and SERCOM 1. Our
     // encoders use a subset of SPI functionality to output their readings (they only output data, not take it in). The
     // SPI protocol is based around the shift register digital circuit, which Ben Eater has several fantastic YouTube
@@ -496,7 +553,7 @@ void attachPins() {
     // with just two SERCOM interfaces (2 inputs and 2 outputs). There are many online resources that do a better job of
     // explaining SPI, but the basics are as follows: full-duplex SPI has 4 pins: MISO, MOSI, SCK, and CS. MOSI and MISO
     // are data pins, standing for Master-Out-Slave-In and Master-In-Slave-Out. Fairly self-explanatory, in our case as
-    // the host MISO is the input and MOSI is the output pin for the SERCOM. SCK is the Serial ClocK. SPI does not have a
+    // the host MISO is the input and MOSI is the output pin for the SERCOM. SCK is the Serial1 ClocK. SPI does not have a
     // native baudrate, instead data is only sent through MOSI and MISO on the leading or trailing edge of SCK's clock
     // pulse (depending on configuration). This type of shared-clock communication is described as Synchronous. This is
     // in contrast to Asynchronous communication protocols like UART (which SERCOM also supports), in which the devices
@@ -514,7 +571,7 @@ void attachPins() {
     // separate SPI ports in case we decide to explore parallelization in the future. The configuration for the SPI
     // SERCOMs is fairly self explanatory, as we are using many default configuration parameters. When using SPI with a
     // shift register (in this case the SN74HCT595 acting as our LED parallel display), connections should be made as
-    // follows: MOSI->Serial input (SER), SCK->Serial clock (SRCLK), and CS->Storage register clock/latch pin (RCLK). See
+    // follows: MOSI->Serial1 input (SER), SCK->Serial1 clock (SRCLK), and CS->Storage register clock/latch pin (RCLK). See
     // Chapter 27 in the MC datasheet, the datasheets for the NME2 (encoder) and SN74HC595 (LED shift register), and the
     // circuit schematic for more info.
 
@@ -540,6 +597,7 @@ void attachPins() {
     while (SERCOM0->SPI.SYNCBUSY.bit.ENABLE)
         ;
 
+    Serial1.println("588");
     // Same as SERCOM0. Most of this should already be configured by Arduino by default,but there are some differences in
     // configuration, so everything is being defined manually.
     SERCOM1->SPI.CTRLA.bit.ENABLE = 0;
@@ -557,10 +615,13 @@ void attachPins() {
     while (SERCOM1->SPI.SYNCBUSY.bit.ENABLE)
         ;
 
+    Serial1.println("607");
     if (serialEnabled()) {
         serEn = true;
-        // TODO: Configure Serial1 USART, Initialize coms with other end
-    } else {
+        // Serial1.begin(115200);
+    } /*else {
+
+        Serial1.println("613");
         // Disable Serial1 USART
         SERCOM5->SPI.CTRLA.bit.ENABLE = 0;
         while (SERCOM1->SPI.SYNCBUSY.bit.ENABLE)
@@ -570,7 +631,9 @@ void attachPins() {
             ;
         // Configure TX as plain input
         configureGPIO(EXT.TX.port, EXT.TX.pin, INPUT, 1, 1, INPUT_PULLDOWN);
-    }
+
+        Serial1.println("624");
+    }*/
 
     configureGPIO(Fuel.DIR_SEL.port, Fuel.DIR_SEL.pin, OUTPUT);
     configureGPIO(Fuel.STOP.port, Fuel.STOP.pin, OUTPUT);
@@ -580,7 +643,9 @@ void attachPins() {
 
     configureGPIO(EXT.BUTTON_ONE.port, EXT.BUTTON_ONE.pin, INPUT, 0, 1, RES_EXT_BUTTON_ONE);
     configureGPIO(EXT.BUTTON_TWO.port, EXT.BUTTON_TWO.pin, INPUT, 0, 1, RES_EXT_BUTTON_TWO);
-    configureGPIO(EXT.SEL_SWITCH.port, EXT.BUTTON_TWO.pin, INPUT, 0, 1, RES_EXT_SEL_SWITCH);
+    configureGPIO(EXT.SEL_SWITCH.port, EXT.SEL_SWITCH.pin, INPUT, 0, 1, RES_EXT_SEL_SWITCH);
+
+    Serial1.println("637");
 }
 
 // TODO: Documentation
