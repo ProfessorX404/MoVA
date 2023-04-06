@@ -32,7 +32,7 @@ class PID(object):
     ):
 
         self.Kp, self.Ki, self.Kd = Kp, Ki, Kd
-        self.prev_tunings = (Kp, Ki, Kd)
+        self.prev_tunings = (0, 0, 0)
         self.prev_itae = 0
         self._setpoint = setpoint
         self._min_output, self._max_output = 0, 100
@@ -99,8 +99,11 @@ class PID(object):
 
     @model_params.setter
     def model_params(self, model_params):
-        self._model_params = model_params
-        self._has_new_values = True
+        for i in range(len(model_params)):
+            if self._model_params is None or self._model_params[i] != model_params[i]:
+                self._model_params = model_params
+                self._has_new_values = True
+                break
 
     @property
     def components(self):
@@ -112,32 +115,38 @@ class PID(object):
 
     @tunings.setter
     def tunings(self, tunings):
-        self.Kp, self.Ki, self.Kd = tunings
-        self._has_new_values = True
+        if(tunings[0] != self.Kp or tunings[1] != self.Ki or tunings[2] != self.Kd):
+            self.prev_tunings = (self.Kp, self.Ki, self.Kd)
+            self.Kp, self.Ki, self.Kd = tunings
+            self._has_new_values = True
 
-    @property
+    @ property
     def output_limits(self):
         return self._min_output, self._max_output
 
-    @output_limits.setter
-    def output_limits(self, limits):
+    @ output_limits.setter
+    def output_limits(self, limits=None):
         if limits is None:
+            if self._min_output != 0 or self._max_output != 100:
+                self._has_new_values = True
             self._min_output, self._max_output = 0, 100
             return
         min_output, max_output = limits
+        if self._min_output != min_output or self._max_output != max_output:
+            self._has_new_values = True
         self._min_output = min_output
         self._max_output = max_output
         self._integral = self._clamp(self._integral, self.output_limits)
-        self._has_new_values = True
 
-    @property
+    @ property
     def setpoint(self):
         return self._setpoint
 
-    @setpoint.setter
+    @ setpoint.setter
     def setpoint(self, SP):
-        self._setpoint = SP
-        self._has_new_values = True
+        if self.setpoint != SP:
+            self._setpoint = SP
+            self._has_new_values = True
 
     def reset(self):
         # Reset
@@ -284,9 +293,10 @@ def timeToStable(t, PV, SP, percent_err):
 def _jac(Ks, itae, prev_itae):
     global pid
     grad = np.zeros(len(Ks))
+    print(Ks, pid.prev_tunings)
     for i in range(len(Ks)):
         grad[i] = (Ks[i] - pid.prev_tunings[i]) / (itae - prev_itae)
-    pid.prev_tunings = Ks
+    print(grad)
     return grad
 
 
@@ -306,22 +316,23 @@ def optimize():
     p, i, d, sp = pid_params
     max_itae, n_iter, perm_error, tolerance, back_steps, act_time, pc_err = gc_params
     igain, itau, ideadtime, ibias, startofstep = model_params
-    print(p, i, d, sp)
-    def data(Ks): return _data(Ks, pid_params[-1], model_params)
+    print("Inputs: ", p, i, d, sp)
+    def data(Ks): return _data(Ks, sp, model_params)
 
     def tts(Ks): return timeToStable(data(Ks)[0], data(Ks)[
-        1], data(Ks)[2])
+        1], data(Ks)[2])  # ignore, old fitness function
 
     def itae_func(Ks): return calcITAE(
-        data(Ks)[1], data(Ks)[2], startofstep) / 150
+        data(Ks)[1], data(Ks)[2], startofstep) / 200  # scale output to ~magnitude 1 for fmin compatibility
 
-    def jac(Ks): return _jac(Ks, itae_func(Ks), itae_func(pid.prev_tunings))
+    def jac(Ks): return _jac(Ks, itae_func(Ks), itae_func(
+        pid.prev_tunings))  # gradient for use with minimize
     # tts_con = NonlinearConstraint(tts, 0, act_time)
     # err_con = NonlinearConstraint(itae_func, 0., max_itae / 150)
-    results = minimize(itae_func, (p, i, d), method="Newton-CG", jac=np.gradient,
-                       tol=tolerance, options={'maxiter': n_iter, 'disp': True}, callback=update_graphs)
-    # results = fmin(itae_func, (p, i, d), ftol=tolerance,
-    #    maxiter=n_iter, disp=True, callback=update_graphs)
+    # results = minimize(itae_func, (p, i, d), method="Newton-CG", jac=jac,
+    #                    tol=tolerance, options={'maxiter': n_iter, 'disp': True}, callback=update_graphs)
+    results = fmin(itae_func, (p, i, d), ftol=tolerance,
+                   maxiter=n_iter, disp=True, callback=update_graphs)
     print(results)
     # print(kP_opt, kI_opt, kD_opt)
     # buttons[5].insert(10, str(kP_opt))
@@ -333,7 +344,8 @@ def optimize():
 def update_graphs(Ks):
     global buttons, pid
     tKp, tKi, tKd = buttons[5:8]
-    print(pid.iterations, Ks, calcITAE(pid.results[1], pid.results[2], 10))
+    print("Iteration #:", pid.iterations, "; inputs:", Ks,
+          "; ITAE:", calcITAE(pid.results[1], pid.results[2], 10))
     tKp.delete(0, tk.END)
     tKp.insert(10, str(Ks[0]))
     tKi.delete(0, tk.END)
