@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#line 1 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 /*
 Xavier Beech
 UW SARP 2022-23
@@ -120,6 +122,33 @@ bool serEn = false;
 
 PIN SER_EN = {1, 11}; // External Serial1 enable sensor pin. Active low.
 
+#line 123 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void setup();
+#line 170 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void loop();
+#line 258 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrint(const char *str);
+#line 263 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrintln(const char *str);
+#line 268 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrintln(bool b);
+#line 273 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrintln(void);
+#line 276 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void update(Encoder enc);
+#line 296 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+float getPos(Encoder enc);
+#line 320 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+uint32_t readRawEncData(Encoder enc);
+#line 344 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void error(bool fatal);
+#line 369 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+bool serialEnabled();
+#line 391 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void attachPins();
+#line 689 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void configureClocks();
+#line 123 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void setup() {
     Serial.begin(115200);
     Serial1.begin(115200);

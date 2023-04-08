@@ -1,0 +1,11 @@
+{
+  "additionalFiles": "",
+  "builtInToolsFolders": "",
+  "compiler.optimization_flags": "-Os",
+  "customBuildProperties": "",
+  "fqbn": "arduino:samd:nano_33_iot",
+  "hardwareFolders": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages",
+  "otherLibrariesFolders": "Z:\\Documents\\Arduino\\libraries",
+  "runtime.ide.version": "10607",
+  "sketchLocation": "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller"
+}
