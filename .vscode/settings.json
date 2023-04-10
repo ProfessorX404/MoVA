@@ -59,7 +59,8 @@
         "unordered_map": "cpp",
         "unordered_set": "cpp",
         "string_view": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "chrono": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled",
     "C_Cpp.intelliSenseEngineFallback": "Enabled"

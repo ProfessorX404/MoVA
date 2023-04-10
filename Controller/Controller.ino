@@ -67,15 +67,22 @@ CC3 | WO[3], WO[7]
 #define FUEL_ERR_OFFSET    4u
 #define OX_ERR_OFFSET      0u
 
-#define PORT_WRITE(p, n, b) (b ? PORT_IOBUS->Group[p].OUTSET.reg |= (1 << n) : PORT_IOBUS->Group[p].OUTCLR.reg |= (1 << n))
-#define PORT_READ(p, n)     (!!(PORT_IOBUS->Group[p].IN.reg & (1 << n)))
-#define statusCode          ((Fuel.err << FUEL_STATUS_OFFSET) | (Ox.err << OX_STATUS_OFFSET)) // Merge errors/statuses for LED output
-#define errorCode           ((Fuel.err << FUEL_ERR_OFFSET) | (Ox.err << OX_ERR_OFFSET))
-#define neg(x, y)           (((x ^ y) + (y & 1))) // Negates x if y (bit) is 1, only works for 2s complement
-#define homeShift(x, y)     ((x - y.origin) + ((x < y.origin) & (1 << ENC_DATA_BIT_CT)))
+#define PORT_WRITE(p, b)                                                                                                    \
+    (b ? PORT_IOBUS->Group[p.port].OUTSET.reg |= (1 << p.pin) : PORT_IOBUS->Group[p.pin].OUTCLR.reg |= (1 << p.pin))
+#define PORT_READ(p)    (!!(PORT_IOBUS->Group[p.port].IN.reg & (1 << p.pin)))
+#define statusCode      ((Fuel.err << FUEL_STATUS_OFFSET) | (Ox.err << OX_STATUS_OFFSET)) // Merge errors/statuses for LED output
+#define errorCode       ((Fuel.err << FUEL_ERR_OFFSET) | (Ox.err << OX_ERR_OFFSET))
+#define neg(x, y)       (((x ^ y) + (y & 1))) // Negates x if y (bit) is 1, only works for 2s complement
+#define homeShift(x, y) ((x - y.origin) + ((x < y.origin) & (1 << ENC_DATA_BIT_CT)))
 
 const array<char *, 8> STATUS_NAME = {"STATUS_INIT", "STATUS_CONN",     "STATUS_HOME", "STATUS_WAIT",
                                       "STATUS_IDLE", "STATUS_ACTIVATE", "STATUS_RUN",  "STATUS_ABORT"};
+
+const array<char *, 15> ERR_NAME = {
+    "null", "ERR_CLR", "ERR_ENC_CONN", "ERR_ENC_INT", "ERR_ENC_MISMATCH", "", "", "", "", "", "", "", "",
+    "",     ""
+
+};
 
 typedef struct {
     uint8_t port;
@@ -120,16 +127,13 @@ bool serEn = false;
 
 PIN SER_EN = {1, 11}; // External Serial1 enable sensor pin. Active low.
 
+void sPrintln(int, uint8_t);
+void sPrint32(uint32_t, uint8_t);
+void sPrintln32(uint32_t, uint8_t);
+
 void setup() {
-    Serial.begin(115200);
-    Serial1.begin(115200);
-    delay(100);
-    while (!Serial1.available())
-        ;
-    Serial.println("USB");
-    sPrintln("UART");
-    Fuel = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC4, 1u, SERCOM0};
-    Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, SERCOM1};
+    Fuel = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC4, 1u, SERCOM1};
+    Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, SERCOM0};
 
     Fuel.CTRL = {(uint8_t)g_APinDescription[A2].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
     Fuel.DIR_SEL = {(uint8_t)g_APinDescription[10].ulPort, (uint8_t)g_APinDescription[10].ulPin};
@@ -147,66 +151,110 @@ void setup() {
     Ox.SER_OUT = {(uint8_t)g_APinDescription[6].ulPort, (uint8_t)g_APinDescription[6].ulPin};
     Ox.CS = {(uint8_t)g_APinDescription[7].ulPort, (uint8_t)g_APinDescription[7].ulPin};
 
-    enc = &Fuel;
+    Serial.begin(115200);
+    Serial1.begin(115200);
+    delay(100);
+    while (!Serial1.available())
+        ;
+    enc = (bool)Serial1.read() ? &Ox : &Fuel;
+    Serial.println("USB");
+    sPrint("Enc:");
+    sPrintln(enc->CCB ? "OX" : "FUEL");
 
     sPrintln("before");
     Serial1.flush();
     configureClocks();
     sPrintln("clocks");
+    Serial.end();
     attachPins();
     sPrintln("after");
     // -TODO: Init periphs
     Fuel.status = STATUS_CONN;
     Ox.status = STATUS_CONN;
     // -TODO: Establish coms
-    Fuel.status = STATUS_HOME;
-    Ox.status = STATUS_HOME;
+    // Fuel.status = STATUS_HOME;
+    // Ox.status = STATUS_HOME;
     sPrintln("waiting");
-    while (!Serial1.available())
+
+    enc->TC->COUNT16.CTRLA.bit.ENABLE = 1;
+    while (TC4->COUNT16.STATUS.bit.SYNCBUSY)
         ;
     sPrintln("testing");
 }
 
 void loop() {
-    // sPrintln(STATUS_NAME[enc->status]);
-    sPrint("BUTTON_ONE: ");
-    sPrintln(PORT_READ(EXT.BUTTON_ONE.port, EXT.BUTTON_ONE.pin));
-    sPrint("BUTTON_TWO: ");
-    sPrintln(PORT_READ(EXT.BUTTON_TWO.port, EXT.BUTTON_TWO.pin));
-    sPrint("SEL_SWITCH: ");
-    sPrintln(PORT_READ(EXT.SEL_SWITCH.port, EXT.SEL_SWITCH.pin));
-    delay(500);
     switch (enc->status) {
-        case STATUS_HOME:
-            while (PORT_READ(EXT.SEL_SWITCH.port, EXT.SEL_SWITCH.pin)) {
-                if (!PORT_READ(EXT.BUTTON_ONE.port, EXT.BUTTON_ONE.pin)) {
-                    PORT_WRITE(enc->DIR_SEL.port, enc->DIR_SEL.pin, true);
-                    TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
-                    sPrintln("MoveLeft");
-                } else if (!PORT_READ(EXT.BUTTON_TWO.port, EXT.BUTTON_TWO.pin)) {
-                    PORT_WRITE(enc->DIR_SEL.port, enc->DIR_SEL.pin, false);
-                    TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
-                    sPrintln("MoveRight");
-                } else {
-                    TCC0->CCB[enc->CCB].reg = 0;
-                    sPrintln("Stop");
-                }
-                delay(100);
-                // sPrintln("movement on");
-            }
-            if (!PORT_READ(EXT.BUTTON_ONE.port, EXT.BUTTON_ONE.pin) && !PORT_READ(EXT.BUTTON_TWO.port, EXT.BUTTON_TWO.pin)) {
-                if (!PORT_READ(EXT.SEL_SWITCH.port, EXT.SEL_SWITCH.pin)) {
-                    enc->target = TARGET_REVS;
-                    enc->status = STATUS_WAIT;
+        case STATUS_CONN:
+
+        { // sPrintln(STATUS_NAME[enc->status]);
+            // sPrint("BUTTON_ONE: ");
+            // sPrintln(PORT_READ(EXT.BUTTON_ONE));
+            // sPrint("BUTTON_TWO: ");
+            // sPrintln(PORT_READ(EXT.BUTTON_TWO));
+            // sPrint("SEL_SWITCH: ");
+            // sPrintln(PORT_READ(EXT.SEL_SWITCH));
+            sPrint("POS:");
+            uint32_t tpos = getPos(enc);
+            sPrint32(tpos, DEC);
+            sPrint(" / ");
+            sPrintln32(tpos, BIN);
+
+            if (Serial1.available()) {
+                if (Serial1.readString().equals("HOME")) {
+                    enc->status = STATUS_HOME;
                 }
             }
             break;
-        case STATUS_WAIT:
+        }
+        case STATUS_HOME: {
+            while (PORT_READ(EXT.SEL_SWITCH)) {
+                if (!PORT_READ(EXT.BUTTON_ONE)) {
+                    PORT_WRITE(enc->DIR_SEL, true);
+                    TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
+                    sPrintln("MoveLeft");
+                } else if (!PORT_READ(EXT.BUTTON_TWO)) {
+                    PORT_WRITE(enc->DIR_SEL, false);
+                    TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
+                    sPrintln("MoveRight");
+                } else {
+
+                    TCC0->CCB[enc->CCB].reg = 0;
+                    sPrintln("Stop");
+                }
+                // sPrintln("movement on");
+
+                delay(100);
+            }
+            if (!PORT_READ(EXT.SEL_SWITCH)) {
+                if (!PORT_READ(EXT.BUTTON_ONE) && !PORT_READ(EXT.BUTTON_TWO)) {
+                    enc->target = TARGET_REVS;
+                    enc->status = STATUS_WAIT;
+                    break;
+                }
+            }
+            break;
+        }
+        case STATUS_WAIT: {
+            sPrint("BUTTON_ONE: ");
+            sPrintln(PORT_READ(EXT.BUTTON_ONE));
+            sPrint("BUTTON_TWO: ");
+            sPrintln(PORT_READ(EXT.BUTTON_TWO));
+            sPrint("SEL_SWITCH: ");
+            sPrintln(PORT_READ(EXT.SEL_SWITCH));
+            if (Serial1.available()) {
+                String msg = Serial1.readString();
+                if (msg.equals("HOME")) {
+                    enc->status = STATUS_HOME;
+                }
+            }
             if (Fuel.status == STATUS_WAIT && Ox.status == STATUS_WAIT) {
                 Fuel.status = STATUS_IDLE;
                 Ox.status = STATUS_IDLE;
             }
+
+            delay(200);
             break;
+        }
         case STATUS_IDLE:
             // TODO:
             // -If serEn, receive data from SERCOM5
@@ -223,7 +271,7 @@ void loop() {
                 //-If data=abort:
                 //    enc->status = STATUS_ABORT;
             } else {
-                if (!PORT_READ(EXT.TX.port, EXT.TX.pin)) {
+                if (!PORT_READ(EXT.TX)) {
                     enc->status = STATUS_ACTIVATE;
                 }
             }
@@ -233,7 +281,7 @@ void loop() {
             enc->status = STATUS_RUN;
             break;
         case STATUS_RUN:
-            update(*enc);
+            update(enc);
             break;
         case STATUS_ABORT:
             enc->target = enc->origin;
@@ -255,8 +303,25 @@ void sPrintln(int i, uint8_t base = DEC) {
     sPrintln();
 }
 
+void sPrintln32(uint32_t i, uint8_t base = DEC) {
+    Serial1.println(i, base);
+    Serial1.flush();
+}
+void sPrint32(uint32_t i, uint8_t base = DEC) {
+    Serial1.print(i, base);
+    Serial1.flush();
+}
+
+// void sPrint(int i, uint8_t base = DEC) { sPrint(i, base); }
+// void sPrintln(int i, uint8_t base = DEC) { sPrintln(i, base); }
+
 void sPrint(const char *str) {
     Serial1.print(str);
+    Serial1.flush();
+}
+
+void sPrint(float f) {
+    Serial1.print(f);
     Serial1.flush();
 }
 
@@ -270,82 +335,112 @@ void sPrintln(bool b) {
     sPrintln();
 }
 
-void sPrintln(void) { sPrint("\r\n"); }
+void sPrintln(float f) {
+    sPrint(f);
+    sPrintln();
+}
 
+void sPrintln(void) { sPrint("\r\n"); }
 // PID loop. General implementation.
-void update(Encoder enc) {
-    uint16_t dt = enc.TC->COUNT16.COUNT.reg; // Time since last loop, in us
-    enc.TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
-    float theta_n = enc.totalRevs + getPos(enc);
+void update(Encoder *enc) {
+    uint16_t dt = enc->TC->COUNT16.COUNT.reg; // Time since last loop, in us
+    enc->TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
+    float theta_n = enc->totalRevs + getPos(enc);
 
     // Integral approximation based on trapezoidal Riemann sum
-    enc.accumulator += (1 / 2) * dt * enc.target * (theta_n + enc.totalRevs - 2);
+    enc->accumulator += (1 / 2) * dt * enc->target * (theta_n + enc->totalRevs - 2);
 
     // Calculate PID output
-    float O = (enc.P * (theta_n - enc.target)) + (enc.I * enc.accumulator) + (enc.D * ((theta_n - enc.totalRevs) / dt));
+    float O =
+        (enc->P * (theta_n - enc->target)) + (enc->I * enc->accumulator) + (enc->D * ((theta_n - enc->totalRevs) / dt));
 
-    PORT_WRITE(enc.DIR_SEL.port, enc.DIR_SEL.pin, O > 0);
+    PORT_WRITE(enc->DIR_SEL, O > 0);
 
-    TCC0->CCB[enc.CCB].reg = (abs(O) > PWM_FREQ_COEF) ? PWM_FREQ_COEF : abs(O);
+    TCC0->CCB[enc->CCB].reg = (abs(O) > PWM_FREQ_COEF) ? PWM_FREQ_COEF : abs(O);
 
-    enc.totalRevs = theta_n;
+    enc->totalRevs = theta_n;
 }
 
 // Returns encoder position, centered on the home value established during startup. For use with PID loop, as this
 // enables it to pick the most efficient route to the target position. Must reset clock before calling.
-float getPos(Encoder enc) {
+float getPos(Encoder *enc) {
     uint32_t npos = readRawEncData(enc);
-    uint32_t ppos = enc.prev_t;
-    while (enc.TC->COUNT16.COUNT.reg < 20)
+    uint32_t ppos = enc->prev_t;
+    while (enc->TC->COUNT16.COUNT.reg < 20)
         ;
-    if (readRawEncData(enc) ^ npos != 0) {
-        enc.err = ERR_ENC_MISMATCH;
-        error(false);
-    } else {
-        enc.TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
+    uint32_t nnpos = readRawEncData(enc);
+    // sPrint("npos ^ nnpos: ");
+    // sPrintln32(npos ^ nnpos);
+
+    if (nnpos ^ npos == 0) {
+        enc->TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
 
         npos = (npos ^ ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
 
-        enc.prev_t = npos;
+        enc->prev_t = npos;
         if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 1))) {
             return (npos - ppos) / (1 << ENC_DATA_BIT_CT);
         } else {
             return (npos - ppos) + ((neg((int32_t)(1 << ENC_DATA_BIT_CT), (npos > ppos))));
         }
+    } else {
+        // sPrint("npos: ");
+        // sPrintln32(npos, BIN);
+        // sPrint("nnpos: ");
+        // sPrintln32(nnpos, BIN);
+        // sPrintln32(npos ^ nnpos, BIN);
+        // sPrintln("err 353 !");
+        // enc->err = ERR_ENC_MISMATCH;
+        // error(false);
     }
 }
 
 // Takes reading from fuel encoder. Throws error if first latch bit is not 1, or encoder reading returns internal error state
 // (last bit is 0).
-uint32_t readRawEncData(Encoder enc) {
+uint32_t readRawEncData(Encoder *enc) {
     uint32_t rawData = 0;
-    for (byte i = 0; i < ENC_TOT_BIT_CT; i += 8) {
-        while (!enc.SERCOM->SPI.INTFLAG.bit.DRE)
+    for (byte i = 0; i + 8 < ENC_TOT_BIT_CT; i += 8) {
+        while (!enc->SERCOM->SPI.INTFLAG.bit.DRE)
             ;
-        enc.SERCOM->SPI.DATA.reg = errorCode;
-
-        while (!enc.SERCOM->SPI.INTFLAG.bit.RXC)
-            ;
-        rawData |= enc.SERCOM->SPI.DATA.reg << ENC_TOT_BIT_CT - (i * 8);
+        enc->SERCOM->SPI.DATA.reg = errorCode;
+        while (!enc->SERCOM->SPI.INTFLAG.bit.RXC) {};
+        byte b = enc->SERCOM->SPI.DATA.reg;
+        rawData |= b << (i);
     }
-
-    if (rawData & 1 << ENC_TOT_BIT_CT) {
-        enc.err = ERR_ENC_CONN;
-        error(false);
+    // sPrint("rawData:");
+    // sPrintln(rawData, BIN);
+    if (rawData & 1 << (ENC_TOT_BIT_CT - 1)) {
+        // sPrintln("err 388 !");
+        // enc->err = ERR_ENC_CONN;
+        // // enc->SERCOM->SPI.DATA.reg = errorCode;
+        // error(true);
     }
     if (!(rawData & 1)) { // Error bit is 0.
-        enc.err = ERR_ENC_INT;
-        error(false);
+        sPrint("rawData: ");
+        sPrintln32(rawData, BIN);
+        sPrint("error bit: ");
+        sPrintln32(rawData & 1);
+        // enc->err = ERR_ENC_INT;
+        // sPrintln("err 395 !");
+        // error(true);
     }
     return rawData;
 }
 
 // Outputs error info to Serial1, if fatal error closes valves.
 void error(bool fatal) {
+    sPrintln();
     sPrintln("Error occured!");
-    sPrintln("isFatal: " + fatal);
-    sPrintln("errorCode: " + errorCode);
-    sPrintln("Status: " + statusCode);
+    sPrint("isFatal: ");
+    sPrintln(fatal);
+    sPrint("Fuel.err: ");
+    sPrintln(ERR_NAME[Fuel.err]);
+    sPrint("Ox.err: ");
+    sPrintln(ERR_NAME[Ox.err]);
+    sPrint("Fuel.status: ");
+    sPrintln(STATUS_NAME[Fuel.status]);
+    sPrint("Ox.status: ");
+    sPrintln(STATUS_NAME[Ox.status]);
 
     while (!SERCOM0->SPI.INTFLAG.bit.DRE)
         ;
@@ -368,7 +463,7 @@ void configureGPIO(byte portNo, byte pinNo, bool DIR, bool INEN = 0, bool PULLEN
 // Checks to see if Serial1 communications port has been enabled (active low)
 bool serialEnabled() {
     configureGPIO(SER_EN.port, SER_EN.pin, INPUT, 1, 1, INPUT_PULLUP);
-    return !PORT_READ(SER_EN.port, SER_EN.pin);
+    return !PORT_READ(SER_EN);
 }
 // Configures internal peripherals and attaches to physical Arduino pins.
 // A peripheral is an internal microcontroller node that has functions
@@ -614,9 +709,14 @@ void attachPins() {
     SERCOM0->SPI.CTRLA.bit.ENABLE = 0;
     while (SERCOM0->SPI.SYNCBUSY.bit.ENABLE)
         ;
+    // SERCOM0->SPI.CTRLA.bit.SWRST = 1;
+    // while (SERCOM0->SPI.SYNCBUSY.bit.SWRST)
+    //     ;
     SERCOM0->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |                   // MISO is Pad 3
                              SERCOM_SPI_CTRLA_DOPO(0x0u) |                   // MOSI pad 0, SCK Pad 1, CS Pad 2
-                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER;               // Sets device mode as host
+                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER |              // Sets device mode as host
+                             SERCOM_SPI_CTRLA_CPOL |                         // Clock high when idle
+                             SERCOM_SPI_CTRLA_CPHA;                          // Sample data on rising edge
     SERCOM0->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN | SERCOM_SPI_CTRLB_MSSEN; // Enable reciever/full-duplex operation
     while (SERCOM0->SPI.SYNCBUSY.bit.CTRLB)
         ;
@@ -629,10 +729,15 @@ void attachPins() {
     SERCOM1->SPI.CTRLA.bit.ENABLE = 0;
     while (SERCOM1->SPI.SYNCBUSY.bit.ENABLE)
         ;
+    // SERCOM0->SPI.CTRLA.bit.SWRST = 1;
+    // while (SERCOM0->SPI.SYNCBUSY.bit.SWRST)
+    //     ;
     sPrintln(2);
     SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |                   // MISO is Pad 3
                              SERCOM_SPI_CTRLA_DOPO(0x0u) |                   // MOSI pad 0, SCK Pad 1, CS Pad 2
-                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER;               // Sets device mode as host
+                             SERCOM_SPI_CTRLA_MODE_SPI_MASTER |              // Sets device mode as host
+                             SERCOM_SPI_CTRLA_CPOL |                         // Clock high when idle
+                             SERCOM_SPI_CTRLA_CPHA;                          // Sample data on rising edge
     SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN | SERCOM_SPI_CTRLB_MSSEN; // Enable reciever/full-duplex operation
 
     sPrintln(3);
@@ -641,7 +746,6 @@ void attachPins() {
 
     sPrintln(4);
     SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
-
     sPrintln(5);
     SERCOM1->SPI.CTRLA.bit.ENABLE = 1;
 
