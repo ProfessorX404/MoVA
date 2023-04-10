@@ -875,7 +875,7 @@ END GROUP
 LOAD c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtend.o
 LOAD c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtn.o
 
-.text           0x00002000     0x4288
+.text           0x00002000     0x4294
                 0x00002000                __text_start__ = .
  *(.sketch_boot)
                 0x00002000                . = ALIGN (0x2000)
@@ -889,726 +889,726 @@ LOAD c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi
                 0x000020fc                SPIClassSAMD::~SPIClassSAMD()
                 0x000020fc                SPIClassSAMD::~SPIClassSAMD()
  *fill*         0x000020fe        0x2 
- .text.loop     0x00002100      0x114 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+ .text.loop     0x00002100      0x120 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
                 0x00002100                loop
  .text._ZN12SPIClassSAMDD0Ev
-                0x00002214        0xc Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
-                0x00002214                SPIClassSAMD::~SPIClassSAMD()
+                0x00002220        0xc Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+                0x00002220                SPIClassSAMD::~SPIClassSAMD()
  .text.startup._GLOBAL__sub_I_mySPI
-                0x00002220       0x38 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
- .text.setup    0x00002258       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
-                0x00002258                setup
+                0x0000222c       0x38 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+ .text.setup    0x00002264       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+                0x00002264                setup
  .text._ZN12SPIClassSAMD8transferEPvj
-                0x0000227c       0x1e Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x0000227c                SPIClassSAMD::transfer(void*, unsigned int)
+                0x00002288       0x1e Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x00002288                SPIClassSAMD::transfer(void*, unsigned int)
  .text._ZN12SPIClassSAMD15attachInterruptEv
-                0x0000229a        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x0000229a                SPIClassSAMD::detachInterrupt()
-                0x0000229a                SPIClassSAMD::attachInterrupt()
+                0x000022a6        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x000022a6                SPIClassSAMD::detachInterrupt()
+                0x000022a6                SPIClassSAMD::attachInterrupt()
  .text._ZN12SPIClassSAMD3endEv
-                0x0000229c       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x0000229c                SPIClassSAMD::end()
+                0x000022a8       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x000022a8                SPIClassSAMD::end()
  .text._ZN12SPIClassSAMD8transferEh
-                0x000022ac        0xa Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x000022ac                SPIClassSAMD::transfer(unsigned char)
+                0x000022b8        0xa Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x000022b8                SPIClassSAMD::transfer(unsigned char)
  .text._ZN12SPIClassSAMD10transfer16Et
-                0x000022b6       0x58 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x000022b6                SPIClassSAMD::transfer16(unsigned short)
- *fill*         0x0000230e        0x2 
+                0x000022c2       0x58 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x000022c2                SPIClassSAMD::transfer16(unsigned short)
+ *fill*         0x0000231a        0x2 
  .text._ZN12SPIClassSAMD14usingInterruptEi
-                0x00002310       0x44 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x00002310                SPIClassSAMD::usingInterrupt(int)
+                0x0000231c       0x44 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x0000231c                SPIClassSAMD::usingInterrupt(int)
  .text._ZN12SPIClassSAMD17notUsingInterruptEi
-                0x00002354       0x3c Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x00002354                SPIClassSAMD::notUsingInterrupt(int)
+                0x00002360       0x3c Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x00002360                SPIClassSAMD::notUsingInterrupt(int)
  .text._ZN12SPIClassSAMD14endTransactionEv
-                0x00002390       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x00002390                SPIClassSAMD::endTransaction()
+                0x0000239c       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x0000239c                SPIClassSAMD::endTransaction()
  .text._ZN12SPIClassSAMDC2EP6SERCOMhhh14SercomSpiTXPad11SercomRXPad
-                0x000023b8       0x54 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x000023b8                SPIClassSAMD::SPIClassSAMD(SERCOM*, unsigned char, unsigned char, unsigned char, SercomSpiTXPad, SercomRXPad)
-                0x000023b8                SPIClassSAMD::SPIClassSAMD(SERCOM*, unsigned char, unsigned char, unsigned char, SercomSpiTXPad, SercomRXPad)
+                0x000023c4       0x54 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x000023c4                SPIClassSAMD::SPIClassSAMD(SERCOM*, unsigned char, unsigned char, unsigned char, SercomSpiTXPad, SercomRXPad)
+                0x000023c4                SPIClassSAMD::SPIClassSAMD(SERCOM*, unsigned char, unsigned char, unsigned char, SercomSpiTXPad, SercomRXPad)
  .text._ZN12SPIClassSAMD4initEv
-                0x0000240c       0x12 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x0000240c                SPIClassSAMD::init()
- *fill*         0x0000241e        0x2 
+                0x00002418       0x12 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x00002418                SPIClassSAMD::init()
+ *fill*         0x0000242a        0x2 
  .text._ZN12SPIClassSAMD6configEN7arduino11SPISettingsE
-                0x00002420       0x74 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x00002420                SPIClassSAMD::config(arduino::SPISettings)
+                0x0000242c       0x74 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x0000242c                SPIClassSAMD::config(arduino::SPISettings)
  .text._ZN12SPIClassSAMD5beginEv
-                0x00002494       0x50 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x00002494                SPIClassSAMD::begin()
+                0x000024a0       0x50 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x000024a0                SPIClassSAMD::begin()
  .text._ZN12SPIClassSAMD16beginTransactionEN7arduino11SPISettingsE
-                0x000024e4       0x38 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x000024e4                SPIClassSAMD::beginTransaction(arduino::SPISettings)
+                0x000024f0       0x38 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x000024f0                SPIClassSAMD::beginTransaction(arduino::SPISettings)
  .text.startup._GLOBAL__sub_I__ZN12SPIClassSAMDC2EP6SERCOMhhh14SercomSpiTXPad11SercomRXPad
-                0x0000251c       0x98 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x00002528       0x98 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
  .text.initVariant
-                0x000025b4       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
-                0x000025b4                initVariant
+                0x000025c0       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+                0x000025c0                initVariant
  .text.SERCOM5_Handler
-                0x000025d8       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
-                0x000025d8                SERCOM5_Handler
+                0x000025e4       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+                0x000025e4                SERCOM5_Handler
  .text.SERCOM3_Handler
-                0x000025e8       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
-                0x000025e8                SERCOM3_Handler
+                0x000025f4       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+                0x000025f4                SERCOM3_Handler
  .text.SERCOM2_Handler
-                0x000025f8       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
-                0x000025f8                SERCOM2_Handler
+                0x00002604       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+                0x00002604                SERCOM2_Handler
  .text.startup._GLOBAL__sub_I_g_APinDescription
-                0x00002608       0xbc Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+                0x00002614       0xbc Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
  .text._ZN6SERCOMC2EP6Sercom
-                0x000026c4        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000026c4                SERCOM::SERCOM(Sercom*)
-                0x000026c4                SERCOM::SERCOM(Sercom*)
+                0x000026d0        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000026d0                SERCOM::SERCOM(Sercom*)
+                0x000026d0                SERCOM::SERCOM(Sercom*)
  .text._ZN6SERCOM9initFrameE18SercomUartCharSize15SercomDataOrder16SercomParityMode19SercomNumberStopBit
-                0x000026cc       0x3a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000026cc                SERCOM::initFrame(SercomUartCharSize, SercomDataOrder, SercomParityMode, SercomNumberStopBit)
+                0x000026d8       0x3a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000026d8                SERCOM::initFrame(SercomUartCharSize, SercomDataOrder, SercomParityMode, SercomNumberStopBit)
  .text._ZN6SERCOM8initPadsE15SercomUartTXPad11SercomRXPad
-                0x00002706       0x26 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002706                SERCOM::initPads(SercomUartTXPad, SercomRXPad)
+                0x00002712       0x26 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002712                SERCOM::initPads(SercomUartTXPad, SercomRXPad)
  .text._ZN6SERCOM9resetUARTEv
-                0x0000272c       0x1a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x0000272c                SERCOM::resetUART()
+                0x00002738       0x1a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002738                SERCOM::resetUART()
  .text._ZN6SERCOM10enableUARTEv
-                0x00002746       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002746                SERCOM::enableUART()
+                0x00002752       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002752                SERCOM::enableUART()
  .text._ZN6SERCOM9flushUARTEv
-                0x0000275a       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x0000275a                SERCOM::flushUART()
+                0x00002766       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002766                SERCOM::flushUART()
  .text._ZN6SERCOM15clearStatusUARTEv
-                0x0000276e        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x0000276e                SERCOM::clearStatusUART()
+                0x0000277a        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x0000277a                SERCOM::clearStatusUART()
  .text._ZN6SERCOM17availableDataUARTEv
-                0x00002776        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002776                SERCOM::availableDataUART()
+                0x00002782        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002782                SERCOM::availableDataUART()
  .text._ZN6SERCOM11isUARTErrorEv
-                0x00002780        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002780                SERCOM::isUARTError()
+                0x0000278c        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x0000278c                SERCOM::isUARTError()
  .text._ZN6SERCOM20acknowledgeUARTErrorEv
-                0x00002788        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002788                SERCOM::acknowledgeUARTError()
+                0x00002794        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002794                SERCOM::acknowledgeUARTError()
  .text._ZN6SERCOM16isFrameErrorUARTEv
-                0x00002796        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002796                SERCOM::isFrameErrorUART()
+                0x000027a2        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000027a2                SERCOM::isFrameErrorUART()
  .text._ZN6SERCOM19clearFrameErrorUARTEv
-                0x000027a0        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000027a0                SERCOM::clearFrameErrorUART()
+                0x000027ac        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000027ac                SERCOM::clearFrameErrorUART()
  .text._ZN6SERCOM23isDataRegisterEmptyUARTEv
-                0x000027ac        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000027ac                SERCOM::isDataRegisterEmptyUART()
+                0x000027b8        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000027b8                SERCOM::isDataRegisterEmptyUART()
  .text._ZN6SERCOM12readDataUARTEv
-                0x000027b6        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000027b6                SERCOM::readDataUART()
+                0x000027c2        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000027c2                SERCOM::readDataUART()
  .text._ZN6SERCOM13writeDataUARTEh
-                0x000027be       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000027be                SERCOM::writeDataUART(unsigned char)
+                0x000027ca       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000027ca                SERCOM::writeDataUART(unsigned char)
  .text._ZN6SERCOM36enableDataRegisterEmptyInterruptUARTEv
-                0x000027d2        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000027d2                SERCOM::enableDataRegisterEmptyInterruptUART()
+                0x000027de        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000027de                SERCOM::enableDataRegisterEmptyInterruptUART()
  .text._ZN6SERCOM37disableDataRegisterEmptyInterruptUARTEv
-                0x000027da        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000027da                SERCOM::disableDataRegisterEmptyInterruptUART()
- *fill*         0x000027e2        0x2 
+                0x000027e6        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000027e6                SERCOM::disableDataRegisterEmptyInterruptUART()
+ *fill*         0x000027ee        0x2 
  .text._ZN6SERCOM12initSPIClockE18SercomSpiClockModem
-                0x000027e4       0x30 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x000027e4                SERCOM::initSPIClock(SercomSpiClockMode, unsigned long)
+                0x000027f0       0x30 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x000027f0                SERCOM::initSPIClock(SercomSpiClockMode, unsigned long)
  .text._ZN6SERCOM8resetSPIEv
-                0x00002814       0x1a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002814                SERCOM::resetSPI()
+                0x00002820       0x1a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002820                SERCOM::resetSPI()
  .text._ZN6SERCOM9enableSPIEv
-                0x0000282e       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x0000282e                SERCOM::enableSPI()
+                0x0000283a       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x0000283a                SERCOM::enableSPI()
  .text._ZN6SERCOM10disableSPIEv
-                0x00002842       0x12 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002842                SERCOM::disableSPI()
+                0x0000284e       0x12 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x0000284e                SERCOM::disableSPI()
  .text._ZN6SERCOM15getDataOrderSPIEv
-                0x00002854        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002854                SERCOM::getDataOrderSPI()
+                0x00002860        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002860                SERCOM::getDataOrderSPI()
  .text._ZN6SERCOM15transferDataSPIEh
-                0x0000285e       0x1a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x0000285e                SERCOM::transferDataSPI(unsigned char)
+                0x0000286a       0x1a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x0000286a                SERCOM::transferDataSPI(unsigned char)
  .text._ZN6SERCOM13initClockNVICEv
-                0x00002878       0xa8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002878                SERCOM::initClockNVIC()
+                0x00002884       0xa8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002884                SERCOM::initClockNVIC()
  .text._ZN6SERCOM8initUARTE14SercomUartMode20SercomUartSampleRatem
-                0x00002920       0x6c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x00002920                SERCOM::initUART(SercomUartMode, SercomUartSampleRate, unsigned long)
+                0x0000292c       0x6c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x0000292c                SERCOM::initUART(SercomUartMode, SercomUartSampleRate, unsigned long)
  .text._ZN6SERCOM7initSPIE14SercomSpiTXPad11SercomRXPad17SercomSpiCharSize15SercomDataOrder
-                0x0000298c       0x4a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
-                0x0000298c                SERCOM::initSPI(SercomSpiTXPad, SercomRXPad, SercomSpiCharSize, SercomDataOrder)
+                0x00002998       0x4a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+                0x00002998                SERCOM::initSPI(SercomSpiTXPad, SercomRXPad, SercomSpiCharSize, SercomDataOrder)
  .text._ZN4UartcvbEv
-                0x000029d6        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x000029d6                Uart::operator bool()
- *fill*         0x000029da        0x2 
+                0x000029e2        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x000029e2                Uart::operator bool()
+ *fill*         0x000029e6        0x2 
  .text._ZN4Uart5beginEm
-                0x000029dc       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x000029dc                Uart::begin(unsigned long)
+                0x000029e8       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x000029e8                Uart::begin(unsigned long)
  .text._ZN4Uart9availableEv
-                0x000029ec        0x6 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x000029ec                Uart::available()
+                0x000029f8        0x6 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x000029f8                Uart::available()
  .text._ZN4Uart17availableForWriteEv
-                0x000029f2       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x000029f2                Uart::availableForWrite()
+                0x000029fe       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x000029fe                Uart::availableForWrite()
  .text._ZN4Uart4peekEv
-                0x00002a02       0x18 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002a02                Uart::peek()
+                0x00002a0e       0x18 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002a0e                Uart::peek()
  .text._ZN4Uart3endEv
-                0x00002a1a       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002a1a                Uart::end()
+                0x00002a26       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002a26                Uart::end()
  .text._ZN4Uart5flushEv
-                0x00002a3e       0x16 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002a3e                Uart::flush()
+                0x00002a4a       0x16 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002a4a                Uart::flush()
  .text._ZN7__GuardD2Ev
-                0x00002a54        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002a54                __Guard::~__Guard()
-                0x00002a54                __Guard::~__Guard()
+                0x00002a60        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002a60                __Guard::~__Guard()
+                0x00002a60                __Guard::~__Guard()
  .text._ZN4Uart16extractNbStopBitEt
-                0x00002a62        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002a62                Uart::extractNbStopBit(unsigned short)
+                0x00002a6e        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002a6e                Uart::extractNbStopBit(unsigned short)
  .text._ZN4Uart15extractCharSizeEt
-                0x00002a6e       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002a6e                Uart::extractCharSize(unsigned short)
+                0x00002a7a       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002a7a                Uart::extractCharSize(unsigned short)
  .text._ZN4Uart13extractParityEt
-                0x00002a96       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002a96                Uart::extractParity(unsigned short)
- *fill*         0x00002aaa        0x2 
+                0x00002aa2       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002aa2                Uart::extractParity(unsigned short)
+ *fill*         0x00002ab6        0x2 
  .text._ZN4Uart5beginEmt
-                0x00002aac       0xf8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002aac                Uart::begin(unsigned long, unsigned short)
+                0x00002ab8       0xf8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002ab8                Uart::begin(unsigned long, unsigned short)
  .text._ZN7arduino11RingBufferNILi256EEC2Ev
-                0x00002ba4       0x1e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002ba4                arduino::RingBufferN<256>::RingBufferN()
-                0x00002ba4                arduino::RingBufferN<256>::RingBufferN()
- *fill*         0x00002bc2        0x2 
+                0x00002bb0       0x1e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002bb0                arduino::RingBufferN<256>::RingBufferN()
+                0x00002bb0                arduino::RingBufferN<256>::RingBufferN()
+ *fill*         0x00002bce        0x2 
  .text._ZN4UartC2EP6SERCOMhh11SercomRXPad15SercomUartTXPadhh
-                0x00002bc4       0x88 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002bc4                Uart::Uart(SERCOM*, unsigned char, unsigned char, SercomRXPad, SercomUartTXPad, unsigned char, unsigned char)
-                0x00002bc4                Uart::Uart(SERCOM*, unsigned char, unsigned char, SercomRXPad, SercomUartTXPad, unsigned char, unsigned char)
+                0x00002bd0       0x88 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002bd0                Uart::Uart(SERCOM*, unsigned char, unsigned char, SercomRXPad, SercomUartTXPad, unsigned char, unsigned char)
+                0x00002bd0                Uart::Uart(SERCOM*, unsigned char, unsigned char, SercomRXPad, SercomUartTXPad, unsigned char, unsigned char)
  .text._ZN4UartC2EP6SERCOMhh11SercomRXPad15SercomUartTXPad
-                0x00002c4c       0x74 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002c4c                Uart::Uart(SERCOM*, unsigned char, unsigned char, SercomRXPad, SercomUartTXPad)
-                0x00002c4c                Uart::Uart(SERCOM*, unsigned char, unsigned char, SercomRXPad, SercomUartTXPad)
+                0x00002c58       0x74 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002c58                Uart::Uart(SERCOM*, unsigned char, unsigned char, SercomRXPad, SercomUartTXPad)
+                0x00002c58                Uart::Uart(SERCOM*, unsigned char, unsigned char, SercomRXPad, SercomUartTXPad)
  .text._ZN7arduino15SafeRingBufferNILi256EE10store_charEh
-                0x00002cc0       0x4a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002cc0                arduino::SafeRingBufferN<256>::store_char(unsigned char)
+                0x00002ccc       0x4a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002ccc                arduino::SafeRingBufferN<256>::store_char(unsigned char)
  .text._ZN7arduino15SafeRingBufferNILi256EE9read_charEv
-                0x00002d0a       0x50 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002d0a                arduino::SafeRingBufferN<256>::read_char()
+                0x00002d16       0x50 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002d16                arduino::SafeRingBufferN<256>::read_char()
  .text._ZN4Uart10IrqHandlerEv
-                0x00002d5a       0xa4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002d5a                Uart::IrqHandler()
- *fill*         0x00002dfe        0x2 
+                0x00002d66       0xa4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002d66                Uart::IrqHandler()
+ *fill*         0x00002e0a        0x2 
  .text._ZN4Uart5writeEh
-                0x00002e00       0x9c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002e00                Uart::write(unsigned char)
+                0x00002e0c       0x9c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002e0c                Uart::write(unsigned char)
  .text._ZN4Uart4readEv
-                0x00002e9c       0x34 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x00002e9c                Uart::read()
+                0x00002ea8       0x34 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x00002ea8                Uart::read()
  .text._ZN7arduino5Print5writeEPKhj
-                0x00002ed0       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
-                0x00002ed0                arduino::Print::write(unsigned char const*, unsigned int)
+                0x00002edc       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+                0x00002edc                arduino::Print::write(unsigned char const*, unsigned int)
  .text._ZN7arduino5Print5writeEPKc.part.2
-                0x00002ef8       0x1a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+                0x00002f04       0x1a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
  .text._ZN7arduino5Print5writeEPKc
-                0x00002f12       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
-                0x00002f12                arduino::Print::write(char const*)
+                0x00002f1e       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+                0x00002f1e                arduino::Print::write(char const*)
  .text._ZN7arduino5Print5printEPKc
-                0x00002f22        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
-                0x00002f22                arduino::Print::print(char const*)
+                0x00002f2e        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+                0x00002f2e                arduino::Print::print(char const*)
  .text._ZN7arduino5Print5printEc
-                0x00002f2a        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
-                0x00002f2a                arduino::Print::print(char)
+                0x00002f36        0xa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+                0x00002f36                arduino::Print::print(char)
  .text._ZN7arduino5Print7printlnEv
-                0x00002f34       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
-                0x00002f34                arduino::Print::println()
+                0x00002f40       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+                0x00002f40                arduino::Print::println()
  .text._ZN7arduino5Print11printNumberEmh
-                0x00002f44       0x48 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
-                0x00002f44                arduino::Print::printNumber(unsigned long, unsigned char)
+                0x00002f50       0x48 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+                0x00002f50                arduino::Print::printNumber(unsigned long, unsigned char)
  .text._ZN7arduino5Print5printEmi
-                0x00002f8c       0x18 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
-                0x00002f8c                arduino::Print::print(unsigned long, int)
+                0x00002f98       0x18 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+                0x00002f98                arduino::Print::print(unsigned long, int)
  .text.Dummy_Handler
-                0x00002fa4        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
-                0x00002fa4                DMAC_Handler
-                0x00002fa4                HardFault_Handler
-                0x00002fa4                AC_Handler
-                0x00002fa4                PendSV_Handler
-                0x00002fa4                NMI_Handler
-                0x00002fa4                TC7_Handler
-                0x00002fa4                SERCOM1_Handler
-                0x00002fa4                ADC_Handler
-                0x00002fa4                TCC1_Handler
-                0x00002fa4                TCC0_Handler
-                0x00002fa4                RTC_Handler
-                0x00002fa4                EIC_Handler
-                0x00002fa4                TC6_Handler
-                0x00002fa4                WDT_Handler
-                0x00002fa4                TC4_Handler
-                0x00002fa4                TC3_Handler
-                0x00002fa4                Dummy_Handler
-                0x00002fa4                PM_Handler
-                0x00002fa4                SVC_Handler
-                0x00002fa4                TCC2_Handler
-                0x00002fa4                EVSYS_Handler
-                0x00002fa4                SERCOM4_Handler
-                0x00002fa4                I2S_Handler
-                0x00002fa4                NVMCTRL_Handler
-                0x00002fa4                SERCOM0_Handler
-                0x00002fa4                DAC_Handler
-                0x00002fa4                PTC_Handler
-                0x00002fa4                SYSCTRL_Handler
- *fill*         0x00002fa6        0x2 
+                0x00002fb0        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+                0x00002fb0                DMAC_Handler
+                0x00002fb0                HardFault_Handler
+                0x00002fb0                AC_Handler
+                0x00002fb0                PendSV_Handler
+                0x00002fb0                NMI_Handler
+                0x00002fb0                TC7_Handler
+                0x00002fb0                SERCOM1_Handler
+                0x00002fb0                ADC_Handler
+                0x00002fb0                TCC1_Handler
+                0x00002fb0                TCC0_Handler
+                0x00002fb0                RTC_Handler
+                0x00002fb0                EIC_Handler
+                0x00002fb0                TC6_Handler
+                0x00002fb0                WDT_Handler
+                0x00002fb0                TC4_Handler
+                0x00002fb0                TC3_Handler
+                0x00002fb0                Dummy_Handler
+                0x00002fb0                PM_Handler
+                0x00002fb0                SVC_Handler
+                0x00002fb0                TCC2_Handler
+                0x00002fb0                EVSYS_Handler
+                0x00002fb0                SERCOM4_Handler
+                0x00002fb0                I2S_Handler
+                0x00002fb0                NVMCTRL_Handler
+                0x00002fb0                SERCOM0_Handler
+                0x00002fb0                DAC_Handler
+                0x00002fb0                PTC_Handler
+                0x00002fb0                SYSCTRL_Handler
+ *fill*         0x00002fb2        0x2 
  .text.USB_Handler
-                0x00002fa8       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
-                0x00002fa8                USB_Handler
+                0x00002fb4       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+                0x00002fb4                USB_Handler
  .text.Reset_Handler
-                0x00002fbc       0x54 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
-                0x00002fbc                Reset_Handler
+                0x00002fc8       0x54 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+                0x00002fc8                Reset_Handler
  .text.SysTick_Handler
-                0x00003010       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
-                0x00003010                SysTick_Handler
+                0x0000301c       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+                0x0000301c                SysTick_Handler
  .text.USB_SetHandler
-                0x00003020        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
-                0x00003020                USB_SetHandler
- .text.millis   0x0000302c        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
-                0x0000302c                millis
- .text.micros   0x00003038       0x60 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
-                0x00003038                micros
- .text.delay    0x00003098       0x30 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
-                0x00003098                delay
+                0x0000302c        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+                0x0000302c                USB_SetHandler
+ .text.millis   0x00003038        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+                0x00003038                millis
+ .text.micros   0x00003044       0x60 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+                0x00003044                micros
+ .text.delay    0x000030a4       0x30 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+                0x000030a4                delay
  .text.resetExternalChip
-                0x000030c8        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
-                0x000030c8                resetExternalChip
- *fill*         0x000030ca        0x2 
+                0x000030d4        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+                0x000030d4                resetExternalChip
+ *fill*         0x000030d6        0x2 
  .text.SysTick_DefaultHandler
-                0x000030cc       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
-                0x000030cc                SysTick_DefaultHandler
- .text.__empty  0x000030e0        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
-                0x000030e0                yield
- .text.__false  0x000030e2        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
-                0x000030e2                sysTickHook
- *fill*         0x000030e6        0x2 
+                0x000030d8       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+                0x000030d8                SysTick_DefaultHandler
+ .text.__empty  0x000030ec        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
+                0x000030ec                yield
+ .text.__false  0x000030ee        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
+                0x000030ee                sysTickHook
+ *fill*         0x000030f2        0x2 
  .text.startup.main
-                0x000030e8       0x40 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(main.cpp.o)
-                0x000030e8                main
- .text._Znwj    0x00003128        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
-                0x00003128                operator new(unsigned int)
- .text._ZdlPv   0x00003130        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
-                0x00003130                operator delete(void*)
+                0x000030f4       0x40 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(main.cpp.o)
+                0x000030f4                main
+ .text._Znwj    0x00003134        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
+                0x00003134                operator new(unsigned int)
+ .text._ZdlPv   0x0000313c        0x8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
+                0x0000313c                operator delete(void*)
  .text.SystemInit
-                0x00003138      0x194 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
-                0x00003138                SystemInit
- .text.init     0x000032cc       0xf0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
-                0x000032cc                init
+                0x00003144      0x194 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
+                0x00003144                SystemInit
+ .text.init     0x000032d8       0xf0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
+                0x000032d8                init
  .text.analogReference
-                0x000033bc       0x64 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
-                0x000033bc                analogReference
- .text.pinMode  0x00003420       0x98 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
-                0x00003420                pinMode
+                0x000033c8       0x64 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
+                0x000033c8                analogReference
+ .text.pinMode  0x0000342c       0x98 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
+                0x0000342c                pinMode
  .text.digitalWrite
-                0x000034b8       0x58 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
-                0x000034b8                digitalWrite
+                0x000034c4       0x58 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
+                0x000034c4                digitalWrite
  .text.pinPeripheral
-                0x00003510       0xc0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
-                0x00003510                pinPeripheral
+                0x0000351c       0xc0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
+                0x0000351c                pinPeripheral
  .text.initiateReset
-                0x000035d0       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
-                0x000035d0                initiateReset
+                0x000035dc       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
+                0x000035dc                initiateReset
  .text.cancelReset
-                0x000035e4       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
-                0x000035e4                cancelReset
+                0x000035f0       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
+                0x000035f0                cancelReset
  .text.tickReset
-                0x000035f4       0x78 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
-                0x000035f4                tickReset
+                0x00003600       0x78 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
+                0x00003600                tickReset
  .text._ZN26DoubleBufferedEPOutHandlerD2Ev
-                0x0000366c        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x0000366c                DoubleBufferedEPOutHandler::~DoubleBufferedEPOutHandler()
-                0x0000366c                DoubleBufferedEPOutHandler::~DoubleBufferedEPOutHandler()
+                0x00003678        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003678                DoubleBufferedEPOutHandler::~DoubleBufferedEPOutHandler()
+                0x00003678                DoubleBufferedEPOutHandler::~DoubleBufferedEPOutHandler()
  .text._ZN26DoubleBufferedEPOutHandlerD0Ev
-                0x0000366e        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x0000366e                DoubleBufferedEPOutHandler::~DoubleBufferedEPOutHandler()
- *fill*         0x0000367a        0x2 
+                0x0000367a        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000367a                DoubleBufferedEPOutHandler::~DoubleBufferedEPOutHandler()
+ *fill*         0x00003686        0x2 
  .text._ZN14USBDeviceClass6initEPEmm.part.7
-                0x0000367c       0xc4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003688       0xc4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
  .text._ZN7__GuardC2Ev
-                0x00003740        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003740                __Guard::__Guard()
-                0x00003740                __Guard::__Guard()
+                0x0000374c        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000374c                __Guard::__Guard()
+                0x0000374c                __Guard::__Guard()
  .text._ZNK26DoubleBufferedEPOutHandler10_availableEv
-                0x0000374e       0x70 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x0000374e                DoubleBufferedEPOutHandler::_available() const
- *fill*         0x000037be        0x2 
+                0x0000375a       0x70 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000375a                DoubleBufferedEPOutHandler::_available() const
+ *fill*         0x000037ca        0x2 
  .text._ZN26DoubleBufferedEPOutHandler7releaseEv
-                0x000037c0       0x38 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x000037c0                DoubleBufferedEPOutHandler::release()
+                0x000037cc       0x38 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x000037cc                DoubleBufferedEPOutHandler::release()
  .text._ZN26DoubleBufferedEPOutHandler14handleEndpointEv
-                0x000037f8       0xe2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x000037f8                DoubleBufferedEPOutHandler::handleEndpoint()
+                0x00003804       0xe2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003804                DoubleBufferedEPOutHandler::handleEndpoint()
  .text._ZN14USBDeviceClass14SendInterfacesEPm
-                0x000038da       0x20 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x000038da                USBDeviceClass::SendInterfaces(unsigned long*)
- *fill*         0x000038fa        0x2 
+                0x000038e6       0x20 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x000038e6                USBDeviceClass::SendInterfaces(unsigned long*)
+ *fill*         0x00003906        0x2 
  .text._ZN14USBDeviceClass6attachEv
-                0x000038fc       0x34 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x000038fc                USBDeviceClass::attach()
+                0x00003908       0x34 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003908                USBDeviceClass::attach()
  .text._ZN14USBDeviceClass10setAddressEm
-                0x00003930       0x48 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003930                USBDeviceClass::setAddress(unsigned long)
+                0x0000393c       0x48 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000393c                USBDeviceClass::setAddress(unsigned long)
  .text._ZN14USBDeviceClass25handleClassInterfaceSetupERN7arduino8USBSetupE
-                0x00003978       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003978                USBDeviceClass::handleClassInterfaceSetup(arduino::USBSetup&)
+                0x00003984       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003984                USBDeviceClass::handleClassInterfaceSetup(arduino::USBSetup&)
  .text._ZN14USBDeviceClass6initEPEmm
-                0x0000399c      0x10c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x0000399c                USBDeviceClass::initEP(unsigned long, unsigned long)
+                0x000039a8      0x10c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x000039a8                USBDeviceClass::initEP(unsigned long, unsigned long)
  .text._ZN14USBDeviceClass13initEndpointsEv
-                0x00003aa8       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003aa8                USBDeviceClass::initEndpoints()
+                0x00003ab4       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003ab4                USBDeviceClass::initEndpoints()
  .text._ZN14USBDeviceClass5clearEm
-                0x00003acc       0x38 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003acc                USBDeviceClass::clear(unsigned long)
+                0x00003ad8       0x38 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003ad8                USBDeviceClass::clear(unsigned long)
  .text._ZN14USBDeviceClass9availableEm
-                0x00003b04       0x2c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003b04                USBDeviceClass::available(unsigned long)
+                0x00003b10       0x2c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003b10                USBDeviceClass::available(unsigned long)
  .text._ZN14USBDeviceClass5flushEm
-                0x00003b30       0x2c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003b30                USBDeviceClass::flush(unsigned long)
+                0x00003b3c       0x2c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003b3c                USBDeviceClass::flush(unsigned long)
  .text._ZN14USBDeviceClass4recvEmPvm
-                0x00003b5c       0xc0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003b5c                USBDeviceClass::recv(unsigned long, void*, unsigned long)
+                0x00003b68       0xc0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003b68                USBDeviceClass::recv(unsigned long, void*, unsigned long)
  .text._ZN14USBDeviceClass4recvEm
-                0x00003c1c       0x1c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003c1c                USBDeviceClass::recv(unsigned long)
+                0x00003c28       0x1c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003c28                USBDeviceClass::recv(unsigned long)
  .text._ZN14USBDeviceClass14armRecvCtrlOUTEm
-                0x00003c38       0x5c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003c38                USBDeviceClass::armRecvCtrlOUT(unsigned long)
+                0x00003c44       0x5c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003c44                USBDeviceClass::armRecvCtrlOUT(unsigned long)
  .text._ZN14USBDeviceClass11recvControlEPvm
-                0x00003c94       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003c94                USBDeviceClass::recvControl(void*, unsigned long)
+                0x00003ca0       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003ca0                USBDeviceClass::recvControl(void*, unsigned long)
  .text._ZN14USBDeviceClass4sendEmPKvm
-                0x00003cbc      0x10c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003cbc                USBDeviceClass::send(unsigned long, void const*, unsigned long)
+                0x00003cc8      0x10c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003cc8                USBDeviceClass::send(unsigned long, void const*, unsigned long)
  .text._ZN14USBDeviceClass7armSendEmPKvm
-                0x00003dc8       0x48 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003dc8                USBDeviceClass::armSend(unsigned long, void const*, unsigned long)
+                0x00003dd4       0x48 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003dd4                USBDeviceClass::armSend(unsigned long, void const*, unsigned long)
  .text._ZN14USBDeviceClass11sendControlEPKvm
-                0x00003e10       0x54 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003e10                USBDeviceClass::sendControl(void const*, unsigned long)
+                0x00003e1c       0x54 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003e1c                USBDeviceClass::sendControl(void const*, unsigned long)
  .text._ZN14USBDeviceClass20sendStringDescriptorEPKhm
-                0x00003e64       0x64 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003e64                USBDeviceClass::sendStringDescriptor(unsigned char const*, unsigned long)
+                0x00003e70       0x64 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003e70                USBDeviceClass::sendStringDescriptor(unsigned char const*, unsigned long)
  .text._ZN14USBDeviceClass17sendConfigurationEm
-                0x00003ec8       0x80 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003ec8                USBDeviceClass::sendConfiguration(unsigned long)
+                0x00003ed4       0x80 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003ed4                USBDeviceClass::sendConfiguration(unsigned long)
  .text._ZN14USBDeviceClass14sendDescriptorERN7arduino8USBSetupE
-                0x00003f48       0xd8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00003f48                USBDeviceClass::sendDescriptor(arduino::USBSetup&)
+                0x00003f54       0xd8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00003f54                USBDeviceClass::sendDescriptor(arduino::USBSetup&)
  .text._ZN14USBDeviceClass7sendZlpEm
-                0x00004020       0x18 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00004020                USBDeviceClass::sendZlp(unsigned long)
+                0x0000402c       0x18 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000402c                USBDeviceClass::sendZlp(unsigned long)
  .text._ZN14USBDeviceClass19handleStandardSetupERN7arduino8USBSetupE
-                0x00004038       0xf0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00004038                USBDeviceClass::handleStandardSetup(arduino::USBSetup&)
+                0x00004044       0xf0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00004044                USBDeviceClass::handleStandardSetup(arduino::USBSetup&)
  .text._ZN14USBDeviceClass10ISRHandlerEv
-                0x00004128      0x108 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00004128                USBDeviceClass::ISRHandler()
+                0x00004134      0x108 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00004134                USBDeviceClass::ISRHandler()
  .text.UDD_Handler
-                0x00004230       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00004230                UDD_Handler
+                0x0000423c       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000423c                UDD_Handler
  .text._ZN7arduino13PluggableUSB_C2Ev
-                0x00004240       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00004240                arduino::PluggableUSB_::PluggableUSB_()
-                0x00004240                arduino::PluggableUSB_::PluggableUSB_()
+                0x0000424c       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000424c                arduino::PluggableUSB_::PluggableUSB_()
+                0x0000424c                arduino::PluggableUSB_::PluggableUSB_()
  .text._Z8epBufferj
-                0x00004250        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00004250                epBuffer(unsigned int)
+                0x0000425c        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000425c                epBuffer(unsigned int)
  .text._ZN7arduino11RingBufferNILi64EE10store_charEh
-                0x0000425c       0x1c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x0000425c                arduino::RingBufferN<64>::store_char(unsigned char)
+                0x00004268       0x1c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00004268                arduino::RingBufferN<64>::store_char(unsigned char)
  .text._ZN26DoubleBufferedEPOutHandler5_recvEv
-                0x00004278      0x15e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00004278                DoubleBufferedEPOutHandler::_recv()
+                0x00004284      0x15e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00004284                DoubleBufferedEPOutHandler::_recv()
  .text._ZN26DoubleBufferedEPOutHandler9availableEv
-                0x000043d6        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x000043d6                DoubleBufferedEPOutHandler::available()
+                0x000043e2        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x000043e2                DoubleBufferedEPOutHandler::available()
  .text._ZN26DoubleBufferedEPOutHandler4peekEv
-                0x000043e2       0x1c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x000043e2                DoubleBufferedEPOutHandler::peek()
+                0x000043ee       0x1c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x000043ee                DoubleBufferedEPOutHandler::peek()
  .text._ZN26DoubleBufferedEPOutHandler4recvEPvm
-                0x000043fe       0x60 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x000043fe                DoubleBufferedEPOutHandler::recv(void*, unsigned long)
- *fill*         0x0000445e        0x2 
+                0x0000440a       0x60 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000440a                DoubleBufferedEPOutHandler::recv(void*, unsigned long)
+ *fill*         0x0000446a        0x2 
  .text.startup._GLOBAL__sub_I_usbd
-                0x00004460       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000446c       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
  .text._ZN14USBDeviceClass4initEv
-                0x00004470      0x15c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x00004470                USBDeviceClass::init()
+                0x0000447c      0x15c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000447c                USBDeviceClass::init()
  .text._ZN7arduino13PluggableUSB_12getInterfaceEPh
-                0x000045cc       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
-                0x000045cc                arduino::PluggableUSB_::getInterface(unsigned char*)
+                0x000045d8       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+                0x000045d8                arduino::PluggableUSB_::getInterface(unsigned char*)
  .text._ZN7arduino13PluggableUSB_13getDescriptorERNS_8USBSetupE
-                0x000045f4       0x20 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
-                0x000045f4                arduino::PluggableUSB_::getDescriptor(arduino::USBSetup&)
+                0x00004600       0x20 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+                0x00004600                arduino::PluggableUSB_::getDescriptor(arduino::USBSetup&)
  .text._ZN7arduino13PluggableUSB_12getShortNameEPc
-                0x00004614       0x1e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
-                0x00004614                arduino::PluggableUSB_::getShortName(char*)
+                0x00004620       0x1e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+                0x00004620                arduino::PluggableUSB_::getShortName(char*)
  .text._ZN7arduino13PluggableUSB_5setupERNS_8USBSetupE
-                0x00004632       0x20 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
-                0x00004632                arduino::PluggableUSB_::setup(arduino::USBSetup&)
+                0x0000463e       0x20 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+                0x0000463e                arduino::PluggableUSB_::setup(arduino::USBSetup&)
  .text._ZN7arduino13PluggableUSB_4plugEPNS_18PluggableUSBModuleE
-                0x00004652       0x5c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
-                0x00004652                arduino::PluggableUSB_::plug(arduino::PluggableUSBModule*)
- *fill*         0x000046ae        0x2 
+                0x0000465e       0x5c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+                0x0000465e                arduino::PluggableUSB_::plug(arduino::PluggableUSBModule*)
+ *fill*         0x000046ba        0x2 
  .text._Z12PluggableUSBv
-                0x000046b0       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
-                0x000046b0                PluggableUSB()
+                0x000046bc       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+                0x000046bc                PluggableUSB()
  .text._ZN7Serial_13getDescriptorERN7arduino8USBSetupE
-                0x000046d4        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x000046d4                Serial_::getDescriptor(arduino::USBSetup&)
+                0x000046e0        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x000046e0                Serial_::getDescriptor(arduino::USBSetup&)
  .text._ZL5utox8mPc
-                0x000046d8       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x000046e4       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
  .text._ZN7Serial_12getShortNameEPc
-                0x000046fc       0x44 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x000046fc                Serial_::getShortName(char*)
+                0x00004708       0x44 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004708                Serial_::getShortName(char*)
  .text._ZThn16_N7Serial_12getShortNameEPc
-                0x00004740       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004740                non-virtual thunk to Serial_::getShortName(char*)
+                0x0000474c       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x0000474c                non-virtual thunk to Serial_::getShortName(char*)
  .text._ZN7Serial_5beginEm
-                0x00004750        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004750                Serial_::begin(unsigned long)
+                0x0000475c        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x0000475c                Serial_::begin(unsigned long)
  .text._ZN7Serial_5beginEmt
-                0x00004752        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004752                Serial_::begin(unsigned long, unsigned short)
+                0x0000475e        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x0000475e                Serial_::begin(unsigned long, unsigned short)
  .text._ZN7Serial_17availableForWriteEv
-                0x00004754        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004754                Serial_::availableForWrite()
+                0x00004760        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004760                Serial_::availableForWrite()
  .text._ZN7Serial_5writeEh
-                0x00004758       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004758                Serial_::write(unsigned char)
+                0x00004764       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004764                Serial_::write(unsigned char)
  .text._ZN7Serial_12getInterfaceEPh
-                0x0000476c      0x11c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x0000476c                Serial_::getInterface(unsigned char*)
+                0x00004778      0x11c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004778                Serial_::getInterface(unsigned char*)
  .text._ZThn16_N7Serial_12getInterfaceEPh
-                0x00004888       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004888                non-virtual thunk to Serial_::getInterface(unsigned char*)
+                0x00004894       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004894                non-virtual thunk to Serial_::getInterface(unsigned char*)
  .text._ZN7Serial_5setupERN7arduino8USBSetupE
-                0x00004898       0x98 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004898                Serial_::setup(arduino::USBSetup&)
+                0x000048a4       0x98 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x000048a4                Serial_::setup(arduino::USBSetup&)
  .text._ZThn16_N7Serial_5setupERN7arduino8USBSetupE
-                0x00004930       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004930                non-virtual thunk to Serial_::setup(arduino::USBSetup&)
+                0x0000493c       0x10 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x0000493c                non-virtual thunk to Serial_::setup(arduino::USBSetup&)
  .text._ZN7Serial_3endEv
-                0x00004940       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004940                Serial_::end()
+                0x0000494c       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x0000494c                Serial_::end()
  .text._ZN7Serial_9availableEv
-                0x00004954       0x20 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004954                Serial_::available()
+                0x00004960       0x20 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004960                Serial_::available()
  .text._ZN7Serial_5flushEv
-                0x00004974        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004974                Serial_::flush()
+                0x00004980        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004980                Serial_::flush()
  .text._ZN7Serial_5clearEv
-                0x00004982        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004982                Serial_::clear()
+                0x0000498e        0xe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x0000498e                Serial_::clear()
  .text._ZN7Serial_5writeEPKhj
-                0x00004990       0x1e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004990                Serial_::write(unsigned char const*, unsigned int)
- *fill*         0x000049ae        0x2 
+                0x0000499c       0x1e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x0000499c                Serial_::write(unsigned char const*, unsigned int)
+ *fill*         0x000049ba        0x2 
  .text._ZN7Serial_4peekEv
-                0x000049b0       0x1c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x000049b0                Serial_::peek()
+                0x000049bc       0x1c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x000049bc                Serial_::peek()
  .text._ZN7Serial_4readEv
-                0x000049cc       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x000049cc                Serial_::read()
+                0x000049d8       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x000049d8                Serial_::read()
  .text._ZN7Serial_cvbEv
-                0x000049f0       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x000049f0                Serial_::operator bool()
+                0x000049fc       0x28 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x000049fc                Serial_::operator bool()
  .text._ZThn16_N7Serial_13getDescriptorERN7arduino8USBSetupE
-                0x00004a18        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004a18                non-virtual thunk to Serial_::getDescriptor(arduino::USBSetup&)
+                0x00004a24        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004a24                non-virtual thunk to Serial_::getDescriptor(arduino::USBSetup&)
  .text._ZN7Serial_14handleEndpointEi
-                0x00004a1c        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004a1c                Serial_::handleEndpoint(int)
- *fill*         0x00004a1e        0x2 
+                0x00004a28        0x2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004a28                Serial_::handleEndpoint(int)
+ *fill*         0x00004a2a        0x2 
  .text._ZN7Serial_C2ER14USBDeviceClass
-                0x00004a20       0x50 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004a20                Serial_::Serial_(USBDeviceClass&)
-                0x00004a20                Serial_::Serial_(USBDeviceClass&)
+                0x00004a2c       0x50 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004a2c                Serial_::Serial_(USBDeviceClass&)
+                0x00004a2c                Serial_::Serial_(USBDeviceClass&)
  .text._ZN7Serial_15enableInterruptEv
-                0x00004a70       0x30 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00004a70                Serial_::enableInterrupt()
+                0x00004a7c       0x30 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004a7c                Serial_::enableInterrupt()
  .text.startup._GLOBAL__sub_I__ZN7Serial_12getInterfaceEPh
-                0x00004aa0       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x00004aac       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
  .text.__aeabi_atexit
-                0x00004ab4        0xe c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libstdc++_nano.a(atexit_arm.o)
-                0x00004ab4                __aeabi_atexit
- *fill*         0x00004ac2        0x2 
- .text          0x00004ac4       0x14 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m\libgcc.a(_thumb1_case_uqi.o)
-                0x00004ac4                __gnu_thumb1_case_uqi
- .text          0x00004ad8      0x114 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m\libgcc.a(_udivsi3.o)
-                0x00004ad8                __aeabi_uidiv
-                0x00004ad8                __udivsi3
-                0x00004be4                __aeabi_uidivmod
- .text          0x00004bec        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m\libgcc.a(_dvmd_tls.o)
-                0x00004bec                __aeabi_idiv0
-                0x00004bec                __aeabi_ldiv0
+                0x00004ac0        0xe c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libstdc++_nano.a(atexit_arm.o)
+                0x00004ac0                __aeabi_atexit
+ *fill*         0x00004ace        0x2 
+ .text          0x00004ad0       0x14 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m\libgcc.a(_thumb1_case_uqi.o)
+                0x00004ad0                __gnu_thumb1_case_uqi
+ .text          0x00004ae4      0x114 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m\libgcc.a(_udivsi3.o)
+                0x00004ae4                __aeabi_uidiv
+                0x00004ae4                __udivsi3
+                0x00004bf0                __aeabi_uidivmod
+ .text          0x00004bf8        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m\libgcc.a(_dvmd_tls.o)
+                0x00004bf8                __aeabi_idiv0
+                0x00004bf8                __aeabi_ldiv0
  .text.__assert_func
-                0x00004bf0       0x3c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-assert.o)
-                0x00004bf0                __assert_func
+                0x00004bfc       0x3c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-assert.o)
+                0x00004bfc                __assert_func
  .text.__cxa_atexit
-                0x00004c2c       0x1c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-cxa_atexit.o)
-                0x00004c2c                __cxa_atexit
- .text.fprintf  0x00004c48       0x20 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fprintf.o)
-                0x00004c48                fiprintf
-                0x00004c48                fprintf
+                0x00004c38       0x1c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-cxa_atexit.o)
+                0x00004c38                __cxa_atexit
+ .text.fprintf  0x00004c54       0x20 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fprintf.o)
+                0x00004c54                fiprintf
+                0x00004c54                fprintf
  .text.__libc_init_array
-                0x00004c68       0x48 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-init.o)
-                0x00004c68                __libc_init_array
- .text.malloc   0x00004cb0       0x14 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-malloc.o)
-                0x00004cb0                malloc
- .text.free     0x00004cc4       0x14 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-malloc.o)
-                0x00004cc4                free
- .text.memcpy   0x00004cd8       0x12 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-memcpy-stub.o)
-                0x00004cd8                memcpy
- .text.memset   0x00004cea       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-memset.o)
-                0x00004cea                memset
- *fill*         0x00004cfa        0x2 
- .text._free_r  0x00004cfc       0x94 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-freer.o)
-                0x00004cfc                _free_r
+                0x00004c74       0x48 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-init.o)
+                0x00004c74                __libc_init_array
+ .text.malloc   0x00004cbc       0x14 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-malloc.o)
+                0x00004cbc                malloc
+ .text.free     0x00004cd0       0x14 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-malloc.o)
+                0x00004cd0                free
+ .text.memcpy   0x00004ce4       0x12 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-memcpy-stub.o)
+                0x00004ce4                memcpy
+ .text.memset   0x00004cf6       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-memset.o)
+                0x00004cf6                memset
+ *fill*         0x00004d06        0x2 
+ .text._free_r  0x00004d08       0x94 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-freer.o)
+                0x00004d08                _free_r
  .text._malloc_r
-                0x00004d90       0xbc c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-mallocr.o)
-                0x00004d90                _malloc_r
+                0x00004d9c       0xbc c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-mallocr.o)
+                0x00004d9c                _malloc_r
  .text.__sfputc_r
-                0x00004e4c       0x2a c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf.o)
+                0x00004e58       0x2a c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf.o)
  .text.__sfputs_r
-                0x00004e76       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf.o)
-                0x00004e76                __sfputs_r
- *fill*         0x00004e9a        0x2 
+                0x00004e82       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf.o)
+                0x00004e82                __sfputs_r
+ *fill*         0x00004ea6        0x2 
  .text._vfprintf_r
-                0x00004e9c      0x22c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf.o)
-                0x00004e9c                _vfprintf_r
-                0x00004e9c                _vfiprintf_r
+                0x00004ea8      0x22c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf.o)
+                0x00004ea8                _vfprintf_r
+                0x00004ea8                _vfiprintf_r
  .text._printf_common
-                0x000050c8       0xda c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf_i.o)
-                0x000050c8                _printf_common
- *fill*         0x000051a2        0x2 
+                0x000050d4       0xda c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf_i.o)
+                0x000050d4                _printf_common
+ *fill*         0x000051ae        0x2 
  .text._printf_i
-                0x000051a4      0x210 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf_i.o)
-                0x000051a4                _printf_i
- .text._sbrk_r  0x000053b4       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-sbrkr.o)
-                0x000053b4                _sbrk_r
- .text          0x000053d8        0xe c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-strlen.o)
-                0x000053d8                strlen
- *fill*         0x000053e6        0x2 
+                0x000051b0      0x210 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf_i.o)
+                0x000051b0                _printf_i
+ .text._sbrk_r  0x000053c0       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-sbrkr.o)
+                0x000053c0                _sbrk_r
+ .text          0x000053e4        0xe c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-strlen.o)
+                0x000053e4                strlen
+ *fill*         0x000053f2        0x2 
  .text.__swbuf_r
-                0x000053e8       0xac c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-wbuf.o)
-                0x000053e8                __swbuf_r
+                0x000053f4       0xac c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-wbuf.o)
+                0x000053f4                __swbuf_r
  .text.__swsetup_r
-                0x00005494       0xec c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-wsetup.o)
-                0x00005494                __swsetup_r
- .text.abort    0x00005580        0xe c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-abort.o)
-                0x00005580                abort
- *fill*         0x0000558e        0x2 
+                0x000054a0       0xec c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-wsetup.o)
+                0x000054a0                __swsetup_r
+ .text.abort    0x0000558c        0xe c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-abort.o)
+                0x0000558c                abort
+ *fill*         0x0000559a        0x2 
  .text.__sflush_r
-                0x00005590      0x114 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fflush.o)
-                0x00005590                __sflush_r
+                0x0000559c      0x114 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fflush.o)
+                0x0000559c                __sflush_r
  .text._fflush_r
-                0x000056a4       0x58 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fflush.o)
-                0x000056a4                _fflush_r
- .text.std      0x000056fc       0x48 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
+                0x000056b0       0x58 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fflush.o)
+                0x000056b0                _fflush_r
+ .text.std      0x00005708       0x48 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
  .text._cleanup_r
-                0x00005744       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
-                0x00005744                _cleanup_r
+                0x00005750       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
+                0x00005750                _cleanup_r
  .text.__sfmoreglue
-                0x00005754       0x2c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
-                0x00005754                __sfmoreglue
- .text.__sinit  0x00005780       0x68 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
-                0x00005780                __sinit
- .text.__sfp    0x000057e8       0x7c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
-                0x000057e8                __sfp
+                0x00005760       0x2c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
+                0x00005760                __sfmoreglue
+ .text.__sinit  0x0000578c       0x68 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
+                0x0000578c                __sinit
+ .text.__sfp    0x000057f4       0x7c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
+                0x000057f4                __sfp
  .text._fwalk_reent
-                0x00005864       0x42 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fwalk.o)
-                0x00005864                _fwalk_reent
- *fill*         0x000058a6        0x2 
+                0x00005870       0x42 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fwalk.o)
+                0x00005870                _fwalk_reent
+ *fill*         0x000058b2        0x2 
  .text.__swhatbuf_r
-                0x000058a8       0x50 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-makebuf.o)
-                0x000058a8                __swhatbuf_r
+                0x000058b4       0x50 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-makebuf.o)
+                0x000058b4                __swhatbuf_r
  .text.__smakebuf_r
-                0x000058f8       0x88 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-makebuf.o)
-                0x000058f8                __smakebuf_r
- .text.memchr   0x00005980       0x16 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-memchr-stub.o)
-                0x00005980                memchr
+                0x00005904       0x88 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-makebuf.o)
+                0x00005904                __smakebuf_r
+ .text.memchr   0x0000598c       0x16 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-memchr-stub.o)
+                0x0000598c                memchr
  .text.__malloc_lock
-                0x00005996        0x2 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-mlock.o)
-                0x00005996                __malloc_lock
+                0x000059a2        0x2 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-mlock.o)
+                0x000059a2                __malloc_lock
  .text.__malloc_unlock
-                0x00005998        0x2 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-mlock.o)
-                0x00005998                __malloc_unlock
+                0x000059a4        0x2 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-mlock.o)
+                0x000059a4                __malloc_unlock
  .text._raise_r
-                0x0000599a       0x54 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-signal.o)
-                0x0000599a                _raise_r
- *fill*         0x000059ee        0x2 
- .text.raise    0x000059f0       0x14 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-signal.o)
-                0x000059f0                raise
- .text._kill_r  0x00005a04       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-signalr.o)
-                0x00005a04                _kill_r
+                0x000059a6       0x54 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-signal.o)
+                0x000059a6                _raise_r
+ *fill*         0x000059fa        0x2 
+ .text.raise    0x000059fc       0x14 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-signal.o)
+                0x000059fc                raise
+ .text._kill_r  0x00005a10       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-signalr.o)
+                0x00005a10                _kill_r
  .text._getpid_r
-                0x00005a28        0x8 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-signalr.o)
-                0x00005a28                _getpid_r
- .text.__sread  0x00005a30       0x28 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-stdio.o)
-                0x00005a30                __sread
+                0x00005a34        0x8 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-signalr.o)
+                0x00005a34                _getpid_r
+ .text.__sread  0x00005a3c       0x28 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-stdio.o)
+                0x00005a3c                __sread
  .text.__swrite
-                0x00005a58       0x38 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-stdio.o)
-                0x00005a58                __swrite
- .text.__sseek  0x00005a90       0x2c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-stdio.o)
-                0x00005a90                __sseek
+                0x00005a64       0x38 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-stdio.o)
+                0x00005a64                __swrite
+ .text.__sseek  0x00005a9c       0x2c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-stdio.o)
+                0x00005a9c                __sseek
  .text.__sclose
-                0x00005abc        0xc c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-stdio.o)
-                0x00005abc                __sclose
+                0x00005ac8        0xc c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-stdio.o)
+                0x00005ac8                __sclose
  .text._write_r
-                0x00005ac8       0x28 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-writer.o)
-                0x00005ac8                _write_r
+                0x00005ad4       0x28 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-writer.o)
+                0x00005ad4                _write_r
  .text._close_r
-                0x00005af0       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-closer.o)
-                0x00005af0                _close_r
+                0x00005afc       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-closer.o)
+                0x00005afc                _close_r
  .text._fstat_r
-                0x00005b14       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fstatr.o)
-                0x00005b14                _fstat_r
+                0x00005b20       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-fstatr.o)
+                0x00005b20                _fstat_r
  .text._isatty_r
-                0x00005b38       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-isattyr.o)
-                0x00005b38                _isatty_r
+                0x00005b44       0x24 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-isattyr.o)
+                0x00005b44                _isatty_r
  .text._lseek_r
-                0x00005b5c       0x28 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-lseekr.o)
-                0x00005b5c                _lseek_r
- .text._read_r  0x00005b84       0x28 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-readr.o)
-                0x00005b84                _read_r
- .text._close   0x00005bac       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(close.o)
-                0x00005bac                _close
- .text._fstat   0x00005bbc       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(fstat.o)
-                0x00005bbc                _fstat
- .text._getpid  0x00005bcc       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(getpid.o)
-                0x00005bcc                _getpid
- .text._isatty  0x00005bdc       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(isatty.o)
-                0x00005bdc                _isatty
- .text._kill    0x00005bec       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(kill.o)
-                0x00005bec                _kill
- .text._lseek   0x00005bfc       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(lseek.o)
-                0x00005bfc                _lseek
- .text._read    0x00005c0c       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(read.o)
-                0x00005c0c                _read
- .text._sbrk    0x00005c1c       0x1c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(sbrk.o)
-                0x00005c1c                _sbrk
- .text._write   0x00005c38       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(write.o)
-                0x00005c38                _write
- .text._exit    0x00005c48        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(_exit.o)
-                0x00005c48                _exit
+                0x00005b68       0x28 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-lseekr.o)
+                0x00005b68                _lseek_r
+ .text._read_r  0x00005b90       0x28 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-readr.o)
+                0x00005b90                _read_r
+ .text._close   0x00005bb8       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(close.o)
+                0x00005bb8                _close
+ .text._fstat   0x00005bc8       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(fstat.o)
+                0x00005bc8                _fstat
+ .text._getpid  0x00005bd8       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(getpid.o)
+                0x00005bd8                _getpid
+ .text._isatty  0x00005be8       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(isatty.o)
+                0x00005be8                _isatty
+ .text._kill    0x00005bf8       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(kill.o)
+                0x00005bf8                _kill
+ .text._lseek   0x00005c08       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(lseek.o)
+                0x00005c08                _lseek
+ .text._read    0x00005c18       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(read.o)
+                0x00005c18                _read
+ .text._sbrk    0x00005c28       0x1c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(sbrk.o)
+                0x00005c28                _sbrk
+ .text._write   0x00005c44       0x10 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(write.o)
+                0x00005c44                _write
+ .text._exit    0x00005c54        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libnosys.a(_exit.o)
+                0x00005c54                _exit
  *(.init)
- .init          0x00005c4c        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crti.o
-                0x00005c4c                _init
- .init          0x00005c50        0x8 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtn.o
+ .init          0x00005c58        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crti.o
+                0x00005c58                _init
+ .init          0x00005c5c        0x8 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtn.o
  *(.fini)
- .fini          0x00005c58        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crti.o
-                0x00005c58                _fini
- .fini          0x00005c5c        0x8 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtn.o
+ .fini          0x00005c64        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crti.o
+                0x00005c64                _fini
+ .fini          0x00005c68        0x8 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtn.o
  *crtbegin.o(.ctors)
  *crtbegin?.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors)
@@ -1621,93 +1621,93 @@ LOAD c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi
  *(.dtors)
  *(.rodata*)
  .rodata.loop.str1.1
-                0x00005c64       0x2e Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+                0x00005c70       0x2e Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
  .rodata.CSWTCH.24
-                0x00005c92        0x3 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x00005c9e        0x3 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
  .rodata._ZN12SPIClassSAMDC2EP6SERCOMhhh14SercomSpiTXPad11SercomRXPad.str1.1
-                0x00005c95       0x74 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
- *fill*         0x00005d09        0x3 
+                0x00005ca1       0x74 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+ *fill*         0x00005d15        0x3 
  .rodata._ZTV12SPIClassSAMD
-                0x00005d0c       0x3c Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                0x00005d0c                vtable for SPIClassSAMD
+                0x00005d18       0x3c Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x00005d18                vtable for SPIClassSAMD
  .rodata._ZZN12SPIClassSAMDC4EP6SERCOMhhh14SercomSpiTXPad11SercomRXPadE19__PRETTY_FUNCTION__
-                0x00005d48       0x5c Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+                0x00005d54       0x5c Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
  .rodata.g_APinDescription
-                0x00005da4      0x318 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
-                0x00005da4                g_APinDescription
+                0x00005db0      0x318 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+                0x00005db0                g_APinDescription
  .rodata._ZTV4Uart
-                0x000060bc       0x34 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
-                0x000060bc                vtable for Uart
+                0x000060c8       0x34 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+                0x000060c8                vtable for Uart
  .rodata._ZN7arduino5Print7printlnEv.str1.1
-                0x000060f0        0x3 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
- *fill*         0x000060f3        0x1 
+                0x000060fc        0x3 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+ *fill*         0x000060ff        0x1 
  .rodata._ZTV26DoubleBufferedEPOutHandler
-                0x000060f4       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
-                0x000060f4                vtable for DoubleBufferedEPOutHandler
+                0x00006100       0x24 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00006100                vtable for DoubleBufferedEPOutHandler
  .rodata._ZL14STRING_PRODUCT
-                0x00006118       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00006124       0x14 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
  .rodata._ZL15STRING_LANGUAGE
-                0x0000612c        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x00006138        0x4 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
  .rodata._ZL19STRING_MANUFACTURER
-                0x00006130        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+                0x0000613c        0xc Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
  .rodata._ZL21USB_DeviceDescriptorB
-                0x0000613c       0x12 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
- *fill*         0x0000614e        0x2 
+                0x00006148       0x12 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+ *fill*         0x0000615a        0x2 
  .rodata._ZTV7Serial_
-                0x00006150       0x60 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
-                0x00006150                vtable for Serial_
+                0x0000615c       0x60 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+                0x0000615c                vtable for Serial_
  .rodata.__assert_func.str1.1
-                0x000061b0       0x3c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-assert.o)
+                0x000061bc       0x3c c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-assert.o)
                                  0x3d (size before relaxing)
  .rodata._global_impure_ptr
-                0x000061ec        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-impure.o)
-                0x000061ec                _global_impure_ptr
+                0x000061f8        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-impure.o)
+                0x000061f8                _global_impure_ptr
  .rodata._vfprintf_r.str1.1
-                0x000061f0       0x11 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf.o)
+                0x000061fc       0x11 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf.o)
  .rodata._printf_i.str1.1
-                0x00006201       0x22 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf_i.o)
- *fill*         0x00006223        0x1 
+                0x0000620d       0x22 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-nano-vfprintf_i.o)
+ *fill*         0x0000622f        0x1 
  .rodata.__sf_fake_stderr
-                0x00006224       0x20 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
-                0x00006224                __sf_fake_stderr
+                0x00006230       0x20 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
+                0x00006230                __sf_fake_stderr
  .rodata.__sf_fake_stdin
-                0x00006244       0x20 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
-                0x00006244                __sf_fake_stdin
+                0x00006250       0x20 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
+                0x00006250                __sf_fake_stdin
  .rodata.__sf_fake_stdout
-                0x00006264       0x20 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
-                0x00006264                __sf_fake_stdout
+                0x00006270       0x20 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v6-m\libc_nano.a(lib_a-findfp.o)
+                0x00006270                __sf_fake_stdout
  *(.eh_frame*)
- .eh_frame      0x00006284        0x0 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtbegin.o
- .eh_frame      0x00006284        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtend.o
+ .eh_frame      0x00006290        0x0 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtbegin.o
+ .eh_frame      0x00006290        0x4 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtend.o
 
-.glue_7         0x00006288        0x0
- .glue_7        0x00006288        0x0 linker stubs
+.glue_7         0x00006294        0x0
+ .glue_7        0x00006294        0x0 linker stubs
 
-.glue_7t        0x00006288        0x0
- .glue_7t       0x00006288        0x0 linker stubs
+.glue_7t        0x00006294        0x0
+ .glue_7t       0x00006294        0x0 linker stubs
 
-.vfp11_veneer   0x00006288        0x0
- .vfp11_veneer  0x00006288        0x0 linker stubs
+.vfp11_veneer   0x00006294        0x0
+ .vfp11_veneer  0x00006294        0x0 linker stubs
 
-.v4_bx          0x00006288        0x0
- .v4_bx         0x00006288        0x0 linker stubs
+.v4_bx          0x00006294        0x0
+ .v4_bx         0x00006294        0x0 linker stubs
 
-.iplt           0x00006288        0x0
- .iplt          0x00006288        0x0 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtbegin.o
+.iplt           0x00006294        0x0
+ .iplt          0x00006294        0x0 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtbegin.o
 
-.rel.dyn        0x00006288        0x0
- .rel.iplt      0x00006288        0x0 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtbegin.o
+.rel.dyn        0x00006294        0x0
+ .rel.iplt      0x00006294        0x0 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtbegin.o
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x00006288                __exidx_start = .
+                0x00006294                __exidx_start = .
 
 .ARM.exidx
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-                0x00006288                __exidx_end = .
-                0x00006288                __etext = .
+                0x00006294                __exidx_end = .
+                0x00006294                __etext = .
 
-.data           0x20000000       0x9c load address 0x00006288
+.data           0x20000000       0x9c load address 0x00006294
                 0x20000000                __data_start__ = .
  *(vtable)
  *(.data*)
@@ -1755,10 +1755,10 @@ LOAD c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi
                 0x2000009c                . = ALIGN (0x4)
                 0x2000009c                __data_end__ = .
 
-.igot.plt       0x2000009c        0x0 load address 0x00006324
+.igot.plt       0x2000009c        0x0 load address 0x00006330
  .igot.plt      0x2000009c        0x0 c:/users/xsegg/appdata/local/arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v6-m/crtbegin.o
 
-.bss            0x2000009c      0xdc0 load address 0x00006324
+.bss            0x2000009c      0xdc0 load address 0x00006330
                 0x2000009c                . = ALIGN (0x4)
                 0x2000009c                __bss_start__ = .
  *(.bss*)
@@ -2036,69 +2036,69 @@ OUTPUT(Z:\Documents\Git\motoractuatedvalve-controller\build/Serial1Test.ino.elf 
  .comment       0x0000007e       0x7f Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
  .comment       0x0000007e       0x7f Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
 
-.debug_info     0x00000000    0x5fddd
- .debug_info    0x00000000     0x697a Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
- .debug_info    0x0000697a     0x7f22 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
- .debug_info    0x0000e89c     0x8a5a Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
- .debug_info    0x000172f6     0x733c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
- .debug_info    0x0001e632     0x7fbe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
- .debug_info    0x000265f0     0x41d3 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
- .debug_info    0x0002a7c3     0x110c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
- .debug_info    0x0002b8cf     0x13d2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
- .debug_info    0x0002cca1       0x64 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
- .debug_info    0x0002cd05     0x5e65 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(main.cpp.o)
- .debug_info    0x00032b6a      0xf3b Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
- .debug_info    0x00033aa5     0x34f9 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
- .debug_info    0x00036f9e     0x2d9a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
- .debug_info    0x00039d38     0x4f63 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
- .debug_info    0x0003ec9b     0x186d Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
- .debug_info    0x00040508     0x17f7 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
- .debug_info    0x00041cff     0x642b Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
- .debug_info    0x0004812a     0xdad1 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
- .debug_info    0x00055bfb      0x686 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
- .debug_info    0x00056281     0x9b5c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+.debug_info     0x00000000    0x5fdf3
+ .debug_info    0x00000000     0x6990 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+ .debug_info    0x00006990     0x7f22 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+ .debug_info    0x0000e8b2     0x8a5a Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+ .debug_info    0x0001730c     0x733c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+ .debug_info    0x0001e648     0x7fbe Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+ .debug_info    0x00026606     0x41d3 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+ .debug_info    0x0002a7d9     0x110c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+ .debug_info    0x0002b8e5     0x13d2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+ .debug_info    0x0002ccb7       0x64 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
+ .debug_info    0x0002cd1b     0x5e65 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(main.cpp.o)
+ .debug_info    0x00032b80      0xf3b Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
+ .debug_info    0x00033abb     0x34f9 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
+ .debug_info    0x00036fb4     0x2d9a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
+ .debug_info    0x00039d4e     0x4f63 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
+ .debug_info    0x0003ecb1     0x186d Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
+ .debug_info    0x0004051e     0x17f7 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
+ .debug_info    0x00041d15     0x642b Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
+ .debug_info    0x00048140     0xdad1 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+ .debug_info    0x00055c11      0x686 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+ .debug_info    0x00056297     0x9b5c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
 
-.debug_abbrev   0x00000000     0x71a8
- .debug_abbrev  0x00000000      0x821 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
- .debug_abbrev  0x00000821      0x9ea Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
- .debug_abbrev  0x0000120b      0x6c9 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
- .debug_abbrev  0x000018d4      0x836 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
- .debug_abbrev  0x0000210a      0x913 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
- .debug_abbrev  0x00002a1d      0x709 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
- .debug_abbrev  0x00003126      0x29a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
- .debug_abbrev  0x000033c0      0x33c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
- .debug_abbrev  0x000036fc       0x49 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
- .debug_abbrev  0x00003745      0x5dd Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(main.cpp.o)
- .debug_abbrev  0x00003d22      0x301 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
- .debug_abbrev  0x00004023      0x2ca Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
- .debug_abbrev  0x000042ed      0x3a1 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
- .debug_abbrev  0x0000468e      0x487 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
- .debug_abbrev  0x00004b15      0x339 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
- .debug_abbrev  0x00004e4e      0x303 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
- .debug_abbrev  0x00005151      0x671 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
- .debug_abbrev  0x000057c2      0xc7b Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
- .debug_abbrev  0x0000643d      0x2b2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
- .debug_abbrev  0x000066ef      0xab9 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+.debug_abbrev   0x00000000     0x71b6
+ .debug_abbrev  0x00000000      0x82f Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+ .debug_abbrev  0x0000082f      0x9ea Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+ .debug_abbrev  0x00001219      0x6c9 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+ .debug_abbrev  0x000018e2      0x836 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+ .debug_abbrev  0x00002118      0x913 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+ .debug_abbrev  0x00002a2b      0x709 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+ .debug_abbrev  0x00003134      0x29a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+ .debug_abbrev  0x000033ce      0x33c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+ .debug_abbrev  0x0000370a       0x49 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
+ .debug_abbrev  0x00003753      0x5dd Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(main.cpp.o)
+ .debug_abbrev  0x00003d30      0x301 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
+ .debug_abbrev  0x00004031      0x2ca Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
+ .debug_abbrev  0x000042fb      0x3a1 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
+ .debug_abbrev  0x0000469c      0x487 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
+ .debug_abbrev  0x00004b23      0x339 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
+ .debug_abbrev  0x00004e5c      0x303 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
+ .debug_abbrev  0x0000515f      0x671 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
+ .debug_abbrev  0x000057d0      0xc7b Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+ .debug_abbrev  0x0000644b      0x2b2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+ .debug_abbrev  0x000066fd      0xab9 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
 
-.debug_loc      0x00000000     0x7827
- .debug_loc     0x00000000      0x216 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
- .debug_loc     0x00000216      0x94d Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
- .debug_loc     0x00000b63       0x2a Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
- .debug_loc     0x00000b8d      0xb3f Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
- .debug_loc     0x000016cc      0xb0f Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
- .debug_loc     0x000021db     0x1a81 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
- .debug_loc     0x00003c5c       0x3c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
- .debug_loc     0x00003c98      0x12f Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
- .debug_loc     0x00003dc7       0x42 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
- .debug_loc     0x00003e09       0x6e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
- .debug_loc     0x00003e77       0xa0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
- .debug_loc     0x00003f17      0x4b9 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
- .debug_loc     0x000043d0       0xc0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
- .debug_loc     0x00004490      0x131 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
- .debug_loc     0x000045c1       0x2d Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
- .debug_loc     0x000045ee     0x27c7 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
- .debug_loc     0x00006db5      0x256 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
- .debug_loc     0x0000700b      0x81c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+.debug_loc      0x00000000     0x7839
+ .debug_loc     0x00000000      0x228 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+ .debug_loc     0x00000228      0x94d Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+ .debug_loc     0x00000b75       0x2a Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+ .debug_loc     0x00000b9f      0xb3f Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+ .debug_loc     0x000016de      0xb0f Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+ .debug_loc     0x000021ed     0x1a81 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+ .debug_loc     0x00003c6e       0x3c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+ .debug_loc     0x00003caa      0x12f Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+ .debug_loc     0x00003dd9       0x42 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
+ .debug_loc     0x00003e1b       0x6e Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
+ .debug_loc     0x00003e89       0xa0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
+ .debug_loc     0x00003f29      0x4b9 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
+ .debug_loc     0x000043e2       0xc0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
+ .debug_loc     0x000044a2      0x131 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
+ .debug_loc     0x000045d3       0x2d Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
+ .debug_loc     0x00004600     0x27c7 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+ .debug_loc     0x00006dc7      0x256 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+ .debug_loc     0x0000701d      0x81c Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
 
 .debug_aranges  0x00000000      0xa20
  .debug_aranges
@@ -2164,32 +2164,32 @@ OUTPUT(Z:\Documents\Git\motoractuatedvalve-controller\build/Serial1Test.ino.elf 
  .debug_ranges  0x00001420       0x68 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
  .debug_ranges  0x00001488      0x1b0 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
 
-.debug_line     0x00000000     0x9aa2
- .debug_line    0x00000000      0x8a8 Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
- .debug_line    0x000008a8      0xaf4 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
- .debug_line    0x0000139c      0x839 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
- .debug_line    0x00001bd5      0xd96 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
- .debug_line    0x0000296b      0xb76 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
- .debug_line    0x000034e1      0x861 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
- .debug_line    0x00003d42      0x3d5 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
- .debug_line    0x00004117      0x657 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
- .debug_line    0x0000476e       0xb2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
- .debug_line    0x00004820      0x766 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(main.cpp.o)
- .debug_line    0x00004f86      0x382 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
- .debug_line    0x00005308      0x4c3 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
- .debug_line    0x000057cb      0x645 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
- .debug_line    0x00005e10      0x753 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
- .debug_line    0x00006563      0x5aa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
- .debug_line    0x00006b0d      0x592 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
- .debug_line    0x0000709f      0x83a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
- .debug_line    0x000078d9     0x139a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
- .debug_line    0x00008c73      0x2b8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
- .debug_line    0x00008f2b      0xb77 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
+.debug_line     0x00000000     0x9aa6
+ .debug_line    0x00000000      0x8ac Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+ .debug_line    0x000008ac      0xaf4 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+ .debug_line    0x000013a0      0x839 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
+ .debug_line    0x00001bd9      0xd96 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(SERCOM.cpp.o)
+ .debug_line    0x0000296f      0xb76 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Uart.cpp.o)
+ .debug_line    0x000034e5      0x861 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Print.cpp.o)
+ .debug_line    0x00003d46      0x3d5 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(cortex_handlers.c.o)
+ .debug_line    0x0000411b      0x657 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(delay.c.o)
+ .debug_line    0x00004772       0xb2 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(hooks.c.o)
+ .debug_line    0x00004824      0x766 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(main.cpp.o)
+ .debug_line    0x00004f8a      0x382 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(new.cpp.o)
+ .debug_line    0x0000530c      0x4c3 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(startup.c.o)
+ .debug_line    0x000057cf      0x645 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring.c.o)
+ .debug_line    0x00005e14      0x753 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_analog.c.o)
+ .debug_line    0x00006567      0x5aa Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_digital.c.o)
+ .debug_line    0x00006b11      0x592 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(wiring_private.c.o)
+ .debug_line    0x000070a3      0x83a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(Reset.cpp.o)
+ .debug_line    0x000078dd     0x139a Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(USBCore.cpp.o)
+ .debug_line    0x00008c77      0x2b8 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(PluggableUSB.cpp.o)
+ .debug_line    0x00008f2f      0xb77 Z:\Documents\Git\motoractuatedvalve-controller\build/core\core.a(CDC.cpp.o)
 
 .debug_str      0x00000000     0xb68f
- .debug_str     0x00000000     0x479f Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
-                               0x50a5 (size before relaxing)
- .debug_str     0x0000479f      0x7a0 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
+ .debug_str     0x00000000     0x477f Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
+                               0x5085 (size before relaxing)
+ .debug_str     0x0000477f      0x7c0 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
                                0x57ba (size before relaxing)
  .debug_str     0x00004f3f      0x973 Z:\Documents\Git\motoractuatedvalve-controller\build\core\variant.cpp.o
                                0x5497 (size before relaxing)
@@ -2465,7 +2465,6 @@ SPIClassSAMD::transfer(unsigned char)             Z:\Documents\Git\motoractuated
                                                   Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
 SPIClassSAMD::transfer(void*, unsigned int)       Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
 SPIClassSAMD::transfer16(unsigned short)          Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
-                                                  Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
 SPIClassSAMD::usingInterrupt(int)                 Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
 SPIClassSAMD::~SPIClassSAMD()                     Z:\Documents\Git\motoractuatedvalve-controller\build\sketch\Serial1Test.ino.cpp.o
                                                   Z:\Documents\Git\motoractuatedvalve-controller\build\libraries\SPI\SPI.cpp.o
