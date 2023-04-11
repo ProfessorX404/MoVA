@@ -10,9 +10,6 @@ URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
 Motor used is Nanotec DB59l024035-A
 URL: https://us.nanotec.com/products/2870-db59l024035-a
 
-Libraries used (attached in ../lib for convenience):
- - ArduinoSTL https://github.com/mike-matera/ArduinoSTL
-
 OTMX Values:
 CCx | WO[n]
 CC0 | WO[0], WO[4]
