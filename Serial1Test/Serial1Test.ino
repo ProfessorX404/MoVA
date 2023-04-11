@@ -13,14 +13,14 @@ void setup() {
 void loop() {
     delay(100);
     digitalWrite(8, LOW);
-    mySPI.beginTransaction(SPISettings(1000000, MSBFIRST, SERCOM_SPI_MODE_0));
+    mySPI.beginTransaction(SPISettings(800000, MSBFIRST, SERCOM_SPI_MODE_0));
     uint32_t data = 0;
     uint32_t buf;
     // uint16_t b1 = mySPI.transfer16(0b10101010);
     byte b1 = mySPI.transfer(0b10101010);
     byte b2 = mySPI.transfer(0b10101010);
     byte b3 = mySPI.transfer(0b10101010);
-    mySPI.endTransaction();
+    // mySPI.endTransaction();
     // data |= b1 << 7;
     data |= b1 << 16;
     data |= b1 << 8;

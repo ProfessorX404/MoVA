@@ -1,22 +1,6 @@
 Z:\Documents\Git\motoractuatedvalve-controller\build\core\SERCOM.cpp.o: \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\SERCOM.cpp \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\Arduino.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/ArduinoAPI.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Binary.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Interrupts.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Common.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/IPAddress.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Printable.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/String.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/deprecated-avr-comp/avr/pgmspace.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Print.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/PluggableUSB.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/USBAPI.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Server.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Stream.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Udp.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/WCharacter.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Compat.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\SERCOM.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/samd21.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/samd21g18a.h \
@@ -81,6 +65,23 @@ Z:\Documents\Git\motoractuatedvalve-controller\build\core\SERCOM.cpp.o: \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/instance/usb.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/instance/wdt.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/pio/samd21g18a.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\Arduino.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/ArduinoAPI.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Binary.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Interrupts.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Common.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/IPAddress.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Printable.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/String.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/deprecated-avr-comp/avr/pgmspace.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Print.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/PluggableUSB.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/USBAPI.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Server.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Stream.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Udp.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/WCharacter.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Compat.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\WVariant.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\variants\nano_33_iot/variant.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/SERCOM.h \
@@ -100,5 +101,4 @@ Z:\Documents\Git\motoractuatedvalve-controller\build\core\SERCOM.cpp.o: \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/PluggableUSB.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\USB/USB_host.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\USB/samd21_host.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/itoa.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\SERCOM.h
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/itoa.h

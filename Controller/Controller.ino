@@ -20,6 +20,7 @@ CC1 | WO[1], WO[5]
 CC2 | WO[2], WO[6]
 CC3 | WO[3], WO[7]
 */
+#include <SPI.h>
 #include <array.h>
 
 #define PULLUP                 1
@@ -39,6 +40,7 @@ CC3 | WO[3], WO[7]
 #define TARGET_REVS            (byte)((90 / 360) * GEARBOX_RATIO) // Number of rotations to get within one rev of fully open
 
 #define PWM_FREQ_COEF 480u // 48MHz / (2 + [480]) = .05MHz = 50KHz
+#define SPI_FREQ      8000000l
 #define syncClock()                                                                                                         \
     while (GCLK->STATUS.bit.SYNCBUSY)                                                                                       \
         ; // Wait for clock synchronization
@@ -87,7 +89,7 @@ const array<char *, 15> ERR_NAME = {
 typedef struct {
     uint8_t port;
     uint8_t pin;
-} PIN;
+} Pin;
 
 typedef struct {
     uint32_t origin;   // Encoder readings when valve completely closed.
@@ -102,39 +104,52 @@ typedef struct {
     float D;
     Tc *TC;
     byte CCB;
-    Sercom *SERCOM;
-    PIN CTRL;
-    PIN DIR_SEL;
-    PIN STOP;
-    PIN ENC_CLK;
-    PIN ENC_DATA;
-    PIN SER_OUT;
-    PIN CS;
+    SERCOM *serc;
+    Pin CTRL;
+    Pin DIR_SEL;
+    Pin STOP;
+    Pin ENC_CLK;
+    Pin ENC_DATA;
+    Pin SER_OUT;
+    Pin CS;
+    SPIClassSAMD *COM;
 } Encoder;
 
 struct {
-    PIN BUTTON_ONE = {(uint8_t)g_APinDescription[A6].ulPort, (uint8_t)g_APinDescription[A6].ulPin};
-    PIN BUTTON_TWO = {(uint8_t)g_APinDescription[A7].ulPort, (uint8_t)g_APinDescription[A7].ulPin};
-    PIN SEL_SWITCH = {(uint8_t)g_APinDescription[2].ulPort, (uint8_t)g_APinDescription[2].ulPin};
-    PIN TX = {(uint8_t)g_APinDescription[0].ulPort, (uint8_t)g_APinDescription[0].ulPin};
-    PIN RX = {(uint8_t)g_APinDescription[1].ulPort, (uint8_t)g_APinDescription[1].ulPin};
+    Pin BUTTON_ONE = {(uint8_t)g_APinDescription[A6].ulPort, (uint8_t)g_APinDescription[A6].ulPin};
+    Pin BUTTON_TWO = {(uint8_t)g_APinDescription[A7].ulPort, (uint8_t)g_APinDescription[A7].ulPin};
+    Pin SEL_SWITCH = {(uint8_t)g_APinDescription[2].ulPort, (uint8_t)g_APinDescription[2].ulPin};
+    Pin TX = {(uint8_t)g_APinDescription[0].ulPort, (uint8_t)g_APinDescription[0].ulPin};
+    Pin RX = {(uint8_t)g_APinDescription[1].ulPort, (uint8_t)g_APinDescription[1].ulPin};
 } EXT;
+
+SPISettings spiSettings = SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE3);
 
 Encoder Fuel, Ox;
 Encoder *enc;
 
 bool serEn = false;
 
-PIN SER_EN = {1, 11}; // External Serial1 enable sensor pin. Active low.
+Pin SER_EN = {1, 11}; // External Serial1 enable sensor pin. Active low.
 
 void sPrintln(int, uint8_t);
 void sPrint32(uint32_t, uint8_t);
 void sPrintln32(uint32_t, uint8_t);
+uint32_t readSPIs(SPIClassSAMD, bool);
+uint32_t readSPIs(SPIClassSAMD);
 
 void setup() {
-    Fuel = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC4, 1u, SERCOM1};
-    Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, SERCOM0};
+    Serial1.begin(115200);
+    while (!Serial1.available())
+        ;
+    sPrintln("starting");
+    enc = (bool)Serial1.read() ? &Ox : &Fuel;
+    sPrint("Enc:");
+    sPrintln(enc->CCB ? "OX" : "FUEL");
+    configureClocks();
+    attachPins();
 
+    Fuel = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC4, 1u, &sercom1};
     Fuel.CTRL = {(uint8_t)g_APinDescription[A2].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
     Fuel.DIR_SEL = {(uint8_t)g_APinDescription[10].ulPort, (uint8_t)g_APinDescription[10].ulPin};
     Fuel.STOP = {(uint8_t)g_APinDescription[A1].ulPort, (uint8_t)g_APinDescription[A1].ulPin};
@@ -142,31 +157,66 @@ void setup() {
     Fuel.ENC_DATA = {(uint8_t)g_APinDescription[12].ulPort, (uint8_t)g_APinDescription[12].ulPin};
     Fuel.SER_OUT = {(uint8_t)g_APinDescription[11].ulPort, (uint8_t)g_APinDescription[11].ulPin};
     Fuel.CS = {(uint8_t)g_APinDescription[8].ulPort, (uint8_t)g_APinDescription[8].ulPin};
+    Fuel.COM = new SPIClassSAMD(Fuel.serc, (uint8_t)12, (uint8_t)13, (uint8_t)11, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
 
-    Ox.CTRL = {(uint8_t)g_APinDescription[A3].ulPort, (uint8_t)g_APinDescription[A3].ulPin};
-    Ox.DIR_SEL = {(uint8_t)g_APinDescription[9].ulPort, (uint8_t)g_APinDescription[9].ulPin};
-    Ox.STOP = {(uint8_t)g_APinDescription[A0].ulPort, (uint8_t)g_APinDescription[A0].ulPin};
-    Ox.ENC_CLK = {(uint8_t)g_APinDescription[5].ulPort, (uint8_t)g_APinDescription[5].ulPin};
-    Ox.ENC_DATA = {(uint8_t)g_APinDescription[4].ulPort, (uint8_t)g_APinDescription[4].ulPin};
-    Ox.SER_OUT = {(uint8_t)g_APinDescription[6].ulPort, (uint8_t)g_APinDescription[6].ulPin};
-    Ox.CS = {(uint8_t)g_APinDescription[7].ulPort, (uint8_t)g_APinDescription[7].ulPin};
+    Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, &sercom0};
 
-    Serial.begin(115200);
+    Ox.CTRL = {(uint8_t)g_APinDescription[A3].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
+    Ox.DIR_SEL = {(uint8_t)g_APinDescription[9].ulPort, (uint8_t)g_APinDescription[10].ulPin};
+    Ox.STOP = {(uint8_t)g_APinDescription[A0].ulPort, (uint8_t)g_APinDescription[A1].ulPin};
+    Ox.ENC_CLK = {(uint8_t)g_APinDescription[5].ulPort, (uint8_t)g_APinDescription[13].ulPin};
+    Ox.ENC_DATA = {(uint8_t)g_APinDescription[4].ulPort, (uint8_t)g_APinDescription[12].ulPin};
+    Ox.SER_OUT = {(uint8_t)g_APinDescription[6].ulPort, (uint8_t)g_APinDescription[11].ulPin};
+    Ox.CS = {(uint8_t)g_APinDescription[7].ulPort, (uint8_t)g_APinDescription[8].ulPin};
+    Ox.COM = new SPIClassSAMD(Ox.serc, (uint8_t)4, (uint8_t)5, (uint8_t)6, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
+
+    initSPIs(*Fuel.COM);
+    initSPIs(*Ox.COM);
+    while (true) {
+        sPrint("FUEL: ");
+        Fuel.TC->COUNT16.CTRLA.bit.ENABLE = 1;
+        while (Fuel.TC->COUNT16.STATUS.bit.SYNCBUSY)
+            ;
+        sPrintln(getPos(&Fuel));
+        // readSPIs(*Fuel.COM, true);
+        // sPrintln32(getPos(&Fuel), DEC);
+        // sPrint("OX: ");
+        // sPrintln32(readSPIs(*Ox.COM, false), DEC);
+        delay(100);
+    }
+}
+void fakesetup() {
     Serial1.begin(115200);
+
     delay(100);
     while (!Serial1.available())
         ;
-    enc = (bool)Serial1.read() ? &Ox : &Fuel;
-    Serial.println("USB");
-    sPrint("Enc:");
-    sPrintln(enc->CCB ? "OX" : "FUEL");
+    sPrintln("please");
+    sPrintln("for the love of god");
+    // Fuel = {
+    //     0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0,
+    //     // 0.0, TC4, 1u, SERCOM1};
+    //     // Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, SERCOM0};
+
+    sPrintln("help me");
+    // configureClocks();
 
     sPrintln("before");
     Serial1.flush();
     configureClocks();
     sPrintln("clocks");
-    Serial.end();
+
+    sPrintln("Pins init");
+    sPrintln("After>");
     attachPins();
+    initSPIs(*Fuel.COM);
+    initSPIs(*Ox.COM);
+    sPrintln("just this once");
+    while (true) {
+        readSPIs(*Fuel.COM);
+        readSPIs(*Ox.COM);
+        delay(100);
+    }
     sPrintln("after");
     // -TODO: Init periphs
     Fuel.status = STATUS_CONN;
@@ -194,7 +244,7 @@ void loop() {
             // sPrint("SEL_SWITCH: ");
             // sPrintln(PORT_READ(EXT.SEL_SWITCH));
             sPrint("POS:");
-            uint32_t tpos = getPos(enc);
+            uint32_t tpos = readRawEncData(enc);
             sPrint32(tpos, DEC);
             sPrint(" / ");
             sPrintln32(tpos, BIN);
@@ -366,7 +416,7 @@ void update(Encoder *enc) {
 float getPos(Encoder *enc) {
     uint32_t npos = readRawEncData(enc);
     uint32_t ppos = enc->prev_t;
-    while (enc->TC->COUNT16.COUNT.reg < 20)
+    while (enc->TC->COUNT16.COUNT.reg >> 5 != 0)
         ;
     uint32_t nnpos = readRawEncData(enc);
     // sPrint("npos ^ nnpos: ");
@@ -378,53 +428,65 @@ float getPos(Encoder *enc) {
         npos = (npos ^ ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
 
         enc->prev_t = npos;
+        signed long dif;
         if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 1))) {
-            return (npos - ppos) / (1 << ENC_DATA_BIT_CT);
+            sPrint(1);
+            dif = (signed long)(npos - ppos);
         } else {
-            return (npos - ppos) + ((neg((int32_t)(1 << ENC_DATA_BIT_CT), (npos > ppos))));
+            sPrint(2);
+            dif = (npos - ppos) + ((neg((1l << ENC_DATA_BIT_CT), (npos > ppos))));
         }
+        return (float)(dif / (1 << 16));
     } else {
-        // sPrint("npos: ");
-        // sPrintln32(npos, BIN);
-        // sPrint("nnpos: ");
-        // sPrintln32(nnpos, BIN);
-        // sPrintln32(npos ^ nnpos, BIN);
-        // sPrintln("err 353 !");
-        // enc->err = ERR_ENC_MISMATCH;
-        // error(false);
+        sPrint("npos: ");
+        sPrintln32(npos, BIN);
+        sPrint("nnpos: ");
+        sPrintln32(nnpos, BIN);
+        sPrintln32(npos ^ nnpos, BIN);
+        sPrintln("err 353 !");
+        enc->err = ERR_ENC_MISMATCH;
+        error(false);
     }
 }
 
 // Takes reading from fuel encoder. Throws error if first latch bit is not 1, or encoder reading returns internal error state
 // (last bit is 0).
 uint32_t readRawEncData(Encoder *enc) {
-    uint32_t rawData = 0;
-    for (byte i = 0; i + 8 < ENC_TOT_BIT_CT; i += 8) {
-        while (!enc->SERCOM->SPI.INTFLAG.bit.DRE)
-            ;
-        enc->SERCOM->SPI.DATA.reg = errorCode;
-        while (!enc->SERCOM->SPI.INTFLAG.bit.RXC) {};
-        byte b = enc->SERCOM->SPI.DATA.reg;
-        rawData |= b << (i);
-    }
+    SPIClassSAMD spi = *enc->COM;
+    PORT_WRITE(enc->CS, false);
+    spi.beginTransaction(SPISettings(800000, MSBFIRST, SERCOM_SPI_MODE_0));
+    uint32_t data = 0;
+    uint32_t buf;
+    uint32_t d2 = 0;
+    // uint16_t b1 = spi.transfer16(0b10101010);
+    byte b1 = spi.transfer(0b10101010);
+    byte b2 = spi.transfer(0b10101010);
+    byte b3 = spi.transfer(0b10101010);
+    // spi.endTransaction();
+    // data |= b1 << 7;
+    data |= b1 << 16;
+    data |= b1 << 8;
+    data |= b3 << 0;
+    spi.endTransaction();
+    PORT_WRITE(enc->CS, true);
     // sPrint("rawData:");
     // sPrintln(rawData, BIN);
-    if (rawData & 1 << (ENC_TOT_BIT_CT - 1)) {
+    if (data & 1 << (ENC_TOT_BIT_CT - 1)) {
         // sPrintln("err 388 !");
         // enc->err = ERR_ENC_CONN;
         // // enc->SERCOM->SPI.DATA.reg = errorCode;
         // error(true);
     }
-    if (!(rawData & 1)) { // Error bit is 0.
-        sPrint("rawData: ");
-        sPrintln32(rawData, BIN);
+    if (!(data & (uint32_t)1)) { // Error bit is 0.
+        sPrint("data: ");
+        sPrintln32(data, BIN);
         sPrint("error bit: ");
-        sPrintln32(rawData & 1);
+        sPrintln32(data & 1);
         // enc->err = ERR_ENC_INT;
         // sPrintln("err 395 !");
         // error(true);
     }
-    return rawData;
+    return data;
 }
 
 // Outputs error info to Serial1, if fatal error closes valves.
@@ -453,17 +515,78 @@ void error(bool fatal) {
 }
 
 // Configure GPIO pins per 23.6.3 of SAMD datasheet
-void configureGPIO(byte portNo, byte pinNo, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0, bool SAMPLE = 0) {
-    PORT->Group[portNo].DIR.reg |= DIR << pinNo;
-    PORT->Group[portNo].PINCFG[pinNo].bit.INEN = INEN;
-    PORT->Group[portNo].PINCFG[pinNo].bit.PULLEN = PULLEN;
-    PORT->Group[portNo].OUT.reg |= OUT << pinNo;
-    PORT->Group[portNo].CTRL.reg |= SAMPLE << pinNo;
+void configureGPIO(Pin p, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0, bool SAMPLE = 0) {
+    PORT->Group[p.port].DIR.reg |= DIR << p.pin;
+    PORT->Group[p.port].PINCFG[p.pin].bit.INEN = INEN;
+    PORT->Group[p.port].PINCFG[p.pin].bit.PULLEN = PULLEN;
+    PORT->Group[p.port].OUT.reg |= OUT << p.pin;
+    PORT->Group[p.port].CTRL.reg |= SAMPLE << p.pin;
 }
 // Checks to see if Serial1 communications port has been enabled (active low)
 bool serialEnabled() {
-    configureGPIO(SER_EN.port, SER_EN.pin, INPUT, 1, 1, INPUT_PULLUP);
+    configureGPIO(SER_EN, INPUT, 1, 1, INPUT_PULLUP);
     return !PORT_READ(SER_EN);
+}
+
+void initSPIs(SPIClassSAMD spi) { spi.begin(); }
+
+uint32_t readSPIs(SPIClassSAMD spi, bool verbose = false) {
+    spi.beginTransaction(SPISettings(800000, MSBFIRST, SERCOM_SPI_MODE_0));
+    uint32_t data = 0;
+    uint32_t buf;
+    uint32_t d2 = 0;
+    // uint16_t b1 = spi.transfer16(0b10101010);
+    byte b1 = spi.transfer(0b10101010);
+    byte b2 = spi.transfer(0b10101010);
+    byte b3 = spi.transfer(0b10101010);
+    // spi.endTransaction();
+    // data |= b1 << 7;
+    data |= b1 << 16;
+    data |= b1 << 8;
+    data |= b3 << 0;
+    spi.endTransaction();
+    digitalWrite(8, HIGH);
+    buf = data;
+    if (verbose) {
+        Serial1.print("OD: ");
+        Serial1.print(data, BIN);
+        char db[24];
+        for (int i = 0; i < 24; i++) {
+            if (buf % 2) {
+                db[i] = '1';
+            } else {
+                db[i] = '0';
+            }
+
+            buf = buf >> 1;
+        }
+        Serial1.print(", DB_full: ");
+        for (int i = 23; i >= 0; i--) {
+            // Serial1.println();
+            // Serial1.print(i);
+            // Serial1.print(" : ");
+            // Serial1.print(db[i]);
+            Serial1.print(db[i]);
+        }
+        Serial1.print(", DB_act: ");
+        for (int i = 16; i >= 0; i--) {
+            Serial1.print(db[i + 5]);
+            d2 |= (db[i + 5] == '1' ? 1 : 0) << i;
+        }
+        Serial1.print(", D2_2: ");
+        Serial1.print(d2, BIN);
+        Serial1.print(", D2_10:");
+        Serial1.print(d2);
+        Serial1.println();
+    } else {
+        buf = buf >> 5;
+        for (int i = 0; i < 17; i++) {
+            d2 |= (buf % 2) << i;
+            buf = buf >> 1;
+        }
+    }
+
+    return d2;
 }
 // Configures internal peripherals and attaches to physical Arduino pins.
 // A peripheral is an internal microcontroller node that has functions
@@ -509,10 +632,10 @@ void attachPins() {
     sPrintln("375");
 
     // Enable the port multiplexer for Encoder coms and status register pins
-    PORT->Group[Fuel.ENC_CLK.port].PINCFG[Fuel.ENC_CLK.pin].bit.PMUXEN = 1;
-    PORT->Group[Fuel.ENC_DATA.port].PINCFG[Fuel.ENC_DATA.pin].bit.PMUXEN = 1;
-    PORT->Group[Fuel.SER_OUT.port].PINCFG[Fuel.SER_OUT.pin].bit.PMUXEN = 1;
-    PORT->Group[Fuel.CS.port].PINCFG[Fuel.CS.pin].bit.PMUXEN = 1;
+    // PORT->Group[Fuel.ENC_CLK.port].PINCFG[Fuel.ENC_CLK.pin].bit.PMUXEN = 1;
+    // PORT->Group[Fuel.ENC_DATA.port].PINCFG[Fuel.ENC_DATA.pin].bit.PMUXEN = 1;
+    // PORT->Group[Fuel.SER_OUT.port].PINCFG[Fuel.SER_OUT.pin].bit.PMUXEN = 1;
+    // PORT->Group[Fuel.CS.port].PINCFG[Fuel.CS.pin].bit.PMUXEN = 1;
     sPrintln("382");
     // Status LED shift registers MOSI and CS technically part of the encoder SERCOMs. As it is not neccesary to
     // write data to the encoders, and we are out of SERCOMs to communicate with the registers, they have been connected to
@@ -530,10 +653,10 @@ void attachPins() {
     sPrintln("396");
 
     // Enable the port multiplexer for Encoder coms and status register pins
-    PORT->Group[Ox.ENC_CLK.port].PINCFG[Ox.ENC_CLK.pin].bit.PMUXEN = 1;
-    PORT->Group[Ox.ENC_DATA.port].PINCFG[Ox.ENC_DATA.pin].bit.PMUXEN = 1;
-    PORT->Group[Ox.SER_OUT.port].PINCFG[Ox.SER_OUT.pin].bit.PMUXEN = 1;
-    PORT->Group[Ox.CS.port].PINCFG[Ox.CS.pin].bit.PMUXEN = 1;
+    // PORT->Group[Ox.ENC_CLK.port].PINCFG[Ox.ENC_CLK.pin].bit.PMUXEN = 1;
+    // PORT->Group[Ox.ENC_DATA.port].PINCFG[Ox.ENC_DATA.pin].bit.PMUXEN = 1;
+    // PORT->Group[Ox.SER_OUT.port].PINCFG[Ox.SER_OUT.pin].bit.PMUXEN = 1;
+    // PORT->Group[Ox.CS.port].PINCFG[Ox.CS.pin].bit.PMUXEN = 1;
     sPrintln("403");
 
     // Now that we are able to connect the pins to peripherals, now we actually need to tell the MC which peripherals to
@@ -560,7 +683,7 @@ void attachPins() {
         ((Fuel.CTRL.pin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
     PORT->Group[Ox.CTRL.port].PMUX[Ox.CTRL.pin >> 1].reg |= ((Ox.CTRL.pin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
     sPrintln("428");
-
+    /*
     // Attach Encoder coms and status register pins to FUEL SERCOM
     PORT->Group[Fuel.ENC_CLK.port].PMUX[Fuel.ENC_CLK.pin >> 1].reg |=
         ((Fuel.ENC_CLK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
@@ -571,7 +694,7 @@ void attachPins() {
     PORT->Group[Fuel.CS.port].PMUX[Fuel.CS.pin >> 1].reg |= ((Fuel.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
     sPrintln("438");
 
-    // Attach Encoder coms and status register pins to OX SERCOM
+    // // Attach Encoder coms and status register pins to OX SERCOM
     PORT->Group[Ox.ENC_CLK.port].PMUX[Ox.ENC_CLK.pin >> 1].reg |=
         ((Ox.ENC_CLK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
     PORT->Group[Ox.ENC_DATA.port].PMUX[Ox.ENC_DATA.pin >> 1].reg |=
@@ -580,7 +703,7 @@ void attachPins() {
         ((Ox.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
     PORT->Group[Ox.CS.port].PMUX[Ox.CS.pin >> 1].reg |= ((Ox.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
     sPrintln("448");
-
+    */
     // See configureClocks() for information regarding GCLK configuration and linking to periphs.
 
     // TCCs, or Timer/Counters for Control applications, are a Timer/Counter peripheral with added logical functionality
@@ -705,7 +828,7 @@ void attachPins() {
     // influences baudrate differently, but for synchronous operations (as is the case for SPI), the baud rate is defined
     // as f_ref/(2*(BAUD+1)), where f_ref is the reference frequency fed to the SERCOM by the GCLK. See section 25.6.2.3
     // in MC datasheet for more info.
-
+    /*
     SERCOM0->SPI.CTRLA.bit.ENABLE = 0;
     while (SERCOM0->SPI.SYNCBUSY.bit.ENABLE)
         ;
@@ -752,7 +875,7 @@ void attachPins() {
     sPrintln(6);
     while (SERCOM1->SPI.SYNCBUSY.bit.ENABLE)
         ;
-
+    */
     sPrintln(7);
 
     serEn = true;
@@ -776,15 +899,17 @@ void attachPins() {
     }
     */
 
-    configureGPIO(Fuel.DIR_SEL.port, Fuel.DIR_SEL.pin, OUTPUT);
-    configureGPIO(Fuel.STOP.port, Fuel.STOP.pin, OUTPUT);
+    configureGPIO(Fuel.DIR_SEL, OUTPUT);
+    configureGPIO(Fuel.STOP, OUTPUT);
+    configureGPIO(Fuel.CS, OUTPUT);
 
-    configureGPIO(Ox.DIR_SEL.port, Ox.DIR_SEL.pin, OUTPUT);
-    configureGPIO(Ox.STOP.port, Ox.STOP.pin, OUTPUT);
+    configureGPIO(Ox.DIR_SEL, OUTPUT);
+    configureGPIO(Ox.STOP, OUTPUT);
+    configureGPIO(Ox.CS, OUTPUT);
 
-    configureGPIO(EXT.BUTTON_ONE.port, EXT.BUTTON_ONE.pin, INPUT, 1, 1, PULLUP, SAMPLING_ON);
-    configureGPIO(EXT.BUTTON_TWO.port, EXT.BUTTON_TWO.pin, INPUT, 1, 1, PULLUP, SAMPLING_ON);
-    configureGPIO(EXT.SEL_SWITCH.port, EXT.SEL_SWITCH.pin, INPUT, 1, 1, PULLUP, SAMPLING_ON);
+    configureGPIO(EXT.BUTTON_ONE, INPUT, 1, 1, PULLUP, SAMPLING_ON);
+    configureGPIO(EXT.BUTTON_TWO, INPUT, 1, 1, PULLUP, SAMPLING_ON);
+    configureGPIO(EXT.SEL_SWITCH, INPUT, 1, 1, PULLUP, SAMPLING_ON);
 
     sPrintln("637");
 }
@@ -835,4 +960,40 @@ void configureClocks() {
                         GCLK_CLKCTRL_CLKEN |          // Enable GCLK5 as a clock source
                         GCLK_CLKCTRL_ID_SERCOM1_CORE; // Feed GCLK7 to SERCOM1 Baud Generator
     syncClock();
+}
+
+Encoder initEncoderModules(uint32_t origin, uint32_t prev_t, float target, float totalRevs, float accumulator, byte err,
+                           byte status, float P, float I, float D, Tc *TC, byte CCB, SERCOM *serc) {
+    Encoder e;
+    e.origin = origin;
+    e.prev_t = prev_t;
+    e.target = target;
+    e.totalRevs = totalRevs;
+    e.accumulator = accumulator;
+    e.err = err;
+    e.status = status;
+    e.P = P;
+    e.I = I;
+    e.D = D;
+    e.TC = TC;
+    e.CCB = CCB;
+    e.serc = serc;
+    return e;
+}
+
+void initEncoderPins(Encoder *e, uint8_t ctrl, uint8_t dir_sel, uint8_t stop, uint8_t clk, uint8_t miso, uint8_t mosi,
+                     uint8_t cs) {
+    sPrintln("why");
+    // enc->CTRL = {(uint8_t)g_APinDescription[ctrl].ulPort, (uint8_t)g_APinDescription[ctrl].ulPin};
+    sPrintln("pain");
+    enc->DIR_SEL = {(uint8_t)g_APinDescription[dir_sel].ulPort, (uint8_t)g_APinDescription[dir_sel].ulPin};
+    enc->STOP = {(uint8_t)g_APinDescription[stop].ulPort, (uint8_t)g_APinDescription[stop].ulPin};
+    sPrintln("pain");
+    enc->ENC_CLK = {(uint8_t)g_APinDescription[clk].ulPort, (uint8_t)g_APinDescription[clk].ulPin};
+    enc->ENC_DATA = {(uint8_t)g_APinDescription[miso].ulPort, (uint8_t)g_APinDescription[miso].ulPin};
+    enc->SER_OUT = {(uint8_t)g_APinDescription[mosi].ulPort, (uint8_t)g_APinDescription[mosi].ulPin};
+    sPrintln("pain");
+    enc->CS = {(uint8_t)g_APinDescription[cs].ulPort, (uint8_t)g_APinDescription[cs].ulPin};
+    // enc->COM = new SPIClassSAMD(enc->serc, miso, clk, mosi, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
+    sPrintln("agony even");
 }

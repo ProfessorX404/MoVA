@@ -1,9 +1,7 @@
 Z:\Documents\Git\motoractuatedvalve-controller\build\core\wiring_private.c.o: \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\wiring_private.c \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\Arduino.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/ArduinoAPI.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Binary.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Common.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\wiring_private.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/WVariant.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/samd21.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/samd21g18a.h \
@@ -68,12 +66,14 @@ Z:\Documents\Git\motoractuatedvalve-controller\build\core\wiring_private.c.o: \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/instance/usb.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/instance/wdt.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0/CMSIS/Device/ATMEL/samd21/include/pio/samd21g18a.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\WVariant.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\Arduino.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/ArduinoAPI.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Binary.h \
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/Common.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\variants\nano_33_iot/variant.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\USB/USBDesc.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\USB/USBCore.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\USB/USBAPI.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\USB/USB_host.h \
  C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\USB/samd21_host.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/itoa.h \
- C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\wiring_private.h
+ C:\Users\xsegg\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino\api/itoa.h
