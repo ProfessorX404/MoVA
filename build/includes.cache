@@ -1,0 +1,32 @@
+[
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\cores\\arduino"
+  },
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\variants\\nano_33_iot"
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Include": "SPI.h",
+    "Includepath": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\libraries\\SPI"
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Include": "array.h",
+    "Includepath": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries\\array"
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\build\\sketch\\Controller.ino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\libraries\\SPI\\SPI.cpp",
+    "Include": "",
+    "Includepath": null
+  }
+]

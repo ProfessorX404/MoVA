@@ -1,85 +1,59 @@
+# 1 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 /*
+
 Xavier Beech
+
 UW SARP 2022-23
+
 Motorized valve actuation controller software for 2022 Pacific Impulse.
+
 Must comment line 22 of [ArduinoSTL location]/ArduinoSTL/src/new_handler.cpp, or code will not compile.when using v1.8.3
+
 or later
 
+
+
 Encoder used is Nanotec NME2-SSI-V06-12-C
+
 URL: https://us.nanotec.com/products/8483-nme2-ssi-v06-12-c
+
 Motor used is Nanotec DB59l024035-A
+
 URL: https://us.nanotec.com/products/2870-db59l024035-a
 
+
+
 OTMX Values:
+
 CCx | WO[n]
+
 CC0 | WO[0], WO[4]
+
 CC1 | WO[1], WO[5]
+
 CC2 | WO[2], WO[6]
+
 CC3 | WO[3], WO[7]
+
 */
-#include <SPI.h>
-#include <array.h>
-
-#define PULLUP                 1
-#define PULLDOWN               0
-#define OUTPUT                 1
-#define INPUT                  0
-#define SAMPLING_ON            1
-#define SAMPLING_OFF           0
-#define ENC_TOT_BIT_CT         24u // Total number of bits in encoder packet.
-#define ENC_DATA_BIT_CT        17
-#define ENC_DATA_MASK          0b011111111111111111000000 // Bits [22:6]
-#define ENC_END_SHIFT          6        // Number of digits to drop at right to read from data after masking
-#define ENC_TICS_PER_MOTOR_REV 0x20000u // Number of encoder tics in mechanical revolution (per datasheet)
-#define GEARBOX_RATIO          15u      // Revs into gearbox per 1 revolution out
-#define ENC_TICS_PER_VALVE_REV (ENC_TICS_PER_MOTOR_REV) * (GEARBOX_RATIO) // Post-gearbox encoder tics per valve revolution
-#define ENC_TICS_PER_VALVE_DEG (uint32_t)(ENC_TICS_PER_VALVE_REV / 360)   // Post-gearbox encoder tics / degree
-#define TARGET_REVS            (byte)((90 / 360) * GEARBOX_RATIO) // Number of rotations to get within one rev of fully open
-
-#define PWM_FREQ_COEF 480u // 48MHz / (2 + [480]) = .05MHz = 50KHz
-#define SPI_FREQ      8000000l
-#define syncClock()                                                                                                         \
-    while (GCLK->STATUS.bit.SYNCBUSY)                                                                                       \
-        ; // Wait for clock synchronization
-
+# 20 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 21 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 22 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 45 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 // Error codes, 2-15
-#define ERR_CLR          1u // No error present
-#define ERR_ENC_CONN     2u // Bad connection with encoder
-#define ERR_ENC_INT      3u // Encoder passes internal error state
-#define ERR_ENC_MISMATCH 4u // Encoder reads do not match
+
+
+
+
 
 // Status codes, 0-7
-#define STATUS_INIT     0u
-#define STATUS_CONN     1u
-#define STATUS_HOME     2u
-#define STATUS_WAIT     3u
-#define STATUS_IDLE     4u
-#define STATUS_ACTIVATE 5u
-#define STATUS_RUN      6u
-#define STATUS_ABORT    7u
-
-#define LED_GREEN          SERCOM1
-#define LED_RED            SERCOM0
-#define SERCOM_BAUD        3u // Baud value for SERCOM communications
-#define FUEL_STATUS_OFFSET 5u
-#define OX_STATUS_OFFSET   2u
-#define FUEL_ERR_OFFSET    4u
-#define OX_ERR_OFFSET      0u
-
-#define PORT_WRITE(p, b)                                                                                                    \
-    (b ? PORT_IOBUS->Group[p.port].OUTSET.reg |= (1 << p.pin) : PORT_IOBUS->Group[p.pin].OUTCLR.reg |= (1 << p.pin))
-#define PORT_READ(p)    (!!(PORT_IOBUS->Group[p.port].IN.reg & (1 << p.pin)))
-#define statusCode      ((Fuel.err << FUEL_STATUS_OFFSET) | (Ox.err << OX_STATUS_OFFSET)) // Merge errors/statuses for LED output
-#define errorCode       ((Fuel.err << FUEL_ERR_OFFSET) | (Ox.err << OX_ERR_OFFSET))
-#define neg(x, y)       (((x ^ y) + (y & 1))) // Negates x if y (bit) is 1, only works for 2s complement
-#define homeShift(x, y) ((x - y.origin) + ((x < y.origin) & (1 << ENC_DATA_BIT_CT)))
-
-const array<char *, 8> STATUS_NAME = {"STATUS_INIT", "STATUS_CONN",     "STATUS_HOME", "STATUS_WAIT",
-                                      "STATUS_IDLE", "STATUS_ACTIVATE", "STATUS_RUN",  "STATUS_ABORT"};
+# 77 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+const array<char *, 8> STATUS_NAME = {"STATUS_INIT", "STATUS_CONN", "STATUS_HOME", "STATUS_WAIT",
+                                      "STATUS_IDLE", "STATUS_ACTIVATE", "STATUS_RUN", "STATUS_ABORT"};
 
 const array<char *, 15> ERR_NAME = {
     "null", "ERR_CLR", "ERR_ENC_CONN", "ERR_ENC_INT", "ERR_ENC_MISMATCH", "", "", "", "", "", "", "", "",
-    "",     ""
+    "", ""
 
 };
 
@@ -89,13 +63,13 @@ typedef struct {
 } Pin;
 
 typedef struct {
-    uint32_t origin;   // Encoder readings when valve completely closed.
-    uint32_t prev_t;   // t_n-1, in ticks
-    float target;      // PID setpoint, in revs
-    float totalRevs;   // Current position in revs
+    uint32_t origin; // Encoder readings when valve completely closed.
+    uint32_t prev_t; // t_n-1, in ticks
+    float target; // PID setpoint, in revs
+    float totalRevs; // Current position in revs
     float accumulator; // PID integral term accumulator
-    byte err;          // Error code
-    byte status;       // Status code
+    byte err; // Error code
+    byte status; // Status code
     float P;
     float I;
     float D;
@@ -120,7 +94,7 @@ struct {
     Pin RX = {(uint8_t)g_APinDescription[1].ulPort, (uint8_t)g_APinDescription[1].ulPin};
 } EXT;
 
-SPISettings spiSettings = SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE3);
+SPISettings spiSettings = SPISettings(8000000l, MSBFIRST, SPI_MODE3);
 
 Encoder Fuel, Ox;
 Encoder *enc;
@@ -146,7 +120,7 @@ void setup() {
     configureClocks();
     attachPins();
 
-    Fuel = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC4, 1u, &sercom1};
+    Fuel = {0, 0, 0.0, 0.0, 0.0, 1u /* No error present*/, 0u, 0.0, 0.0, 0.0, ((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */, 1u, &sercom1};
     Fuel.CTRL = {(uint8_t)g_APinDescription[A2].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
     Fuel.DIR_SEL = {(uint8_t)g_APinDescription[10].ulPort, (uint8_t)g_APinDescription[10].ulPin};
     Fuel.STOP = {(uint8_t)g_APinDescription[A1].ulPort, (uint8_t)g_APinDescription[A1].ulPin};
@@ -156,7 +130,7 @@ void setup() {
     Fuel.CS = {(uint8_t)g_APinDescription[8].ulPort, (uint8_t)g_APinDescription[8].ulPin};
     Fuel.COM = new SPIClassSAMD(Fuel.serc, (uint8_t)12, (uint8_t)13, (uint8_t)11, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
 
-    Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, &sercom0};
+    Ox = {0, 0, 0.0, 0.0, 0.0, 1u /* No error present*/, 0u, 0.0, 0.0, 0.0, ((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */, 0, &sercom0};
 
     Ox.CTRL = {(uint8_t)g_APinDescription[A3].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
     Ox.DIR_SEL = {(uint8_t)g_APinDescription[9].ulPort, (uint8_t)g_APinDescription[10].ulPin};
@@ -216,22 +190,22 @@ void fakesetup() {
     }
     sPrintln("after");
     // -TODO: Init periphs
-    Fuel.status = STATUS_CONN;
-    Ox.status = STATUS_CONN;
+    Fuel.status = 1u;
+    Ox.status = 1u;
     // -TODO: Establish coms
     // Fuel.status = STATUS_HOME;
     // Ox.status = STATUS_HOME;
     sPrintln("waiting");
 
     enc->TC->COUNT16.CTRLA.bit.ENABLE = 1;
-    while (TC4->COUNT16.STATUS.bit.SYNCBUSY)
+    while (((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */->COUNT16.STATUS.bit.SYNCBUSY)
         ;
     sPrintln("testing");
 }
 
 void loop() {
     switch (enc->status) {
-        case STATUS_CONN:
+        case 1u:
 
         { // sPrintln(STATUS_NAME[enc->status]);
             // sPrint("BUTTON_ONE: ");
@@ -242,67 +216,67 @@ void loop() {
             // sPrintln(PORT_READ(EXT.SEL_SWITCH));
             sPrint("POS:");
             uint32_t tpos = readRawEncData(enc);
-            sPrint32(tpos, DEC);
+            sPrint32(tpos, 10);
             sPrint(" / ");
-            sPrintln32(tpos, BIN);
+            sPrintln32(tpos, 2);
 
             if (Serial1.available()) {
                 if (Serial1.readString().equals("HOME")) {
-                    enc->status = STATUS_HOME;
+                    enc->status = 2u;
                 }
             }
             break;
         }
-        case STATUS_HOME: {
-            while (PORT_READ(EXT.SEL_SWITCH)) {
-                if (!PORT_READ(EXT.BUTTON_ONE)) {
-                    PORT_WRITE(enc->DIR_SEL, true);
-                    TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
+        case 2u: {
+            while ((!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin)))) {
+                if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin)))) {
+                    (true ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
+                    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = .15 * 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/;
                     sPrintln("MoveLeft");
-                } else if (!PORT_READ(EXT.BUTTON_TWO)) {
-                    PORT_WRITE(enc->DIR_SEL, false);
-                    TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
+                } else if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin)))) {
+                    (false ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
+                    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = .15 * 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/;
                     sPrintln("MoveRight");
                 } else {
 
-                    TCC0->CCB[enc->CCB].reg = 0;
+                    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = 0;
                     sPrintln("Stop");
                 }
                 // sPrintln("movement on");
 
                 delay(100);
             }
-            if (!PORT_READ(EXT.SEL_SWITCH)) {
-                if (!PORT_READ(EXT.BUTTON_ONE) && !PORT_READ(EXT.BUTTON_TWO)) {
-                    enc->target = TARGET_REVS;
-                    enc->status = STATUS_WAIT;
+            if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin)))) {
+                if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin))) && !(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin)))) {
+                    enc->target = (byte)((90 / 360) * 15u /* Revs into gearbox per 1 revolution out*/) /* Number of rotations to get within one rev of fully open*/;
+                    enc->status = 3u;
                     break;
                 }
             }
             break;
         }
-        case STATUS_WAIT: {
+        case 3u: {
             sPrint("BUTTON_ONE: ");
-            sPrintln(PORT_READ(EXT.BUTTON_ONE));
+            sPrintln((!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin))));
             sPrint("BUTTON_TWO: ");
-            sPrintln(PORT_READ(EXT.BUTTON_TWO));
+            sPrintln((!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin))));
             sPrint("SEL_SWITCH: ");
-            sPrintln(PORT_READ(EXT.SEL_SWITCH));
+            sPrintln((!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin))));
             if (Serial1.available()) {
                 String msg = Serial1.readString();
                 if (msg.equals("HOME")) {
-                    enc->status = STATUS_HOME;
+                    enc->status = 2u;
                 }
             }
-            if (Fuel.status == STATUS_WAIT && Ox.status == STATUS_WAIT) {
-                Fuel.status = STATUS_IDLE;
-                Ox.status = STATUS_IDLE;
+            if (Fuel.status == 3u && Ox.status == 3u) {
+                Fuel.status = 4u;
+                Ox.status = 4u;
             }
 
             delay(200);
             break;
         }
-        case STATUS_IDLE:
+        case 4u:
             // TODO:
             // -If serEn, receive data from SERCOM5
             //     -If data=launch:
@@ -318,19 +292,19 @@ void loop() {
                 //-If data=abort:
                 //    enc->status = STATUS_ABORT;
             } else {
-                if (!PORT_READ(EXT.TX)) {
-                    enc->status = STATUS_ACTIVATE;
+                if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.TX.port].IN.reg & (1 << EXT.TX.pin)))) {
+                    enc->status = 5u;
                 }
             }
             break;
-        case STATUS_ACTIVATE:
+        case 5u:
             enc->TC->COUNT16.CTRLA.bit.ENABLE = 1;
-            enc->status = STATUS_RUN;
+            enc->status = 6u;
             break;
-        case STATUS_RUN:
+        case 6u:
             update(enc);
             break;
-        case STATUS_ABORT:
+        case 7u:
             enc->target = enc->origin;
             break;
 
@@ -340,21 +314,21 @@ void loop() {
     // enc = (enc == &Fuel) ? &Ox : &Fuel;
 }
 
-void sPrint(int i, uint8_t base = DEC) {
+void sPrint(int i, uint8_t base = 10) {
     Serial1.print(i, base);
     Serial1.flush();
 }
 
-void sPrintln(int i, uint8_t base = DEC) {
+void sPrintln(int i, uint8_t base = 10) {
     sPrint(i, base);
     sPrintln();
 }
 
-void sPrintln32(uint32_t i, uint8_t base = DEC) {
+void sPrintln32(uint32_t i, uint8_t base = 10) {
     Serial1.println(i, base);
     Serial1.flush();
 }
-void sPrint32(uint32_t i, uint8_t base = DEC) {
+void sPrint32(uint32_t i, uint8_t base = 10) {
     Serial1.print(i, base);
     Serial1.flush();
 }
@@ -391,7 +365,7 @@ void sPrintln(void) { sPrint("\r\n"); }
 // PID loop. General implementation.
 void update(Encoder *enc) {
     uint16_t dt = enc->TC->COUNT16.COUNT.reg; // Time since last loop, in us
-    enc->TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
+    enc->TC->COUNT16.CTRLBSET.reg |= (0x1ul /**< \brief (TC_CTRLBSET) Force a start, restart or retrigger */ << 6 /**< \brief (TC_CTRLBSET) Command */);
     float theta_n = enc->totalRevs + getPos(enc);
 
     // Integral approximation based on trapezoidal Riemann sum
@@ -401,9 +375,9 @@ void update(Encoder *enc) {
     float O =
         (enc->P * (theta_n - enc->target)) + (enc->I * enc->accumulator) + (enc->D * ((theta_n - enc->totalRevs) / dt));
 
-    PORT_WRITE(enc->DIR_SEL, O > 0);
+    (O > 0 ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
 
-    TCC0->CCB[enc->CCB].reg = (abs(O) > PWM_FREQ_COEF) ? PWM_FREQ_COEF : abs(O);
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = (((O)>0?(O):-(O)) > 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/) ? 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/ : ((O)>0?(O):-(O));
 
     enc->totalRevs = theta_n;
 }
@@ -420,28 +394,28 @@ float getPos(Encoder *enc) {
     // sPrintln32(npos ^ nnpos);
 
     if (nnpos ^ npos == 0) {
-        enc->TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
+        enc->TC->COUNT16.CTRLBSET.reg |= (0x1ul /**< \brief (TC_CTRLBSET) Force a start, restart or retrigger */ << 6 /**< \brief (TC_CTRLBSET) Command */);
 
-        npos = (npos ^ ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
+        npos = (npos ^ 0b011111111111111111000000 /* Bits [22:6]*/) >> 6 /* Number of digits to drop at right to read from data after masking*/; // Extract value from raw bits
 
         enc->prev_t = npos;
         signed long dif;
-        if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 1))) {
+        if (((npos - ppos)>0?(npos - ppos):-(npos - ppos)) < (1 << (17 - 1))) {
             sPrint(1);
             dif = (signed long)(npos - ppos);
         } else {
             sPrint(2);
-            dif = (npos - ppos) + ((neg((1l << ENC_DATA_BIT_CT), (npos > ppos))));
+            dif = (npos - ppos) + ((((((1l << 17) ^ (npos > ppos)) + ((npos > ppos) & 1))) /* Negates x if y (bit) is 1, only works for 2s complement*/));
         }
         return (float)(dif / (1 << 16));
     } else {
         sPrint("npos: ");
-        sPrintln32(npos, BIN);
+        sPrintln32(npos, 2);
         sPrint("nnpos: ");
-        sPrintln32(nnpos, BIN);
-        sPrintln32(npos ^ nnpos, BIN);
+        sPrintln32(nnpos, 2);
+        sPrintln32(npos ^ nnpos, 2);
         sPrintln("err 353 !");
-        enc->err = ERR_ENC_MISMATCH;
+        enc->err = 4u /* Encoder reads do not match*/;
         error(false);
     }
 }
@@ -450,7 +424,7 @@ float getPos(Encoder *enc) {
 // (last bit is 0).
 uint32_t readRawEncData(Encoder *enc) {
     SPIClassSAMD spi = *enc->COM;
-    PORT_WRITE(enc->CS, false);
+    (false ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.port].OUTSET.reg |= (1 << enc->CS.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.pin].OUTCLR.reg |= (1 << enc->CS.pin));
     spi.beginTransaction(SPISettings(800000, MSBFIRST, SERCOM_SPI_MODE_0));
     uint32_t data = 0;
     uint32_t buf;
@@ -465,10 +439,10 @@ uint32_t readRawEncData(Encoder *enc) {
     data |= b1 << 8;
     data |= b3 << 0;
     spi.endTransaction();
-    PORT_WRITE(enc->CS, true);
+    (true ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.port].OUTSET.reg |= (1 << enc->CS.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.pin].OUTCLR.reg |= (1 << enc->CS.pin));
     // sPrint("rawData:");
     // sPrintln(rawData, BIN);
-    if (data & 1 << (ENC_TOT_BIT_CT - 1)) {
+    if (data & 1 << (24u /* Total number of bits in encoder packet.*/ - 1)) {
         // sPrintln("err 388 !");
         // enc->err = ERR_ENC_CONN;
         // // enc->SERCOM->SPI.DATA.reg = errorCode;
@@ -476,7 +450,7 @@ uint32_t readRawEncData(Encoder *enc) {
     }
     if (!(data & (uint32_t)1)) { // Error bit is 0.
         sPrint("data: ");
-        sPrintln32(data, BIN);
+        sPrintln32(data, 2);
         sPrint("error bit: ");
         sPrintln32(data & 1);
         // enc->err = ERR_ENC_INT;
@@ -501,28 +475,28 @@ void error(bool fatal) {
     sPrint("Ox.status: ");
     sPrintln(STATUS_NAME[Ox.status]);
 
-    while (!SERCOM0->SPI.INTFLAG.bit.DRE)
+    while (!((Sercom *)0x42000800UL) /**< \brief (SERCOM0) APB Base Address */->SPI.INTFLAG.bit.DRE)
         ;
-    SERCOM0->SPI.DATA.reg = errorCode;
+    ((Sercom *)0x42000800UL) /**< \brief (SERCOM0) APB Base Address */->SPI.DATA.reg = ((Fuel.err << 4u) | (Ox.err << 0u));
 
     if (fatal) {
-        Fuel.status = STATUS_ABORT;
-        Ox.status = STATUS_ABORT;
+        Fuel.status = 7u;
+        Ox.status = 7u;
     }
 }
 
 // Configure GPIO pins per 23.6.3 of SAMD datasheet
 void configureGPIO(Pin p, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0, bool SAMPLE = 0) {
-    PORT->Group[p.port].DIR.reg |= DIR << p.pin;
-    PORT->Group[p.port].PINCFG[p.pin].bit.INEN = INEN;
-    PORT->Group[p.port].PINCFG[p.pin].bit.PULLEN = PULLEN;
-    PORT->Group[p.port].OUT.reg |= OUT << p.pin;
-    PORT->Group[p.port].CTRL.reg |= SAMPLE << p.pin;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].DIR.reg |= DIR << p.pin;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].PINCFG[p.pin].bit.INEN = INEN;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].PINCFG[p.pin].bit.PULLEN = PULLEN;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].OUT.reg |= OUT << p.pin;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].CTRL.reg |= SAMPLE << p.pin;
 }
 // Checks to see if Serial1 communications port has been enabled (active low)
 bool serialEnabled() {
-    configureGPIO(SER_EN, INPUT, 1, 1, INPUT_PULLUP);
-    return !PORT_READ(SER_EN);
+    configureGPIO(SER_EN, 0, 1, 1, INPUT_PULLUP);
+    return !(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[SER_EN.port].IN.reg & (1 << SER_EN.pin)));
 }
 
 void initSPIs(SPIClassSAMD spi) { spi.begin(); }
@@ -546,7 +520,7 @@ uint32_t readSPIs(SPIClassSAMD spi, bool verbose = false) {
     buf = data;
     if (verbose) {
         Serial1.print("OD: ");
-        Serial1.print(data, BIN);
+        Serial1.print(data, 2);
         char db[24];
         for (int i = 0; i < 24; i++) {
             if (buf % 2) {
@@ -571,7 +545,7 @@ uint32_t readSPIs(SPIClassSAMD spi, bool verbose = false) {
             d2 |= (db[i + 5] == '1' ? 1 : 0) << i;
         }
         Serial1.print(", D2_2: ");
-        Serial1.print(d2, BIN);
+        Serial1.print(d2, 2);
         Serial1.print(", D2_10:");
         Serial1.print(d2);
         Serial1.println();
@@ -624,8 +598,8 @@ void attachPins() {
     // description for pin configuration.
 
     // Enable the port multiplexer for PWM pins
-    PORT->Group[Fuel.CTRL.port].PINCFG[Fuel.CTRL.pin].bit.PMUXEN = 1;
-    PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.port].bit.PMUXEN = 1;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Fuel.CTRL.port].PINCFG[Fuel.CTRL.pin].bit.PMUXEN = 1;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.port].bit.PMUXEN = 1;
     sPrintln("375");
 
     // Enable the port multiplexer for Encoder coms and status register pins
@@ -645,8 +619,8 @@ void attachPins() {
     // SERCOM0 SCK and MISO pins for OX
 
     // Enable the port multiplexer for PWM pins
-    PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.pin].bit.PMUXEN = 1;
-    PORT->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.port].bit.PMUXEN = 1;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.pin].bit.PMUXEN = 1;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Ox.CTRL.port].PINCFG[Ox.CTRL.port].bit.PMUXEN = 1;
     sPrintln("396");
 
     // Enable the port multiplexer for Encoder coms and status register pins
@@ -676,31 +650,52 @@ void attachPins() {
     // More info can be found in 23.8.12
 
     // Attach PWM pins to timer peripherals
-    PORT->Group[Fuel.CTRL.port].PMUX[Fuel.CTRL.pin >> 1].reg |=
-        ((Fuel.CTRL.pin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
-    PORT->Group[Ox.CTRL.port].PMUX[Ox.CTRL.pin >> 1].reg |= ((Ox.CTRL.pin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Fuel.CTRL.port].PMUX[Fuel.CTRL.pin >> 1].reg |=
+        ((Fuel.CTRL.pin % 2) == 0) ? (0x4ul /**< \brief (PORT_PMUX) Peripheral function E selected */ << 0 /**< \brief (PORT_PMUX) Peripheral Multiplexing Even */) : (0x4ul /**< \brief (PORT_PMUX) Peripheral function E selected */ << 4 /**< \brief (PORT_PMUX) Peripheral Multiplexing Odd */);
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Ox.CTRL.port].PMUX[Ox.CTRL.pin >> 1].reg |= ((Ox.CTRL.pin % 2) == 0) ? (0x4ul /**< \brief (PORT_PMUX) Peripheral function E selected */ << 0 /**< \brief (PORT_PMUX) Peripheral Multiplexing Even */) : (0x4ul /**< \brief (PORT_PMUX) Peripheral function E selected */ << 4 /**< \brief (PORT_PMUX) Peripheral Multiplexing Odd */);
     sPrintln("428");
     /*
+
     // Attach Encoder coms and status register pins to FUEL SERCOM
+
     PORT->Group[Fuel.ENC_CLK.port].PMUX[Fuel.ENC_CLK.pin >> 1].reg |=
+
         ((Fuel.ENC_CLK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
     PORT->Group[Fuel.ENC_DATA.port].PMUX[Fuel.ENC_DATA.pin >> 1].reg |=
+
         ((Fuel.ENC_DATA.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
     PORT->Group[Fuel.SER_OUT.port].PMUX[Fuel.SER_OUT.pin >> 1].reg |=
+
         ((Fuel.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
     PORT->Group[Fuel.CS.port].PMUX[Fuel.CS.pin >> 1].reg |= ((Fuel.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
     sPrintln("438");
 
+
+
     // // Attach Encoder coms and status register pins to OX SERCOM
+
     PORT->Group[Ox.ENC_CLK.port].PMUX[Ox.ENC_CLK.pin >> 1].reg |=
+
         ((Ox.ENC_CLK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
     PORT->Group[Ox.ENC_DATA.port].PMUX[Ox.ENC_DATA.pin >> 1].reg |=
+
         ((Ox.ENC_DATA.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
     PORT->Group[Ox.SER_OUT.port].PMUX[Ox.SER_OUT.pin >> 1].reg |=
+
         ((Ox.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
     PORT->Group[Ox.CS.port].PMUX[Ox.CS.pin >> 1].reg |= ((Ox.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+
     sPrintln("448");
+
     */
+# 704 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
     // See configureClocks() for information regarding GCLK configuration and linking to periphs.
 
     // TCCs, or Timer/Counters for Control applications, are a Timer/Counter peripheral with added logical functionality
@@ -724,16 +719,16 @@ void attachPins() {
     // the corresponding CCBx value to change the outputs. Note that every TCC does not neccessarily share the same
     // configuration options or parameters. Should it be neccesary to change pins and spin up a different TCC, while it
     // may be possible to just copy-paste the original config routine, that should not be assumed.
-    TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
-    while (TCC0->SYNCBUSY.bit.WAVE)
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->WAVE.reg = (0x2ul /**< \brief (TCC_WAVE) Normal PWM */ << 0 /**< \brief (TCC_WAVE) Waveform Generation */);
+    while (((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->SYNCBUSY.bit.WAVE)
         ; // Sync
 
-    TCC0->PER.reg = PWM_FREQ_COEF; // Set PWM frequency to 50KHz (f=GCLK/(2+PER))
-    while (TCC0->SYNCBUSY.bit.PER)
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->PER.reg = 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/; // Set PWM frequency to 50KHz (f=GCLK/(2+PER))
+    while (((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->SYNCBUSY.bit.PER)
         ; // Sync
 
-    TCC0->CTRLA.bit.ENABLE = 1u; // Enable the TCC0 counter
-    while (TCC0->SYNCBUSY.bit.ENABLE)
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CTRLA.bit.ENABLE = 1u; // Enable the TCC0 counter
+    while (((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->SYNCBUSY.bit.ENABLE)
         ; // Sync
 
     sPrintln("485");
@@ -746,32 +741,32 @@ void attachPins() {
     // TC5 are configured identically, as we are using them to run the FUEL and OX PID controllers respectively.
 
     //
-    TC4->COUNT16.CTRLA.reg =
-        TC_CTRLA_MODE_COUNT16 |   // Select 16 bit mode for TC4
-        TC_CTRLA_PRESCALER_DIV8 | // Divides frequency by 8, to get f_TC of 1MHz, or period=1us
-        TC_CTRLA_PRESCSYNC_PRESC; // Clock reset is connected to prescaler clock not GCLK. Keeps 1us period.
+    ((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */->COUNT16.CTRLA.reg =
+        (0x0ul /**< \brief (TC_CTRLA) Counter in 16-bit mode */ << 2 /**< \brief (TC_CTRLA) TC Mode */) | // Select 16 bit mode for TC4
+        (0x3ul /**< \brief (TC_CTRLA) Prescaler: GCLK_TC/8 */ << 8 /**< \brief (TC_CTRLA) Prescaler */) | // Divides frequency by 8, to get f_TC of 1MHz, or period=1us
+        (0x1ul /**< \brief (TC_CTRLA) Reload or reset the counter on next prescaler clock */ << 12 /**< \brief (TC_CTRLA) Prescaler and Counter Synchronization */); // Clock reset is connected to prescaler clock not GCLK. Keeps 1us period.
 
-    while (TC4->COUNT16.STATUS.bit.SYNCBUSY)
+    while (((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */->COUNT16.STATUS.bit.SYNCBUSY)
         ; // sync
 
     // Sets continuous read synchronization of count register. This means it is not neccesary to set the RREQ flag and
     // wait to synchronize every time we want to read the COUNT value.See section 30.10.2 in MC datasheet.
-    TC4->COUNT16.READREQ.reg = TC_READREQ_RCONT | // Sets RCONT flag, disabling automatic clearing of RREQ flag after sync
-                               TC_READREQ_RREQ |  // Read sync request flag, synchronizes COUNT register for reading
-                               TC_READREQ_ADDR(0x10); // COUNT register address
+    ((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */->COUNT16.READREQ.reg = (0x1ul << 14 /**< \brief (TC_READREQ) Read Continuously */) | // Sets RCONT flag, disabling automatic clearing of RREQ flag after sync
+                               (0x1ul << 15 /**< \brief (TC_READREQ) Read Request */) | // Read sync request flag, synchronizes COUNT register for reading
+                               ((0x1Ful << 0 /**< \brief (TC_READREQ) Address */) & ((0x10) << 0 /**< \brief (TC_READREQ) Address */)); // COUNT register address
 
     sPrintln("509");
     // Same as TC4
-    TC5->COUNT16.CTRLA.reg =
-        TC_CTRLA_MODE_COUNT16 |   // Select 16-bit mode for TC5.
-        TC_CTRLA_PRESCALER_DIV8 | // Divides GCLK frequency by 8, to get f_TC of 8Mhz/8=1MHz, or period 1us
-        TC_CTRLA_PRESCSYNC_PRESC; // Clock reset is connected to prescaler clock not GCLK. Keeps 1us period.
-    while (TC5->COUNT16.STATUS.bit.SYNCBUSY)
+    ((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */->COUNT16.CTRLA.reg =
+        (0x0ul /**< \brief (TC_CTRLA) Counter in 16-bit mode */ << 2 /**< \brief (TC_CTRLA) TC Mode */) | // Select 16-bit mode for TC5.
+        (0x3ul /**< \brief (TC_CTRLA) Prescaler: GCLK_TC/8 */ << 8 /**< \brief (TC_CTRLA) Prescaler */) | // Divides GCLK frequency by 8, to get f_TC of 8Mhz/8=1MHz, or period 1us
+        (0x1ul /**< \brief (TC_CTRLA) Reload or reset the counter on next prescaler clock */ << 12 /**< \brief (TC_CTRLA) Prescaler and Counter Synchronization */); // Clock reset is connected to prescaler clock not GCLK. Keeps 1us period.
+    while (((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */->COUNT16.STATUS.bit.SYNCBUSY)
         ; // sync
     // Same as TC4
-    TC5->COUNT16.READREQ.reg = TC_READREQ_RCONT | // Sets RCONT flag, disabling automatic clearing of RREQ flag after sync
-                               TC_READREQ_RREQ |  // Read sync request flag, synchronizes COUNT register for reading
-                               TC_READREQ_ADDR(0x10); // COUNT register address
+    ((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */->COUNT16.READREQ.reg = (0x1ul << 14 /**< \brief (TC_READREQ) Read Continuously */) | // Sets RCONT flag, disabling automatic clearing of RREQ flag after sync
+                               (0x1ul << 15 /**< \brief (TC_READREQ) Read Request */) | // Read sync request flag, synchronizes COUNT register for reading
+                               ((0x1Ful << 0 /**< \brief (TC_READREQ) Address */) & ((0x10) << 0 /**< \brief (TC_READREQ) Address */)); // COUNT register address
 
     sPrintln("522");
 
@@ -826,87 +821,153 @@ void attachPins() {
     // as f_ref/(2*(BAUD+1)), where f_ref is the reference frequency fed to the SERCOM by the GCLK. See section 25.6.2.3
     // in MC datasheet for more info.
     /*
+
     SERCOM0->SPI.CTRLA.bit.ENABLE = 0;
+
     while (SERCOM0->SPI.SYNCBUSY.bit.ENABLE)
+
         ;
+
     // SERCOM0->SPI.CTRLA.bit.SWRST = 1;
+
     // while (SERCOM0->SPI.SYNCBUSY.bit.SWRST)
+
     //     ;
+
     SERCOM0->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |                   // MISO is Pad 3
+
                              SERCOM_SPI_CTRLA_DOPO(0x0u) |                   // MOSI pad 0, SCK Pad 1, CS Pad 2
+
                              SERCOM_SPI_CTRLA_MODE_SPI_MASTER |              // Sets device mode as host
+
                              SERCOM_SPI_CTRLA_CPOL |                         // Clock high when idle
+
                              SERCOM_SPI_CTRLA_CPHA;                          // Sample data on rising edge
+
     SERCOM0->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN | SERCOM_SPI_CTRLB_MSSEN; // Enable reciever/full-duplex operation
+
     while (SERCOM0->SPI.SYNCBUSY.bit.CTRLB)
+
         ;
+
     SERCOM0->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
+
     SERCOM0->SPI.CTRLA.bit.ENABLE = 1;
+
     while (SERCOM0->SPI.SYNCBUSY.bit.ENABLE)
+
         ;
+
+
 
     sPrintln(1);
+
     SERCOM1->SPI.CTRLA.bit.ENABLE = 0;
+
     while (SERCOM1->SPI.SYNCBUSY.bit.ENABLE)
+
         ;
+
     // SERCOM0->SPI.CTRLA.bit.SWRST = 1;
+
     // while (SERCOM0->SPI.SYNCBUSY.bit.SWRST)
+
     //     ;
+
     sPrintln(2);
+
     SERCOM1->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_DIPO(0x3u) |                   // MISO is Pad 3
+
                              SERCOM_SPI_CTRLA_DOPO(0x0u) |                   // MOSI pad 0, SCK Pad 1, CS Pad 2
+
                              SERCOM_SPI_CTRLA_MODE_SPI_MASTER |              // Sets device mode as host
+
                              SERCOM_SPI_CTRLA_CPOL |                         // Clock high when idle
+
                              SERCOM_SPI_CTRLA_CPHA;                          // Sample data on rising edge
+
     SERCOM1->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN | SERCOM_SPI_CTRLB_MSSEN; // Enable reciever/full-duplex operation
 
+
+
     sPrintln(3);
+
     while (SERCOM1->SPI.SYNCBUSY.bit.CTRLB)
+
         ;
+
+
 
     sPrintln(4);
+
     SERCOM1->SPI.BAUD.reg = SERCOM_SPI_BAUD_BAUD(SERCOM_BAUD); // Sets baudrate to 8MHz/(2*([BAUD=3]+1)=1MHz
+
     sPrintln(5);
+
     SERCOM1->SPI.CTRLA.bit.ENABLE = 1;
 
+
+
     sPrintln(6);
+
     while (SERCOM1->SPI.SYNCBUSY.bit.ENABLE)
+
         ;
+
     */
+# 876 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
     sPrintln(7);
 
     serEn = true;
     /*if (serialEnabled()) {
+
         Serial1.begin(115200);
+
         // TODO: Init coms/handshake
+
     } else {
 
+
+
         sPrintln("613");
+
         // Disable Serial1 USART
+
         SERCOM5->SPI.CTRLA.bit.ENABLE = 0;
+
         while (SERCOM1->SPI.SYNCBUSY.bit.ENABLE)
+
             ;
+
         SERCOM5->USART.CTRLA.bit.SWRST = 1;
+
         while (SERCOM5->USART.SYNCBUSY.bit.SWRST)
+
             ;
+
         // Configure TX as plain input
+
         configureGPIO(EXT.TX.port, EXT.TX.pin, INPUT, 1, 1, INPUT_PULLDOWN);
 
+
+
         sPrintln("624");
+
     }
+
     */
+# 899 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+    configureGPIO(Fuel.DIR_SEL, 1);
+    configureGPIO(Fuel.STOP, 1);
+    configureGPIO(Fuel.CS, 1);
 
-    configureGPIO(Fuel.DIR_SEL, OUTPUT);
-    configureGPIO(Fuel.STOP, OUTPUT);
-    configureGPIO(Fuel.CS, OUTPUT);
+    configureGPIO(Ox.DIR_SEL, 1);
+    configureGPIO(Ox.STOP, 1);
+    configureGPIO(Ox.CS, 1);
 
-    configureGPIO(Ox.DIR_SEL, OUTPUT);
-    configureGPIO(Ox.STOP, OUTPUT);
-    configureGPIO(Ox.CS, OUTPUT);
-
-    configureGPIO(EXT.BUTTON_ONE, INPUT, 1, 1, PULLUP, SAMPLING_ON);
-    configureGPIO(EXT.BUTTON_TWO, INPUT, 1, 1, PULLUP, SAMPLING_ON);
-    configureGPIO(EXT.SEL_SWITCH, INPUT, 1, 1, PULLUP, SAMPLING_ON);
+    configureGPIO(EXT.BUTTON_ONE, 0, 1, 1, 1, 1);
+    configureGPIO(EXT.BUTTON_TWO, 0, 1, 1, 1, 1);
+    configureGPIO(EXT.SEL_SWITCH, 0, 1, 1, 1, 1);
 
     sPrintln("637");
 }
@@ -914,49 +975,49 @@ void attachPins() {
 // TODO: Documentation
 void configureClocks() {
 
-    PM->APBCMASK.reg |= PM_APBCMASK_SERCOM0 | PM_APBCMASK_SERCOM1 | PM_APBCMASK_SERCOM2 | PM_APBCMASK_SERCOM3 |
-                        PM_APBCMASK_SERCOM4 | PM_APBCMASK_SERCOM5 | PM_APBCMASK_TCC0 | PM_APBCMASK_TC4 | PM_APBCMASK_TC5;
+    ((Pm *)0x40000400UL) /**< \brief (PM) APB Base Address */->APBCMASK.reg |= (0x1ul << 2 /**< \brief (PM_APBCMASK) SERCOM0 APB Clock Enable */) | (0x1ul << 3 /**< \brief (PM_APBCMASK) SERCOM1 APB Clock Enable */) | (0x1ul << 4 /**< \brief (PM_APBCMASK) SERCOM2 APB Clock Enable */) | (0x1ul << 5 /**< \brief (PM_APBCMASK) SERCOM3 APB Clock Enable */) |
+                        (0x1ul << 6 /**< \brief (PM_APBCMASK) SERCOM4 APB Clock Enable */) | (0x1ul << 7 /**< \brief (PM_APBCMASK) SERCOM5 APB Clock Enable */) | (0x1ul << 8 /**< \brief (PM_APBCMASK) TCC0 APB Clock Enable */) | (0x1ul << 12 /**< \brief (PM_APBCMASK) TC4 APB Clock Enable */) | (0x1ul << 13 /**< \brief (PM_APBCMASK) TC5 APB Clock Enable */);
 
     // Link timer periphs to GCLK for PWM
-    GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(4u) |     // Edit GCLK4
-                        GCLK_GENCTRL_IDC |        // Improve 50/50 PWM
-                        GCLK_GENCTRL_GENEN |      // Enable generic clock
-                        GCLK_GENCTRL_SRC_DFLL48M; // Link to 48MHz source
-    syncClock();
+    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->GENCTRL.reg = ((0xFul << 0 /**< \brief (GCLK_GENCTRL) Generic Clock Generator Selection */) & ((4u) << 0 /**< \brief (GCLK_GENCTRL) Generic Clock Generator Selection */)) | // Edit GCLK4
+                        (0x1ul << 17 /**< \brief (GCLK_GENCTRL) Improve Duty Cycle */) | // Improve 50/50 PWM
+                        (0x1ul << 16 /**< \brief (GCLK_GENCTRL) Generic Clock Generator Enable */) | // Enable generic clock
+                        (0x7ul /**< \brief (GCLK_GENCTRL) DFLL48M output */ << 8 /**< \brief (GCLK_GENCTRL) Source Select */); // Link to 48MHz source
+    while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
 
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK4 |   // Select GCLK4 at 48MHz to edit |
-                        GCLK_CLKCTRL_CLKEN |       // Enable GCLK4 as a clock source
-                        GCLK_CLKCTRL_ID_TCC0_TCC1; // Feed GCLK4 to TCC0 and TCC1
-    syncClock();
+    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x4ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 4 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK4 at 48MHz to edit |
+                        (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK4 as a clock source
+                        (0x1Aul /**< \brief (GCLK_CLKCTRL) TCC0_TCC1 */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK4 to TCC0 and TCC1
+    while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
 
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK4 | // Select GCLK4 at 48MHz to edit |
-                        GCLK_CLKCTRL_CLKEN |     // Enable GCLK4 as a clock source
-                        GCLK_CLKCTRL_ID_EIC;     // Feed GCLK4 to EIC
-    syncClock();
+    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x4ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 4 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK4 at 48MHz to edit |
+                        (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK4 as a clock source
+                        (0x5ul /**< \brief (GCLK_CLKCTRL) EIC */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK4 to EIC
+    while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
 
     // Link timer periphs for PID loops.
-    GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(5u) |   // Edit GCLK5
-                        GCLK_GENCTRL_IDC |      // Improve 50/50 PWM
-                        GCLK_GENCTRL_GENEN |    // Enable generic clock
-                        GCLK_GENCTRL_SRC_OSC8M; // Link to 8MHz source
-    syncClock();
+    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->GENCTRL.reg = ((0xFul << 0 /**< \brief (GCLK_GENCTRL) Generic Clock Generator Selection */) & ((5u) << 0 /**< \brief (GCLK_GENCTRL) Generic Clock Generator Selection */)) | // Edit GCLK5
+                        (0x1ul << 17 /**< \brief (GCLK_GENCTRL) Improve Duty Cycle */) | // Improve 50/50 PWM
+                        (0x1ul << 16 /**< \brief (GCLK_GENCTRL) Generic Clock Generator Enable */) | // Enable generic clock
+                        (0x6ul /**< \brief (GCLK_GENCTRL) OSC8M oscillator output */ << 8 /**< \brief (GCLK_GENCTRL) Source Select */); // Link to 8MHz source
+    while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
 
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 | // Select GCLK5 at 8MHz to edit |
-                        GCLK_CLKCTRL_CLKEN |     // Enable GCLK5 as a clock source
-                        GCLK_CLKCTRL_ID_TC4_TC5; // Feed GCLK5 to TC4 and TC5
+    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x5ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 5 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK5 at 8MHz to edit |
+                        (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK5 as a clock source
+                        (0x1Cul /**< \brief (GCLK_CLKCTRL) TC4_TC5 */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK5 to TC4 and TC5
 
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 | // Select GCLK5 at 8MHz to edit |
-                        GCLK_CLKCTRL_CLKEN |     // Enable GCLK5 as a clock source
-                        GCLK_CLKCTRL_ID_TC6_TC7; // Feed GCLK5 to TC4 and TC5
+    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x5ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 5 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK5 at 8MHz to edit |
+                        (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK5 as a clock source
+                        (0x1Dul /**< \brief (GCLK_CLKCTRL) TC6_TC7 */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK5 to TC4 and TC5
 
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 |      // Select GCLK5 at 8MHz to edit |
-                        GCLK_CLKCTRL_CLKEN |          // Enable GCLK5 as a clock source
-                        GCLK_CLKCTRL_ID_SERCOM0_CORE; // Feed GCLK5 to SERCOM0 Baud Generator
-    syncClock();
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 |      // Select GCLK5 at 8MHz to edit |
-                        GCLK_CLKCTRL_CLKEN |          // Enable GCLK5 as a clock source
-                        GCLK_CLKCTRL_ID_SERCOM1_CORE; // Feed GCLK7 to SERCOM1 Baud Generator
-    syncClock();
+    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x5ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 5 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK5 at 8MHz to edit |
+                        (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK5 as a clock source
+                        (0x14ul /**< \brief (GCLK_CLKCTRL) SERCOM0_CORE */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK5 to SERCOM0 Baud Generator
+    while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
+    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x5ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 5 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK5 at 8MHz to edit |
+                        (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK5 as a clock source
+                        (0x15ul /**< \brief (GCLK_CLKCTRL) SERCOM1_CORE */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK7 to SERCOM1 Baud Generator
+    while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
 }
 
 Encoder initEncoderModules(uint32_t origin, uint32_t prev_t, float target, float totalRevs, float accumulator, byte err,

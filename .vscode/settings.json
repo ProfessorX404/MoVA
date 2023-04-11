@@ -55,7 +55,12 @@
         "cstdarg": "cpp",
         "cstdint": "cpp",
         "*.tcc": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "string_view": "cpp",
+        "random": "cpp",
+        "chrono": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled",
     "C_Cpp.intelliSenseEngineFallback": "enabled"
