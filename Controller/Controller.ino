@@ -428,12 +428,12 @@ float getPos(Encoder *enc) {
         signed long dif;
         if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 1))) {
             sPrint(1);
-            dif = (signed long)(npos - ppos);
+            dif = ((signed long)npos - (signed long)ppos);
         } else {
             sPrint(2);
-            dif = (npos - ppos) + ((neg((1l << ENC_DATA_BIT_CT), (npos > ppos))));
+            dif = ((signed long)npos - (signed long)ppos) + ((neg((1l << ENC_DATA_BIT_CT), (npos > ppos))));
         }
-        return (float)(dif / (1 << 16));
+        return (float)(dif / (1 << ENC_DATA_BIT_CT - 1));
     } else {
         sPrint("npos: ");
         sPrintln32(npos, BIN);
