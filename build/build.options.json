@@ -5,7 +5,7 @@
   "customBuildProperties": "",
   "fqbn": "arduino:samd:nano_33_iot",
   "hardwareFolders": "C:\\Users\\xsegg\\AppData\\Local\\Arduino15\\packages",
-  "otherLibrariesFolders": "C:\\Users\\xsegg\\Documents\\Arduino\\libraries",
+  "otherLibrariesFolders": "Z:\\Documents\\Arduino\\libraries",
   "runtime.ide.version": "10607",
-  "sketchLocation": "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller"
+  "sketchLocation": "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller"
 }

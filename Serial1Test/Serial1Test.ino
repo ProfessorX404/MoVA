@@ -1,19 +1,38 @@
 #include <SPI.h>
-SPIClassSAMD mySPI = SPIClassSAMD(&sercom1, (uint8_t)12, (uint8_t)13, (uint8_t)11, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
+const int oCS = 7;
+const int oMOSI = 6;
+const int oSCK = 5;
+const int oMISO = 4;
+const int fCS = 8;
+const int fMOSI = 11;
+const int fSCK = 13;
+const int fMISO = 12;
+SERCOM *os = &sercom0;
+SERCOM *fs = &sercom1;
+SPIClassSAMD ox = SPIClassSAMD(os, oMISO, oSCK, oMOSI, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
+SPIClassSAMD fuel = SPIClassSAMD(fs, fMISO, fSCK, fMOSI, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
+SPIClassSAMD mySPI = ox;
+int CS = oCS;
 void setup() {
     Serial1.begin(115200);
-    pinMode(8, OUTPUT);
+    pinMode(CS, OUTPUT);
     // pinMode(A3, OUTPUT);
     // pinMode(A2, OUTPUT);
     // digitalWrite(A2, LOW);
     // digitalWrite(A3, LOW);
+    // pinMode(oMISO, INPUT);
+    // while (true) {
+    //     Serial1.println(digitalRead(oMISO));
+    //     Serial1.flush();
+    // }
+    sercom0.resetSPI();
     mySPI.begin();
 }
 
 void loop() {
     delay(100);
-    digitalWrite(8, LOW);
-    mySPI.beginTransaction(SPISettings(800000, MSBFIRST, SERCOM_SPI_MODE_0));
+    digitalWrite(CS, LOW);
+    mySPI.beginTransaction(SPISettings(400000, MSBFIRST, SERCOM_SPI_MODE_1));
     uint32_t data = 0;
     uint32_t buf;
     // uint16_t b1 = mySPI.transfer16(0b10101010);
@@ -26,7 +45,7 @@ void loop() {
     data |= b1 << 8;
     data |= b3 << 0;
     mySPI.endTransaction();
-    digitalWrite(8, HIGH);
+    digitalWrite(CS, HIGH);
     Serial1.print("OD: ");
     Serial1.print(data, BIN);
     buf = data;

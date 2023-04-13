@@ -1,4 +1,4 @@
-#define PIN_A 6
+#define PIN_A A3
 #define PIN_B 7
 #define FREQ  1262
 int increment = 1;
@@ -19,7 +19,7 @@ void setup() {
 
     // D7 is on EVEN port pin PA06 and TCC1/WO[0] channel 0 is on peripheral E
     PORT->Group[g_APinDescription[PIN_A].ulPort].PMUX[g_APinDescription[PIN_A].ulPin >> 1].reg =
-        ((g_APinDescription[PIN_A].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
+        ((g_APinDescription[PIN_A].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_F : PORT_PMUX_PMUXO_F;
     PORT->Group[g_APinDescription[PIN_B].ulPort].PMUX[g_APinDescription[PIN_B].ulPin >> 1].reg =
         ((g_APinDescription[PIN_B].ulPin % 2) == 0) ? PORT_PMUX_PMUXE_E : PORT_PMUX_PMUXO_E;
 
@@ -38,12 +38,12 @@ void setup() {
     while (TCC1->SYNCBUSY.bit.PER)
         ; // Wait for synchronization
 
-    TCC0->CC[0].reg = .75 * FREQ; // TCC0 CC0 - 50% duty cycle on D7
-    while (TCC0->SYNCBUSY.bit.CC0)
-        ;                         // Wait for synchronization
-    TCC1->CC[0].reg = .75 * FREQ; // TCC0 CC0 - 50% duty cycle on D7
-    while (TCC1->SYNCBUSY.bit.CC0)
-        ; // Wait for synchronization
+    // TCC0->CC[0].reg = .75 * FREQ; // TCC0 CC0 - 50% duty cycle on D7
+    // while (TCC0->SYNCBUSY.bit.CC0)
+    //     ;                         // Wait for synchronization
+    // TCC1->CC[0].reg = .75 * FREQ; // TCC0 CC0 - 50% duty cycle on D7
+    // while (TCC1->SYNCBUSY.bit.CC0)
+    ; // Wait for synchronization
 
     TCC0->CTRLA.bit.ENABLE = 1; // Enable the TCC1 counter
     while (TCC0->SYNCBUSY.bit.ENABLE)
@@ -61,7 +61,7 @@ void loop() {
     }
     increment += (((int)up) * 2) - 1;
     // Using buffered counter compare registers (CCBx)
-    TCC0->CCB[0].reg = increment; // TCC1 CCB1 - 25% duty cycle on D7
+    TCC0->CCB[2].reg = increment; // TCC1 CCB1 - 25% duty cycle on D7
     while (TCC0->SYNCBUSY.bit.CCB0)
         ;                                // Wait for synchronization
     TCC1->CCB[0].reg = FREQ - increment; // TCC1 CCB1 - 25% duty cycle on D7

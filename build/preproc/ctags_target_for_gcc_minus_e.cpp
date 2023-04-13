@@ -1,4 +1,4 @@
-# 1 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 1 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 /*
 
 Xavier Beech
@@ -35,24 +35,34 @@ CC2 | WO[2], WO[6]
 
 CC3 | WO[3], WO[7]
 
+
+
+IMPORTANT NOTE: ***MUST*** change pin definitions in variant.cpp for D4, D5, D6 to PIO_SERCOM_ALT instead of PIO_DIGITAL
+
+
+
 */
-# 20 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-# 21 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 22 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
-# 45 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 23 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 24 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 25 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino" 2
+# 51 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 // Error codes, 2-15
 
 
 
 
 
+
 // Status codes, 0-7
-# 77 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 85 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+const uint32_t ENC_TICS_PER_VALVE_REV = (((0x20000u) /* Number of encoder tics in mechanical revolution (per datasheet)*/) * ((15u) /* Revs into gearbox per 1 revolution out*/)); // Encoder tics per valve revolution
+const float TARGET_REVS = (((90 / 360) * (15u) /* Revs into gearbox per 1 revolution out*/)); // Number of rotations to get fully open
+
 const array<char *, 8> STATUS_NAME = {"STATUS_INIT", "STATUS_CONN", "STATUS_HOME", "STATUS_WAIT",
                                       "STATUS_IDLE", "STATUS_ACTIVATE", "STATUS_RUN", "STATUS_ABORT"};
 
 const array<char *, 15> ERR_NAME = {
-    "null", "ERR_CLR", "ERR_ENC_CONN", "ERR_ENC_INT", "ERR_ENC_MISMATCH", "", "", "", "", "", "", "", "",
+    "null", "ERR_CLR", "ERR_ENC_CONN", "ERR_ENC_INT", "ERR_ENC_MISMATCH", "ERR_BAD_PACKET", "", "", "", "", "", "", "",
     "", ""
 
 };
@@ -60,6 +70,7 @@ const array<char *, 15> ERR_NAME = {
 typedef struct {
     uint8_t port;
     uint8_t pin;
+    bool active;
 } Pin;
 
 typedef struct {
@@ -79,29 +90,29 @@ typedef struct {
     Pin CTRL;
     Pin DIR_SEL;
     Pin STOP;
-    Pin ENC_CLK;
-    Pin ENC_DATA;
-    Pin SER_OUT;
+    Pin SCK;
+    Pin MISO;
+    Pin MOSI;
     Pin CS;
     SPIClassSAMD *COM;
 } Encoder;
 
 struct {
-    Pin BUTTON_ONE = {(uint8_t)g_APinDescription[A6].ulPort, (uint8_t)g_APinDescription[A6].ulPin};
-    Pin BUTTON_TWO = {(uint8_t)g_APinDescription[A7].ulPort, (uint8_t)g_APinDescription[A7].ulPin};
-    Pin SEL_SWITCH = {(uint8_t)g_APinDescription[2].ulPort, (uint8_t)g_APinDescription[2].ulPin};
+    Pin BUTTON_ONE = {(uint8_t)g_APinDescription[A6].ulPort, (uint8_t)g_APinDescription[A6].ulPin, (false)};
+    Pin BUTTON_TWO = {(uint8_t)g_APinDescription[A7].ulPort, (uint8_t)g_APinDescription[A7].ulPin, (false)};
+    Pin SEL_SWITCH = {(uint8_t)g_APinDescription[2].ulPort, (uint8_t)g_APinDescription[2].ulPin, (true)};
     Pin TX = {(uint8_t)g_APinDescription[0].ulPort, (uint8_t)g_APinDescription[0].ulPin};
     Pin RX = {(uint8_t)g_APinDescription[1].ulPort, (uint8_t)g_APinDescription[1].ulPin};
 } EXT;
 
-SPISettings spiSettings = SPISettings(8000000l, MSBFIRST, SPI_MODE3);
+SPISettings spiSettings = SPISettings((8000000l), MSBFIRST, SPI_MODE3);
 
 Encoder Fuel, Ox;
 Encoder *enc;
 
 bool serEn = false;
-
-Pin SER_EN = {1, 11}; // External Serial1 enable sensor pin. Active low.
+// External Serial1 enable sensor pin.
+Pin SER_EN = {(uint8_t)g_APinDescription[3].ulPort, (uint8_t)g_APinDescription[3].ulPin, (false)};
 
 void sPrintln(int, uint8_t);
 void sPrint32(uint32_t, uint8_t);
@@ -109,209 +120,208 @@ void sPrintln32(uint32_t, uint8_t);
 uint32_t readSPIs(SPIClassSAMD, bool);
 uint32_t readSPIs(SPIClassSAMD);
 
+// Configure GPIO pins per 23.6.3 of SAMD datasheet
+void configureGPIO(Pin p, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0, bool SAMPLE = 0) {
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].DIR.reg |= DIR << p.pin;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].PINCFG[p.pin].bit.INEN = INEN;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].PINCFG[p.pin].bit.PULLEN = PULLEN;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].OUT.reg |= OUT << p.pin;
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].CTRL.reg |= SAMPLE << p.pin;
+}
+
 void setup() {
     Serial1.begin(115200);
-    while (!Serial1.available())
-        ;
-    sPrintln("starting");
-    enc = (bool)Serial1.read() ? &Ox : &Fuel;
-    sPrint("Enc:");
-    sPrintln(enc->CCB ? "OX" : "FUEL");
-    configureClocks();
-    attachPins();
-
-    Fuel = {0, 0, 0.0, 0.0, 0.0, 1u /* No error present*/, 0u, 0.0, 0.0, 0.0, ((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */, 1u, &sercom1};
-    Fuel.CTRL = {(uint8_t)g_APinDescription[A2].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
-    Fuel.DIR_SEL = {(uint8_t)g_APinDescription[10].ulPort, (uint8_t)g_APinDescription[10].ulPin};
-    Fuel.STOP = {(uint8_t)g_APinDescription[A1].ulPort, (uint8_t)g_APinDescription[A1].ulPin};
-    Fuel.ENC_CLK = {(uint8_t)g_APinDescription[13].ulPort, (uint8_t)g_APinDescription[13].ulPin};
-    Fuel.ENC_DATA = {(uint8_t)g_APinDescription[12].ulPort, (uint8_t)g_APinDescription[12].ulPin};
-    Fuel.SER_OUT = {(uint8_t)g_APinDescription[11].ulPort, (uint8_t)g_APinDescription[11].ulPin};
-    Fuel.CS = {(uint8_t)g_APinDescription[8].ulPort, (uint8_t)g_APinDescription[8].ulPin};
+    Fuel = {0, 0, 3.5, 0, 0, (1u) /* No error present*/, (0u), .005, .005, .005, ((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */, 2, &sercom1};
+    Fuel.CTRL = {(uint8_t)g_APinDescription[A3].ulPort, (uint8_t)g_APinDescription[A3].ulPin};
+    Fuel.DIR_SEL = {(uint8_t)g_APinDescription[10].ulPort, (uint8_t)g_APinDescription[10].ulPin, (true)};
+    Fuel.STOP = {(uint8_t)g_APinDescription[A1].ulPort, (uint8_t)g_APinDescription[A1].ulPin, (false)};
+    Fuel.SCK = {(uint8_t)g_APinDescription[13].ulPort, (uint8_t)g_APinDescription[13].ulPin};
+    Fuel.MISO = {(uint8_t)g_APinDescription[12].ulPort, (uint8_t)g_APinDescription[12].ulPin};
+    Fuel.MOSI = {(uint8_t)g_APinDescription[11].ulPort, (uint8_t)g_APinDescription[11].ulPin};
+    Fuel.CS = {(uint8_t)g_APinDescription[8].ulPort, (uint8_t)g_APinDescription[8].ulPin, (false)};
     Fuel.COM = new SPIClassSAMD(Fuel.serc, (uint8_t)12, (uint8_t)13, (uint8_t)11, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
 
-    Ox = {0, 0, 0.0, 0.0, 0.0, 1u /* No error present*/, 0u, 0.0, 0.0, 0.0, ((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */, 0, &sercom0};
-
-    Ox.CTRL = {(uint8_t)g_APinDescription[A3].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
-    Ox.DIR_SEL = {(uint8_t)g_APinDescription[9].ulPort, (uint8_t)g_APinDescription[10].ulPin};
-    Ox.STOP = {(uint8_t)g_APinDescription[A0].ulPort, (uint8_t)g_APinDescription[A1].ulPin};
-    Ox.ENC_CLK = {(uint8_t)g_APinDescription[5].ulPort, (uint8_t)g_APinDescription[13].ulPin};
-    Ox.ENC_DATA = {(uint8_t)g_APinDescription[4].ulPort, (uint8_t)g_APinDescription[12].ulPin};
-    Ox.SER_OUT = {(uint8_t)g_APinDescription[6].ulPort, (uint8_t)g_APinDescription[11].ulPin};
-    Ox.CS = {(uint8_t)g_APinDescription[7].ulPort, (uint8_t)g_APinDescription[8].ulPin};
+    Ox = {0, 0, 0.0, 0.0, 0.0, (1u) /* No error present*/, (0u), 0.0, 0.0, 0.0, ((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */, 3, &sercom0};
+    Ox.CTRL = {(uint8_t)g_APinDescription[A2].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
+    Ox.DIR_SEL = {(uint8_t)g_APinDescription[9].ulPort, (uint8_t)g_APinDescription[9].ulPin, (true)};
+    Ox.STOP = {(uint8_t)g_APinDescription[A0].ulPort, (uint8_t)g_APinDescription[A0].ulPin, (false)};
+    Ox.SCK = {(uint8_t)g_APinDescription[5].ulPort, (uint8_t)g_APinDescription[5].ulPin};
+    Ox.MISO = {(uint8_t)g_APinDescription[4].ulPort, (uint8_t)g_APinDescription[4].ulPin};
+    Ox.MOSI = {(uint8_t)g_APinDescription[6].ulPort, (uint8_t)g_APinDescription[6].ulPin};
+    Ox.CS = {(uint8_t)g_APinDescription[7].ulPort, (uint8_t)g_APinDescription[7].ulPin, (false)};
     Ox.COM = new SPIClassSAMD(Ox.serc, (uint8_t)4, (uint8_t)5, (uint8_t)6, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
 
-    initSPIs(*Fuel.COM);
-    initSPIs(*Ox.COM);
-    while (true) {
-        sPrint("FUEL: ");
-        Fuel.TC->COUNT16.CTRLA.bit.ENABLE = 1;
-        while (Fuel.TC->COUNT16.STATUS.bit.SYNCBUSY)
-            ;
-        sPrintln(getPos(&Fuel));
-        // readSPIs(*Fuel.COM, true);
-        // sPrintln32(getPos(&Fuel), DEC);
-        // sPrint("OX: ");
-        // sPrintln32(readSPIs(*Ox.COM, false), DEC);
-        delay(100);
-    }
-}
-void fakesetup() {
-    Serial1.begin(115200);
+    configureGPIO(Fuel.DIR_SEL, OUTPUT);
+    configureGPIO(Fuel.STOP, OUTPUT);
+    configureGPIO(Fuel.CS, OUTPUT);
 
-    delay(100);
-    while (!Serial1.available())
-        ;
-    sPrintln("please");
-    sPrintln("for the love of god");
-    // Fuel = {
-    //     0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0,
-    //     // 0.0, TC4, 1u, SERCOM1};
-    //     // Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 0, SERCOM0};
+    configureGPIO(Ox.DIR_SEL, OUTPUT);
+    configureGPIO(Ox.STOP, OUTPUT);
+    configureGPIO(Ox.CS, OUTPUT);
 
-    sPrintln("help me");
-    // configureClocks();
-
-    sPrintln("before");
-    Serial1.flush();
+    configureGPIO(EXT.BUTTON_ONE, INPUT, 1, 1, (1u), (1u));
+    configureGPIO(EXT.BUTTON_TWO, INPUT, 1, 1, (1u), (1u));
+    configureGPIO(EXT.SEL_SWITCH, INPUT, 1, 1, (1u), (1u));
     configureClocks();
-    sPrintln("clocks");
-
-    sPrintln("Pins init");
-    sPrintln("After>");
     attachPins();
-    initSPIs(*Fuel.COM);
-    initSPIs(*Ox.COM);
-    sPrintln("just this once");
-    while (true) {
-        readSPIs(*Fuel.COM);
-        readSPIs(*Ox.COM);
-        delay(100);
-    }
-    sPrintln("after");
-    // -TODO: Init periphs
-    Fuel.status = 1u;
-    Ox.status = 1u;
-    // -TODO: Establish coms
-    // Fuel.status = STATUS_HOME;
-    // Ox.status = STATUS_HOME;
-    sPrintln("waiting");
 
-    enc->TC->COUNT16.CTRLA.bit.ENABLE = 1;
-    while (((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */->COUNT16.STATUS.bit.SYNCBUSY)
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[Fuel.CCB].reg = 0;
+    while (((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->SYNCBUSY.bit.CCB2)
         ;
-    sPrintln("testing");
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[Ox.CCB].reg = 0;
+    while (((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->SYNCBUSY.bit.CCB3)
+        ;
+
+    while (!Serial1.available()) {}
+
+    sPrintln("starting");
+    enc = (bool)Serial1.parseInt() ? &Ox : &Fuel;
+    sPrint("Enc:");
+    sPrintln((enc->CCB - 2) ? "OX" : "FUEL");
+    initSPIs(&Fuel);
+    initSPIs(&Ox);
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[Fuel.CCB].reg = .10 * (1262) /* 38kHz: 48MHz / (1262 + 1) = 38kHz*/;
+    while (true) {
+        if (Serial1.available()) {
+            (Serial1.read() == Fuel.DIR_SEL.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[Fuel.DIR_SEL.port].OUTSET.reg |= (1 << Fuel.DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[Fuel.DIR_SEL.pin].OUTCLR.reg |= (1 << Fuel.DIR_SEL.pin));
+        }
+    }
+    while (true) {
+        if (Serial1.available()) {
+            int ct = Serial1.parseInt();
+            Serial1.println(ct > 0);
+            uint16_t b = ((float)((ct)>0?(ct):-(ct)) / 100) * (1262) /* 38kHz: 48MHz / (1262 + 1) = 38kHz*/;
+            b = min((1262) /* 38kHz: 48MHz / (1262 + 1) = 38kHz*/, b);
+            ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[Fuel.CCB].reg = b;
+            (ct > 0 == Fuel.DIR_SEL.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[Fuel.DIR_SEL.port].OUTSET.reg |= (1 << Fuel.DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[Fuel.DIR_SEL.pin].OUTCLR.reg |= (1 << Fuel.DIR_SEL.pin));
+            Serial1.print(ct);
+            Serial1.print(" ");
+            Serial1.println(b);
+        }
+    }
 }
 
 void loop() {
     switch (enc->status) {
-        case 1u:
+        case (1u):
 
-        { // sPrintln(STATUS_NAME[enc->status]);
-            // sPrint("BUTTON_ONE: ");
-            // sPrintln(PORT_READ(EXT.BUTTON_ONE));
-            // sPrint("BUTTON_TWO: ");
-            // sPrintln(PORT_READ(EXT.BUTTON_TWO));
-            // sPrint("SEL_SWITCH: ");
-            // sPrintln(PORT_READ(EXT.SEL_SWITCH));
-            sPrint("POS:");
-            uint32_t tpos = readRawEncData(enc);
-            sPrint32(tpos, 10);
-            sPrint(" / ");
-            sPrintln32(tpos, 2);
-
-            if (Serial1.available()) {
-                if (Serial1.readString().equals("HOME")) {
-                    enc->status = 2u;
-                }
+        {
+            while (!(EXT.BUTTON_ONE.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin)))) {
+                sPrint((enc->CCB - 2) ? "FUEL: " : "Ox: ");
+                while (enc->TC->COUNT16.STATUS.bit.SYNCBUSY)
+                    ;
+                sPrint("dT: ");
+                float dt = getDeltaTheta(enc);
+                enc->totalRevs += dt;
+                sPrint(dt);
+                sPrint(";  Pos:");
+                sPrintln(enc->totalRevs);
+                delay(100);
             }
+
+            enc->status = (2u);
             break;
         }
-        case 2u: {
-            while ((!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin)))) {
-                if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin)))) {
-                    (true ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
-                    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = .15 * 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/;
+        case (2u): {
+            while (!(EXT.SEL_SWITCH.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin)))) {
+                if ((EXT.BUTTON_ONE.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin)))) {
+                    (false == enc->STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.port].OUTSET.reg |= (1 << enc->STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.pin].OUTCLR.reg |= (1 << enc->STOP.pin));
+                    (true == enc->DIR_SEL.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
+                    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = .15 * (1262) /* 38kHz: 48MHz / (1262 + 1) = 38kHz*/;
                     sPrintln("MoveLeft");
-                } else if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin)))) {
-                    (false ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
-                    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = .15 * 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/;
+                } else if ((EXT.BUTTON_TWO.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin)))) {
+                    (false == enc->STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.port].OUTSET.reg |= (1 << enc->STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.pin].OUTCLR.reg |= (1 << enc->STOP.pin));
+                    (false == enc->DIR_SEL.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
+                    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = .15 * (1262) /* 38kHz: 48MHz / (1262 + 1) = 38kHz*/;
                     sPrintln("MoveRight");
                 } else {
-
+                    (true == enc->STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.port].OUTSET.reg |= (1 << enc->STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.pin].OUTCLR.reg |= (1 << enc->STOP.pin));
                     ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = 0;
                     sPrintln("Stop");
                 }
-                // sPrintln("movement on");
 
                 delay(100);
             }
-            if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin)))) {
-                if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin))) && !(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin)))) {
-                    enc->target = (byte)((90 / 360) * 15u /* Revs into gearbox per 1 revolution out*/) /* Number of rotations to get within one rev of fully open*/;
-                    enc->status = 3u;
+            (true == enc->STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.port].OUTSET.reg |= (1 << enc->STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.pin].OUTCLR.reg |= (1 << enc->STOP.pin));
+            if ((EXT.SEL_SWITCH.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin)))) {
+                if ((EXT.BUTTON_ONE.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin))) && (EXT.BUTTON_TWO.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin)))) {
+                    enc->target = TARGET_REVS;
+                    enc->status = (3u);
                     break;
                 }
             }
             break;
         }
-        case 3u: {
-            sPrint("BUTTON_ONE: ");
-            sPrintln((!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin))));
-            sPrint("BUTTON_TWO: ");
-            sPrintln((!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin))));
-            sPrint("SEL_SWITCH: ");
-            sPrintln((!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin))));
-            if (Serial1.available()) {
-                String msg = Serial1.readString();
-                if (msg.equals("HOME")) {
-                    enc->status = 2u;
+        case (3u): {
+            (true == enc->STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.port].OUTSET.reg |= (1 << enc->STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.pin].OUTCLR.reg |= (1 << enc->STOP.pin));
+            if (Fuel.status == (3u) && Ox.status == (3u)) {
+                sPrintln("Set SEL_SWITCH to ON and press both buttons to arm valves");
+                while (!(EXT.SEL_SWITCH.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin))))
+                    ;
+                if ((EXT.BUTTON_ONE.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin))) && (EXT.BUTTON_TWO.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin)))) {
+                    (&Fuel)->status == (4u);
+                    (&Ox)->status == (4u);
                 }
+            } else {
+                enc = ((enc->CCB - 2) ? &Ox : &Fuel);
             }
-            if (Fuel.status == 3u && Ox.status == 3u) {
-                Fuel.status = 4u;
-                Ox.status = 4u;
-            }
-
-            delay(200);
             break;
         }
-        case 4u:
-            // TODO:
-            // -If serEn, receive data from SERCOM5
-            //     -If data=launch:
-            //         enc->status = STATUS_ACTIVATE;
-            //     -If data=abort:
-            //         enc->status = STATUS_ABORT;
-            // -If !serEn:
-            //     -If PORT_READ(PORT_EXT_TX, PIN_EXT_TX):
-            //         enc->status = STATUS_ACTIVATE;
+        case (4u): {
+            (true == enc->STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.port].OUTSET.reg |= (1 << enc->STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.pin].OUTCLR.reg |= (1 << enc->STOP.pin));
             if (serEn) {
-                //-If data=launch:
-                //    enc->status = STATUS_ACTIVATE;
-                //-If data=abort:
-                //    enc->status = STATUS_ABORT;
+                while (Serial1.available() < (3u))
+                    ;
+
+                byte header = Serial1.read();
+                uint16_t pData = ((Serial1.read() << 8) | Serial1.read());
+
+                if (header == (0b10101010)) {
+                    if (pData == (30881) /* full launch packet in DEC is 11172001*/) {
+                        (&Fuel)->status = (5u);
+                        (&Ox)->status = (5u);
+                    } else if (pData == (43082) /* full abort packet in DEC is 11184202*/) {
+                        (&Fuel)->status = (7u);
+                        (&Ox)->status = (7u);
+                    } else {
+                        enc->err = (4u) /* Invalid or corrupt Serial1 data*/;
+                        error(false);
+                    }
+                }
+                // TODO implement Hamming
+
             } else {
-                if (!(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.TX.port].IN.reg & (1 << EXT.TX.pin)))) {
-                    enc->status = 5u;
+                if ((EXT.TX.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.TX.port].IN.reg & (1 << EXT.TX.pin)))) {
+                    (&Fuel)->status = (5u);
+                    (&Ox)->status = (5u);
+                } else if (!(EXT.SEL_SWITCH.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.SEL_SWITCH.port].IN.reg & (1 << EXT.SEL_SWITCH.pin)))) {
+                    if ((EXT.BUTTON_ONE.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_ONE.port].IN.reg & (1 << EXT.BUTTON_ONE.pin))) || (EXT.BUTTON_TWO.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[EXT.BUTTON_TWO.port].IN.reg & (1 << EXT.BUTTON_TWO.pin)))) {
+                        (&Fuel)->status = (7u);
+                        (&Ox)->status = (7u);
+                    }
                 }
             }
-            break;
-        case 5u:
+        } break;
+        case (5u): {
             enc->TC->COUNT16.CTRLA.bit.ENABLE = 1;
-            enc->status = 6u;
-            break;
-        case 6u:
+            enc->status = (6u);
+        } break;
+        case (6u): {
+            (false == enc->STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.port].OUTSET.reg |= (1 << enc->STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->STOP.pin].OUTCLR.reg |= (1 << enc->STOP.pin));
             update(enc);
-            break;
-        case 7u:
-            enc->target = enc->origin;
-            break;
+        } break;
+        case (7u): {
+            (false == Fuel.STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[Fuel.STOP.port].OUTSET.reg |= (1 << Fuel.STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[Fuel.STOP.pin].OUTCLR.reg |= (1 << Fuel.STOP.pin));
+            (false == Ox.STOP.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[Ox.STOP.port].OUTSET.reg |= (1 << Ox.STOP.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[Ox.STOP.pin].OUTCLR.reg |= (1 << Ox.STOP.pin));
+            (&Fuel)->target = 0;
+            (&Ox)->target = 0;
+            update(&Fuel);
+            update(&Ox);
+        } break;
 
         default:
             break;
     }
-    // enc = (enc == &Fuel) ? &Ox : &Fuel;
 }
 
 void sPrint(int i, uint8_t base = 10) {
@@ -364,50 +374,75 @@ void sPrintln(float f) {
 void sPrintln(void) { sPrint("\r\n"); }
 // PID loop. General implementation.
 void update(Encoder *enc) {
-    uint16_t dt = enc->TC->COUNT16.COUNT.reg; // Time since last loop, in us
-    enc->TC->COUNT16.CTRLBSET.reg |= (0x1ul /**< \brief (TC_CTRLBSET) Force a start, restart or retrigger */ << 6 /**< \brief (TC_CTRLBSET) Command */);
-    float theta_n = enc->totalRevs + getPos(enc);
+    float dt = enc->TC->COUNT16.COUNT.reg; // Time since last loop, in us
+    float theta_n = enc->totalRevs + getDeltaTheta(enc);
+    // sPrint("dt: ");
+    // sPrint32(dt >> 1);
+    // sPrint("  theta_n: ");
+    // sPrint32(theta_n);
+    // sPrint("  TARGET: ");
+    // sPrint32(enc->target);
+    // sPrint("  last term: ");
+    // sPrint((theta_n + enc->totalRevs - 2));
 
     // Integral approximation based on trapezoidal Riemann sum
-    enc->accumulator += (1 / 2) * dt * enc->target * (theta_n + enc->totalRevs - 2);
+    enc->accumulator += (dt / 2) * enc->target * (theta_n + enc->totalRevs - 2);
+    // sPrint("  dA: ");
+    // sPrint32((dt >> 1) * enc->target * (theta_n + enc->totalRevs - 2));
+    // sPrint("  accumulator: ");
+    // sPrint32(enc->accumulator);
 
     // Calculate PID output
     float O =
         (enc->P * (theta_n - enc->target)) + (enc->I * enc->accumulator) + (enc->D * ((theta_n - enc->totalRevs) / dt));
 
-    (O > 0 ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
+    // sPrint("  O: ");
+    // sPrintln(O);
+    (O < 0 == enc->DIR_SEL.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.port].OUTSET.reg |= (1 << enc->DIR_SEL.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->DIR_SEL.pin].OUTCLR.reg |= (1 << enc->DIR_SEL.pin));
 
-    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = (((O)>0?(O):-(O)) > 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/) ? 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/ : ((O)>0?(O):-(O));
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CCB[enc->CCB].reg = min((1262) /* 38kHz: 48MHz / (1262 + 1) = 38kHz*/, ((O)>0?(O):-(O)));
 
     enc->totalRevs = theta_n;
 }
 
-// Returns encoder position, centered on the home value established during startup. For use with PID loop, as this
-// enables it to pick the most efficient route to the target position. Must reset clock before calling.
-float getPos(Encoder *enc) {
+// Returns change in encoder position since last call in revolutions. For use with PID loop, as this
+// enables it to pick the most efficient route to the target position.
+float getDeltaTheta(Encoder *enc) {
     uint32_t npos = readRawEncData(enc);
-    uint32_t ppos = enc->prev_t;
-    while (enc->TC->COUNT16.COUNT.reg >> 5 != 0)
+
+    enc->TC->COUNT16.CTRLBSET.reg |= (0x1ul /**< \brief (TC_CTRLBSET) Force a start, restart or retrigger */ << 6 /**< \brief (TC_CTRLBSET) Command */);
+    while (enc->TC->COUNT16.COUNT.reg < (20u))
         ;
     uint32_t nnpos = readRawEncData(enc);
-    // sPrint("npos ^ nnpos: ");
-    // sPrintln32(npos ^ nnpos);
 
     if (nnpos ^ npos == 0) {
-        enc->TC->COUNT16.CTRLBSET.reg |= (0x1ul /**< \brief (TC_CTRLBSET) Force a start, restart or retrigger */ << 6 /**< \brief (TC_CTRLBSET) Command */);
 
-        npos = (npos ^ 0b011111111111111111000000 /* Bits [22:6]*/) >> 6 /* Number of digits to drop at right to read from data after masking*/; // Extract value from raw bits
+        npos = (npos ^ (0b011111111111111111000000) /* Bits [22:6]*/) >> (6u) /* Number of digits to drop at right to read from data after masking*/; // Extract value from raw bits
+        float dif;
+        dif = ((signed long)npos - (signed long)enc->prev_t);
 
-        enc->prev_t = npos;
-        signed long dif;
-        if (((npos - ppos)>0?(npos - ppos):-(npos - ppos)) < (1 << (17 - 1))) {
-            sPrint(1);
-            dif = (signed long)(npos - ppos);
-        } else {
-            sPrint(2);
-            dif = (npos - ppos) + ((((((1l << 17) ^ (npos > ppos)) + ((npos > ppos) & 1))) /* Negates x if y (bit) is 1, only works for 2s complement*/));
+        if (((dif)>0?(dif):-(dif)) > (0x20000u) /* Number of encoder tics in mechanical revolution (per datasheet)*/ * .5) { // If the shortest path between npos and ppos crosses the 0 point (eg
+                                                      // npos and ppos are 11 o clock and 1 o clock)
+            if (dif > 0) { // If 0 point crossed in the negative direction (prev_t = 1 o clock, npos = 11 o clock)
+                enc->prev_t = npos;
+                dif = dif - (0x20000u) /* Number of encoder tics in mechanical revolution (per datasheet)*/;
+            } else { // If it crossed 0 point travelling in the positive direciton (prev_t = 11 o clock, npos = 1 o clock)
+                enc->prev_t = npos;
+                dif = (0x20000u) /* Number of encoder tics in mechanical revolution (per datasheet)*/ - dif;
+            }
         }
-        return (float)(dif / (1 << 16));
+        enc->prev_t = npos;
+        return dif / (0x20000u) /* Number of encoder tics in mechanical revolution (per datasheet)*/; // If the movement did not cross the 0 point, return straightforward difference
+                                             // between npos and prev_t
+
+        // if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 2))) {
+        //     sPrint(1);
+        //     dif = ((signed long)npos - (signed long)ppos);
+        // } else {
+        //     sPrint(2);
+        //     dif = ((signed long)npos - (signed long)ppos) + ((neg((1l << ENC_DATA_BIT_CT), (npos > ppos))));
+        // }
+        // return (float)(dif / (1 << ENC_DATA_BIT_CT - 1));
     } else {
         sPrint("npos: ");
         sPrintln32(npos, 2);
@@ -415,7 +450,7 @@ float getPos(Encoder *enc) {
         sPrintln32(nnpos, 2);
         sPrintln32(npos ^ nnpos, 2);
         sPrintln("err 353 !");
-        enc->err = 4u /* Encoder reads do not match*/;
+        enc->err = (4u) /* Encoder reads do not match*/;
         error(false);
     }
 }
@@ -423,9 +458,9 @@ float getPos(Encoder *enc) {
 // Takes reading from fuel encoder. Throws error if first latch bit is not 1, or encoder reading returns internal error state
 // (last bit is 0).
 uint32_t readRawEncData(Encoder *enc) {
-    SPIClassSAMD spi = *enc->COM;
-    (false ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.port].OUTSET.reg |= (1 << enc->CS.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.pin].OUTCLR.reg |= (1 << enc->CS.pin));
-    spi.beginTransaction(SPISettings(800000, MSBFIRST, SERCOM_SPI_MODE_0));
+    SPIClassSAMD spi = *(enc->COM);
+    (true == enc->CS.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.port].OUTSET.reg |= (1 << enc->CS.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.pin].OUTCLR.reg |= (1 << enc->CS.pin));
+    spi.beginTransaction(SPISettings(200000, MSBFIRST, SERCOM_SPI_MODE_0));
     uint32_t data = 0;
     uint32_t buf;
     uint32_t d2 = 0;
@@ -439,23 +474,23 @@ uint32_t readRawEncData(Encoder *enc) {
     data |= b1 << 8;
     data |= b3 << 0;
     spi.endTransaction();
-    (true ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.port].OUTSET.reg |= (1 << enc->CS.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.pin].OUTCLR.reg |= (1 << enc->CS.pin));
+    (false == enc->CS.active ? ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.port].OUTSET.reg |= (1 << enc->CS.pin) : ((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[enc->CS.pin].OUTCLR.reg |= (1 << enc->CS.pin));
     // sPrint("rawData:");
     // sPrintln(rawData, BIN);
-    if (data & 1 << (24u /* Total number of bits in encoder packet.*/ - 1)) {
+    if (data & (0x20000u) /* Number of encoder tics in mechanical revolution (per datasheet)*/) { // First bit is 1 = latch bit working, increased probability of good read
         // sPrintln("err 388 !");
         // enc->err = ERR_ENC_CONN;
         // // enc->SERCOM->SPI.DATA.reg = errorCode;
         // error(true);
     }
-    if (!(data & (uint32_t)1)) { // Error bit is 0.
+    if (!(data & 1l)) { // Last bit is 0 = enc internal error
         sPrint("data: ");
         sPrintln32(data, 2);
         sPrint("error bit: ");
         sPrintln32(data & 1);
-        // enc->err = ERR_ENC_INT;
-        // sPrintln("err 395 !");
-        // error(true);
+        enc->err = (3u) /* Encoder passes internal error state*/;
+        sPrintln("err 395 !");
+        error(true);
     }
     return data;
 }
@@ -477,29 +512,24 @@ void error(bool fatal) {
 
     while (!((Sercom *)0x42000800UL) /**< \brief (SERCOM0) APB Base Address */->SPI.INTFLAG.bit.DRE)
         ;
-    ((Sercom *)0x42000800UL) /**< \brief (SERCOM0) APB Base Address */->SPI.DATA.reg = ((Fuel.err << 4u) | (Ox.err << 0u));
+    ((Sercom *)0x42000800UL) /**< \brief (SERCOM0) APB Base Address */->SPI.DATA.reg = ((Fuel.err << (4u)) | (Ox.err << (0u)));
 
     if (fatal) {
-        Fuel.status = 7u;
-        Ox.status = 7u;
+        Fuel.status = (7u);
+        Ox.status = (7u);
     }
 }
 
-// Configure GPIO pins per 23.6.3 of SAMD datasheet
-void configureGPIO(Pin p, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0, bool SAMPLE = 0) {
-    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].DIR.reg |= DIR << p.pin;
-    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].PINCFG[p.pin].bit.INEN = INEN;
-    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].PINCFG[p.pin].bit.PULLEN = PULLEN;
-    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].OUT.reg |= OUT << p.pin;
-    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[p.port].CTRL.reg |= SAMPLE << p.pin;
-}
 // Checks to see if Serial1 communications port has been enabled (active low)
 bool serialEnabled() {
-    configureGPIO(SER_EN, 0, 1, 1, INPUT_PULLUP);
-    return !(!!(((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[SER_EN.port].IN.reg & (1 << SER_EN.pin)));
+    configureGPIO(SER_EN, INPUT, 1, 1, INPUT_PULLUP);
+    return (SER_EN.active == (((Port *)0x60000000UL) /**< \brief (PORT) IOBUS Base Address */->Group[SER_EN.port].IN.reg & (1 << SER_EN.pin)));
 }
 
-void initSPIs(SPIClassSAMD spi) { spi.begin(); }
+void initSPIs(Encoder *enc) {
+    enc->serc->resetSPI();
+    enc->COM->begin();
+}
 
 uint32_t readSPIs(SPIClassSAMD spi, bool verbose = false) {
     spi.beginTransaction(SPISettings(800000, MSBFIRST, SERCOM_SPI_MODE_0));
@@ -516,7 +546,6 @@ uint32_t readSPIs(SPIClassSAMD spi, bool verbose = false) {
     data |= b1 << 8;
     data |= b3 << 0;
     spi.endTransaction();
-    digitalWrite(8, HIGH);
     buf = data;
     if (verbose) {
         Serial1.print("OD: ");
@@ -603,9 +632,9 @@ void attachPins() {
     sPrintln("375");
 
     // Enable the port multiplexer for Encoder coms and status register pins
-    // PORT->Group[Fuel.ENC_CLK.port].PINCFG[Fuel.ENC_CLK.pin].bit.PMUXEN = 1;
-    // PORT->Group[Fuel.ENC_DATA.port].PINCFG[Fuel.ENC_DATA.pin].bit.PMUXEN = 1;
-    // PORT->Group[Fuel.SER_OUT.port].PINCFG[Fuel.SER_OUT.pin].bit.PMUXEN = 1;
+    // PORT->Group[Fuel.SCK.port].PINCFG[Fuel.SCK.pin].bit.PMUXEN = 1;
+    // PORT->Group[Fuel.MISO.port].PINCFG[Fuel.MISO.pin].bit.PMUXEN = 1;
+    // PORT->Group[Fuel.MOSI.port].PINCFG[Fuel.MOSI.pin].bit.PMUXEN = 1;
     // PORT->Group[Fuel.CS.port].PINCFG[Fuel.CS.pin].bit.PMUXEN = 1;
     sPrintln("382");
     // Status LED shift registers MOSI and CS technically part of the encoder SERCOMs. As it is not neccesary to
@@ -624,9 +653,9 @@ void attachPins() {
     sPrintln("396");
 
     // Enable the port multiplexer for Encoder coms and status register pins
-    // PORT->Group[Ox.ENC_CLK.port].PINCFG[Ox.ENC_CLK.pin].bit.PMUXEN = 1;
-    // PORT->Group[Ox.ENC_DATA.port].PINCFG[Ox.ENC_DATA.pin].bit.PMUXEN = 1;
-    // PORT->Group[Ox.SER_OUT.port].PINCFG[Ox.SER_OUT.pin].bit.PMUXEN = 1;
+    // PORT->Group[Ox.SCK.port].PINCFG[Ox.SCK.pin].bit.PMUXEN = 1;
+    // PORT->Group[Ox.MISO.port].PINCFG[Ox.MISO.pin].bit.PMUXEN = 1;
+    // PORT->Group[Ox.MOSI.port].PINCFG[Ox.MOSI.pin].bit.PMUXEN = 1;
     // PORT->Group[Ox.CS.port].PINCFG[Ox.CS.pin].bit.PMUXEN = 1;
     sPrintln("403");
 
@@ -651,24 +680,24 @@ void attachPins() {
 
     // Attach PWM pins to timer peripherals
     ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Fuel.CTRL.port].PMUX[Fuel.CTRL.pin >> 1].reg |=
-        ((Fuel.CTRL.pin % 2) == 0) ? (0x4ul /**< \brief (PORT_PMUX) Peripheral function E selected */ << 0 /**< \brief (PORT_PMUX) Peripheral Multiplexing Even */) : (0x4ul /**< \brief (PORT_PMUX) Peripheral function E selected */ << 4 /**< \brief (PORT_PMUX) Peripheral Multiplexing Odd */);
-    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Ox.CTRL.port].PMUX[Ox.CTRL.pin >> 1].reg |= ((Ox.CTRL.pin % 2) == 0) ? (0x4ul /**< \brief (PORT_PMUX) Peripheral function E selected */ << 0 /**< \brief (PORT_PMUX) Peripheral Multiplexing Even */) : (0x4ul /**< \brief (PORT_PMUX) Peripheral function E selected */ << 4 /**< \brief (PORT_PMUX) Peripheral Multiplexing Odd */);
+        (!(Fuel.CTRL.pin % 2)) ? (0x5ul /**< \brief (PORT_PMUX) Peripheral function F selected */ << 0 /**< \brief (PORT_PMUX) Peripheral Multiplexing Even */) : (0x5ul /**< \brief (PORT_PMUX) Peripheral function F selected */ << 4 /**< \brief (PORT_PMUX) Peripheral Multiplexing Odd */);
+    ((Port *)0x41004400UL) /**< \brief (PORT) APB Base Address */->Group[Ox.CTRL.port].PMUX[Ox.CTRL.pin >> 1].reg |= (!(Ox.CTRL.pin % 2)) ? (0x5ul /**< \brief (PORT_PMUX) Peripheral function F selected */ << 0 /**< \brief (PORT_PMUX) Peripheral Multiplexing Even */) : (0x5ul /**< \brief (PORT_PMUX) Peripheral function F selected */ << 4 /**< \brief (PORT_PMUX) Peripheral Multiplexing Odd */);
     sPrintln("428");
     /*
 
     // Attach Encoder coms and status register pins to FUEL SERCOM
 
-    PORT->Group[Fuel.ENC_CLK.port].PMUX[Fuel.ENC_CLK.pin >> 1].reg |=
+    PORT->Group[Fuel.SCK.port].PMUX[Fuel.SCK.pin >> 1].reg |=
 
-        ((Fuel.ENC_CLK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+        ((Fuel.SCK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
-    PORT->Group[Fuel.ENC_DATA.port].PMUX[Fuel.ENC_DATA.pin >> 1].reg |=
+    PORT->Group[Fuel.MISO.port].PMUX[Fuel.MISO.pin >> 1].reg |=
 
-        ((Fuel.ENC_DATA.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+        ((Fuel.MISO.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
-    PORT->Group[Fuel.SER_OUT.port].PMUX[Fuel.SER_OUT.pin >> 1].reg |=
+    PORT->Group[Fuel.MOSI.port].PMUX[Fuel.MOSI.pin >> 1].reg |=
 
-        ((Fuel.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+        ((Fuel.MOSI.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
     PORT->Group[Fuel.CS.port].PMUX[Fuel.CS.pin >> 1].reg |= ((Fuel.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
@@ -678,24 +707,24 @@ void attachPins() {
 
     // // Attach Encoder coms and status register pins to OX SERCOM
 
-    PORT->Group[Ox.ENC_CLK.port].PMUX[Ox.ENC_CLK.pin >> 1].reg |=
+    PORT->Group[Ox.SCK.port].PMUX[Ox.SCK.pin >> 1].reg |=
 
-        ((Ox.ENC_CLK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+        ((Ox.SCK.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
-    PORT->Group[Ox.ENC_DATA.port].PMUX[Ox.ENC_DATA.pin >> 1].reg |=
+    PORT->Group[Ox.MISO.port].PMUX[Ox.MISO.pin >> 1].reg |=
 
-        ((Ox.ENC_DATA.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+        ((Ox.MISO.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
-    PORT->Group[Ox.SER_OUT.port].PMUX[Ox.SER_OUT.pin >> 1].reg |=
+    PORT->Group[Ox.MOSI.port].PMUX[Ox.MOSI.pin >> 1].reg |=
 
-        ((Ox.SER_OUT.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
+        ((Ox.MOSI.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
     PORT->Group[Ox.CS.port].PMUX[Ox.CS.pin >> 1].reg |= ((Ox.CS.pin % 2) == 0) ? PORT_PMUX_PMUXE_C : PORT_PMUX_PMUXO_C;
 
     sPrintln("448");
 
     */
-# 704 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 734 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
     // See configureClocks() for information regarding GCLK configuration and linking to periphs.
 
     // TCCs, or Timer/Counters for Control applications, are a Timer/Counter peripheral with added logical functionality
@@ -723,11 +752,11 @@ void attachPins() {
     while (((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->SYNCBUSY.bit.WAVE)
         ; // Sync
 
-    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->PER.reg = 480u /* 48MHz / (2 + [480]) = .05MHz = 50KHz*/; // Set PWM frequency to 50KHz (f=GCLK/(2+PER))
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->PER.reg = (1262) /* 38kHz: 48MHz / (1262 + 1) = 38kHz*/; // Set PWM frequency to 50KHz (f=GCLK/(2+PER))
     while (((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->SYNCBUSY.bit.PER)
         ; // Sync
 
-    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CTRLA.bit.ENABLE = 1u; // Enable the TCC0 counter
+    ((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->CTRLA.bit.ENABLE = 1; // Enable the TCC0 counter
     while (((Tcc *)0x42002000UL) /**< \brief (TCC0) APB Base Address */->SYNCBUSY.bit.ENABLE)
         ; // Sync
 
@@ -755,6 +784,10 @@ void attachPins() {
                                (0x1ul << 15 /**< \brief (TC_READREQ) Read Request */) | // Read sync request flag, synchronizes COUNT register for reading
                                ((0x1Ful << 0 /**< \brief (TC_READREQ) Address */) & ((0x10) << 0 /**< \brief (TC_READREQ) Address */)); // COUNT register address
 
+    ((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */->COUNT16.CTRLA.bit.ENABLE = 1;
+    while (((Tc *)0x42003000UL) /**< \brief (TC4) APB Base Address */->COUNT16.STATUS.bit.SYNCBUSY)
+        ; // sync
+
     sPrintln("509");
     // Same as TC4
     ((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */->COUNT16.CTRLA.reg =
@@ -767,6 +800,9 @@ void attachPins() {
     ((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */->COUNT16.READREQ.reg = (0x1ul << 14 /**< \brief (TC_READREQ) Read Continuously */) | // Sets RCONT flag, disabling automatic clearing of RREQ flag after sync
                                (0x1ul << 15 /**< \brief (TC_READREQ) Read Request */) | // Read sync request flag, synchronizes COUNT register for reading
                                ((0x1Ful << 0 /**< \brief (TC_READREQ) Address */) & ((0x10) << 0 /**< \brief (TC_READREQ) Address */)); // COUNT register address
+    ((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */->COUNT16.CTRLA.bit.ENABLE = 1;
+    while (((Tc *)0x42003400UL) /**< \brief (TC5) APB Base Address */->COUNT16.STATUS.bit.SYNCBUSY)
+        ; // sync
 
     sPrintln("522");
 
@@ -915,59 +951,30 @@ void attachPins() {
         ;
 
     */
-# 876 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+# 913 "Z:\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
     sPrintln(7);
 
+    // serEn = serialEnabled();
     serEn = true;
-    /*if (serialEnabled()) {
-
-        Serial1.begin(115200);
-
-        // TODO: Init coms/handshake
-
+    if (serEn) {
+        // Serial1.begin(115200);
+        // while (!Serial1)
+        //     ;
     } else {
 
-
-
         sPrintln("613");
-
         // Disable Serial1 USART
-
-        SERCOM5->SPI.CTRLA.bit.ENABLE = 0;
-
-        while (SERCOM1->SPI.SYNCBUSY.bit.ENABLE)
-
+        ((Sercom *)0x42001C00UL) /**< \brief (SERCOM5) APB Base Address */->SPI.CTRLA.bit.ENABLE = 0;
+        while (((Sercom *)0x42000C00UL) /**< \brief (SERCOM1) APB Base Address */->SPI.SYNCBUSY.bit.ENABLE)
             ;
-
-        SERCOM5->USART.CTRLA.bit.SWRST = 1;
-
-        while (SERCOM5->USART.SYNCBUSY.bit.SWRST)
-
+        ((Sercom *)0x42001C00UL) /**< \brief (SERCOM5) APB Base Address */->SPI.CTRLA.bit.SWRST = 1;
+        while (((Sercom *)0x42001C00UL) /**< \brief (SERCOM5) APB Base Address */->SPI.SYNCBUSY.bit.SWRST)
             ;
-
         // Configure TX as plain input
-
-        configureGPIO(EXT.TX.port, EXT.TX.pin, INPUT, 1, 1, INPUT_PULLDOWN);
-
-
+        configureGPIO(EXT.TX, INPUT, 1, 1, (0u), (1u));
 
         sPrintln("624");
-
     }
-
-    */
-# 899 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
-    configureGPIO(Fuel.DIR_SEL, 1);
-    configureGPIO(Fuel.STOP, 1);
-    configureGPIO(Fuel.CS, 1);
-
-    configureGPIO(Ox.DIR_SEL, 1);
-    configureGPIO(Ox.STOP, 1);
-    configureGPIO(Ox.CS, 1);
-
-    configureGPIO(EXT.BUTTON_ONE, 0, 1, 1, 1, 1);
-    configureGPIO(EXT.BUTTON_TWO, 0, 1, 1, 1, 1);
-    configureGPIO(EXT.SEL_SWITCH, 0, 1, 1, 1, 1);
 
     sPrintln("637");
 }
@@ -987,7 +994,7 @@ void configureClocks() {
 
     ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x4ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 4 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK4 at 48MHz to edit |
                         (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK4 as a clock source
-                        (0x1Aul /**< \brief (GCLK_CLKCTRL) TCC0_TCC1 */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK4 to TCC0 and TCC1
+                        (0x1Aul /**< \brief (GCLK_CLKCTRL) TCC0_TCC1 */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK4 to TCC0 and TCC0
     while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
 
     ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x4ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 4 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK4 at 48MHz to edit |
@@ -1010,48 +1017,12 @@ void configureClocks() {
                         (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK5 as a clock source
                         (0x1Dul /**< \brief (GCLK_CLKCTRL) TC6_TC7 */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK5 to TC4 and TC5
 
-    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x5ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 5 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK5 at 8MHz to edit |
-                        (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK5 as a clock source
-                        (0x14ul /**< \brief (GCLK_CLKCTRL) SERCOM0_CORE */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK5 to SERCOM0 Baud Generator
+    // GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 |      // Select GCLK5 at 8MHz to edit |
+    //                     GCLK_CLKCTRL_CLKEN |          // Enable GCLK5 as a clock source
+    //                     GCLK_CLKCTRL_ID_SERCOM0_CORE; // Feed GCLK5 to SERCOM0 Baud Generator
+    // syncClock();
+    // GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN_GCLK5 |      // Select GCLK5 at 8MHz to edit |
+    //                     GCLK_CLKCTRL_CLKEN |          // Enable GCLK5 as a clock source
+    //                     GCLK_CLKCTRL_ID_SERCOM1_CORE; // Feed GCLK7 to SERCOM1 Baud Generator
     while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
-    ((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->CLKCTRL.reg = (0x5ul /**< \brief (GCLK_CLKCTRL) Generic clock generator 5 */ << 8 /**< \brief (GCLK_CLKCTRL) Generic Clock Generator */) | // Select GCLK5 at 8MHz to edit |
-                        (0x1ul << 14 /**< \brief (GCLK_CLKCTRL) Clock Enable */) | // Enable GCLK5 as a clock source
-                        (0x15ul /**< \brief (GCLK_CLKCTRL) SERCOM1_CORE */ << 0 /**< \brief (GCLK_CLKCTRL) Generic Clock Selection ID */); // Feed GCLK7 to SERCOM1 Baud Generator
-    while (((Gclk *)0x40000C00UL) /**< \brief (GCLK) APB Base Address */->STATUS.bit.SYNCBUSY) ; /* Wait for clock synchronization*/;
-}
-
-Encoder initEncoderModules(uint32_t origin, uint32_t prev_t, float target, float totalRevs, float accumulator, byte err,
-                           byte status, float P, float I, float D, Tc *TC, byte CCB, SERCOM *serc) {
-    Encoder e;
-    e.origin = origin;
-    e.prev_t = prev_t;
-    e.target = target;
-    e.totalRevs = totalRevs;
-    e.accumulator = accumulator;
-    e.err = err;
-    e.status = status;
-    e.P = P;
-    e.I = I;
-    e.D = D;
-    e.TC = TC;
-    e.CCB = CCB;
-    e.serc = serc;
-    return e;
-}
-
-void initEncoderPins(Encoder *e, uint8_t ctrl, uint8_t dir_sel, uint8_t stop, uint8_t clk, uint8_t miso, uint8_t mosi,
-                     uint8_t cs) {
-    sPrintln("why");
-    // enc->CTRL = {(uint8_t)g_APinDescription[ctrl].ulPort, (uint8_t)g_APinDescription[ctrl].ulPin};
-    sPrintln("pain");
-    enc->DIR_SEL = {(uint8_t)g_APinDescription[dir_sel].ulPort, (uint8_t)g_APinDescription[dir_sel].ulPin};
-    enc->STOP = {(uint8_t)g_APinDescription[stop].ulPort, (uint8_t)g_APinDescription[stop].ulPin};
-    sPrintln("pain");
-    enc->ENC_CLK = {(uint8_t)g_APinDescription[clk].ulPort, (uint8_t)g_APinDescription[clk].ulPin};
-    enc->ENC_DATA = {(uint8_t)g_APinDescription[miso].ulPort, (uint8_t)g_APinDescription[miso].ulPin};
-    enc->SER_OUT = {(uint8_t)g_APinDescription[mosi].ulPort, (uint8_t)g_APinDescription[mosi].ulPin};
-    sPrintln("pain");
-    enc->CS = {(uint8_t)g_APinDescription[cs].ulPort, (uint8_t)g_APinDescription[cs].ulPin};
-    // enc->COM = new SPIClassSAMD(enc->serc, miso, clk, mosi, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
-    sPrintln("agony even");
 }
