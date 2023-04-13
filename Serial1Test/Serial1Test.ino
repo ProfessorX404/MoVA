@@ -11,8 +11,8 @@ SERCOM *os = &sercom0;
 SERCOM *fs = &sercom1;
 SPIClassSAMD ox = SPIClassSAMD(os, oMISO, oSCK, oMOSI, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
 SPIClassSAMD fuel = SPIClassSAMD(fs, fMISO, fSCK, fMOSI, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
-SPIClassSAMD mySPI = ox;
-int CS = oCS;
+SPIClassSAMD mySPI = fuel;
+int CS = fCS;
 void setup() {
     Serial1.begin(115200);
     pinMode(CS, OUTPUT);

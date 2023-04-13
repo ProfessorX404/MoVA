@@ -39,8 +39,8 @@ IMPORTANT NOTE: ***MUST*** change pin definitions in variant.cpp for D4, D5, D6 
 
 #define PACKET_LENGTH (3u)
 #define PACKET_HEADER (0b10101010)
-#define LAUNCH_CODE   (30881) // full launch packet in DEC is 11172001
-#define ABORT_CODE    (43082) // full abort packet in DEC is 11184202
+#define LAUNCH_CODE   (30881) // full launch packet in DEC is 11172001 (HEX AA78A1)
+#define ABORT_CODE    (43082) // full abort packet in DEC is 11184202 (HEX AAA84A)
 
 #define PWM_FREQ_COEF (1262) // 38kHz: 48MHz / (1262 + 1) = 38kHz
 #define SPI_FREQ      (8000000l)
@@ -74,7 +74,7 @@ IMPORTANT NOTE: ***MUST*** change pin definitions in variant.cpp for D4, D5, D6 
 #define OX_ERR_OFFSET      (0u)
 
 #define PORT_WRITE(p, b)                                                                                                    \
-    (b == p.active ? PORT_IOBUS->Group[p.port].OUTSET.reg |= (1 << p.pin)                                                   \
+    (b && p.active ? PORT_IOBUS->Group[p.port].OUTSET.reg |= (1 << p.pin)                                                   \
                    : PORT_IOBUS->Group[p.port].OUTCLR.reg |= (1 << p.pin))
 #define PORT_READ(p)    (int)(p.active == (!!(PORT_IOBUS->Group[p.port].IN.reg & (1 << p.pin))))
 #define statusCode      ((Fuel.err << FUEL_STATUS_OFFSET) | (Ox.err << OX_STATUS_OFFSET)) // Merge errors/statuses for LED output
@@ -142,8 +142,8 @@ bool serEn = false;
 Pin SER_EN = {(uint8_t)g_APinDescription[3].ulPort, (uint8_t)g_APinDescription[3].ulPin, ACTIVE_LOW};
 
 void sPrintln(int, uint8_t);
-void sPrint32(uint32_t, uint8_t);
-void sPrintln32(uint32_t, uint8_t);
+void sPrint32(long, uint8_t);
+void sPrintln32(long, uint8_t);
 uint32_t readSPIs(SPIClassSAMD, bool);
 uint32_t readSPIs(SPIClassSAMD);
 
@@ -158,7 +158,7 @@ void configureGPIO(Pin p, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0
 
 void setup() {
     Serial1.begin(115200);
-    Fuel = {0, 0, 3.5, 0, 0, ERR_CLR, STATUS_CONN, 1.0, .15, .05, TC4, 2, &sercom1};
+    Fuel = {0, 0, 3.5 * ENC_TICS_PER_VALVE_REV, 0, 0, ERR_CLR, STATUS_CONN, 0.0025, .15, .05, TC4, 2, &sercom1};
     Fuel.CTRL = {(uint8_t)g_APinDescription[A3].ulPort, (uint8_t)g_APinDescription[A3].ulPin};
     Fuel.DIR_SEL = {(uint8_t)g_APinDescription[10].ulPort, (uint8_t)g_APinDescription[10].ulPin, ACTIVE_HIGH};
     Fuel.STOP = {(uint8_t)g_APinDescription[A1].ulPort, (uint8_t)g_APinDescription[A1].ulPin, ACTIVE_LOW};
@@ -168,7 +168,7 @@ void setup() {
     Fuel.CS = {(uint8_t)g_APinDescription[8].ulPort, (uint8_t)g_APinDescription[8].ulPin, ACTIVE_LOW};
     Fuel.COM = new SPIClassSAMD(Fuel.serc, (uint8_t)12, (uint8_t)13, (uint8_t)11, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
 
-    Ox = {0, 0, 3.5, 0.0, 0.0, ERR_CLR, STATUS_CONN, 0.0, 0.0, 0.0, TC5, 3, &sercom0};
+    Ox = {0, 0, 3.5 * ENC_TICS_PER_VALVE_REV, 0.0, 0.0, ERR_CLR, STATUS_CONN, 0.0, 0.0, 0.0, TC5, 3, &sercom0};
     Ox.CTRL = {(uint8_t)g_APinDescription[A2].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
     Ox.DIR_SEL = {(uint8_t)g_APinDescription[9].ulPort, (uint8_t)g_APinDescription[9].ulPin, ACTIVE_HIGH};
     Ox.STOP = {(uint8_t)g_APinDescription[A0].ulPort, (uint8_t)g_APinDescription[A0].ulPin, ACTIVE_LOW};
@@ -207,10 +207,16 @@ void setup() {
     sPrintln((enc->CCB - 2) ? "OX" : "FUEL");
     initSPIs(&Fuel);
     initSPIs(&Ox);
+    while (true) {
+        update(&Fuel);
+    }
     TCC0->CCB[Fuel.CCB].reg = .10 * PWM_FREQ_COEF;
     while (true) {
         if (Serial1.available()) {
-            PORT_WRITE(Fuel.DIR_SEL, Serial1.parseInt() > 0 ? 0 : 1);
+            // digitalWrite(10, Serial1.parseInt() > 0 ? 1 : 0);
+            int i = Serial1.parseInt();
+            PORT_WRITE(enc->DIR_SEL, i > 0);
+            sPrintln(i, DEC);
         }
     }
     // while (true) {
@@ -243,7 +249,8 @@ void loop() {
                 sPrint(dt);
                 sPrint(";  Pos:");
                 sPrintln(enc->totalRevs);
-                delay(100);
+                // sPrintln("?");
+                // delay(100);
             }
 
             enc->status = STATUS_HOME;
@@ -299,6 +306,10 @@ void loop() {
                 (&Ox)->status = STATUS_IDLE;
                 sPrintln("idle");
                 delay(200);
+            } else {
+                enc = ((enc->CCB - 2) ? &Fuel : &Ox);
+                sPrintln("Switch");
+                delay(200);
             }
             break;
         }
@@ -347,7 +358,10 @@ void loop() {
         } break;
         case STATUS_RUN: {
             PORT_WRITE(enc->STOP, false);
-            enc->target = 3.5;
+            // enc->target = 3.5;
+            while (true) {
+                update(&Fuel);
+            }
             update(enc);
         } break;
         case STATUS_ABORT: {
@@ -355,16 +369,13 @@ void loop() {
             PORT_WRITE(Ox.STOP, false);
             (&Fuel)->target = 0;
             (&Ox)->target = 0;
-            update(&Fuel);
-            update(&Ox);
+            // update(&Fuel);
+            // update(&Ox);
         } break;
 
         default:
             break;
     }
-    enc = ((enc->CCB - 2) ? &Fuel : &Ox);
-    // sPrintln("Switch");
-    // delay(200);
 }
 
 void sPrint(int i, uint8_t base = DEC) {
@@ -377,11 +388,11 @@ void sPrintln(int i, uint8_t base = DEC) {
     sPrintln();
 }
 
-void sPrintln32(uint32_t i, uint8_t base = DEC) {
+void sPrintln32(long i, uint8_t base = DEC) {
     Serial1.println(i, base);
     Serial1.flush();
 }
-void sPrint32(uint32_t i, uint8_t base = DEC) {
+void sPrint32(long i, uint8_t base = DEC) {
     Serial1.print(i, base);
     Serial1.flush();
 }
@@ -415,8 +426,37 @@ void sPrintln(float f) {
 }
 
 void sPrintln(void) { sPrint("\r\n"); }
-// PID loop. General implementation.
+
 void update(Encoder *enc) {
+    signed long dt = getDeltaTheta(enc);
+    enc->totalRevs += dt;
+    // if (enc->totalRevs < enc->target) {
+
+    //     PORT_WRITE(enc->DIR_SEL, 0);
+
+    //     TCC0->CCB[enc->CCB].reg = PWM_FREQ_COEF;
+    // } else {
+    signed long pTerm = enc->P * (enc->target - enc->totalRevs);
+    sPrint("pTerm: ");
+    sPrint(pTerm, DEC);
+    TCC0->CCB[enc->CCB].reg = min(PWM_FREQ_COEF, abs(pTerm));
+
+    if (pTerm < 0) {
+
+        TCC0->CCB[enc->CCB].reg = 0;
+    }
+
+    // }
+    sPrint((enc->CCB - 2) ? " Ox: " : " FUEL: ");
+    sPrint(";  dT: ");
+    sPrint32(dt);
+    sPrint(";  Pos:");
+    sPrint(enc->totalRevs);
+    sPrint(";  Target: ");
+    sPrintln(enc->target);
+}
+// PID loop. General implementation.
+void fakeupdate(Encoder *enc) {
     float dt = enc->TC->COUNT16.COUNT.reg; // Time since last loop, in us
     float theta_n = enc->totalRevs + getDeltaTheta(enc);
     sPrint((enc->CCB - 2) ? "OX" : "FUEL");
@@ -452,32 +492,46 @@ void update(Encoder *enc) {
 // Returns change in encoder position since last call in revolutions. For use with PID loop, as this
 // enables it to pick the most efficient route to the target position.
 float getDeltaTheta(Encoder *enc) {
-    uint32_t npos = readRawEncData(enc);
+    signed long npos = readRawEncData(enc);
 
     enc->TC->COUNT16.CTRLBSET.reg |= TC_CTRLBSET_CMD_RETRIGGER;
     while (enc->TC->COUNT16.COUNT.reg < ENC_TIMEOUT)
         ;
-    uint32_t nnpos = readRawEncData(enc);
+    signed long nnpos = readRawEncData(enc);
 
     if (nnpos ^ npos == 0) {
 
-        npos = (npos ^ ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
-        float dif;
-        dif = ((signed long)npos - (signed long)enc->prev_t);
+        npos = (npos & ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
+        signed long dif = (npos - enc->prev_t);
 
-        if (abs(dif) > ENC_TICS_PER_MOTOR_REV * .5) { // If the shortest path between npos and ppos crosses the 0 point (eg
-                                                      // npos and ppos are 11 o clock and 1 o clock)
-            if (dif > 0) { // If 0 point crossed in the negative direction (prev_t = 1 o clock, npos = 11 o clock)
-                enc->prev_t = npos;
-                dif = dif - ENC_TICS_PER_MOTOR_REV;
-            } else { // If it crossed 0 point travelling in the positive direciton (prev_t = 11 o clock, npos = 1 o clock)
-                enc->prev_t = npos;
-                dif = ENC_TICS_PER_MOTOR_REV - dif;
+        if (dif < (ENC_TICS_PER_MOTOR_REV / 2)) {
+            enc->prev_t = npos;
+            return dif;
+        } else {
+            if (dif > 0) {
+                dif = (ENC_TICS_PER_MOTOR_REV - npos) + enc->prev_t;
+            } else {
+                dif = (ENC_TICS_PER_MOTOR_REV - enc->prev_t) + npos;
             }
+
+            enc->prev_t = npos;
+            return dif;
         }
-        enc->prev_t = npos;
-        return dif / ENC_TICS_PER_MOTOR_REV; // If the movement did not cross the 0 point, return straightforward difference
-                                             // between npos and prev_t
+        // if (abs(dif) > (ENC_TICS_PER_MOTOR_REV >> 1)) { // If the shortest path between npos and ppos crosses the 0 point
+        // (eg
+        //                                                 // npos and ppos are 11 o clock and 1 o clock)
+        //     dif = (ENC_TICS_PER_MOTOR_REV - (enc->prev_t + (ENC_TICS_PER_MOTOR_REV - npos)));
+        //     if (dif > 0) {
+        //         dif = -dif;
+        //     }
+        //     // dif = ENC_TICS_PER_MOTOR_REV - dif;
+        //     // if (dif > 0) { // If 0 point crossed in the negative direction (prev_t = 1 o clock, npos = 11 o clock)
+        //     //     dif = -dif;
+        //     // } // If it crossed 0 point travelling in the positive direciton (prev_t = 11 o clock, npos = 1 o clock)
+        // }
+        // enc->prev_t = npos;
+        // return dif; // If the movement did not cross the 0 point, return straightforward difference
+        //             // between npos and prev_t
 
         // if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 2))) {
         //     sPrint(1);
@@ -504,10 +558,10 @@ float getDeltaTheta(Encoder *enc) {
 uint32_t readRawEncData(Encoder *enc) {
     SPIClassSAMD spi = *(enc->COM);
     PORT_WRITE(enc->CS, true);
-    spi.beginTransaction(SPISettings(200000, MSBFIRST, SERCOM_SPI_MODE_0));
-    uint32_t data = 0;
-    uint32_t buf;
-    uint32_t d2 = 0;
+    spi.beginTransaction(SPISettings(200000, MSBFIRST, SERCOM_SPI_MODE_1));
+    int data = 0;
+    int buf;
+    int d2 = 0;
     // uint16_t b1 = spi.transfer16(0b10101010);
     byte b1 = spi.transfer(0b10101010);
     byte b2 = spi.transfer(0b10101010);
@@ -522,10 +576,10 @@ uint32_t readRawEncData(Encoder *enc) {
     // sPrint("rawData:");
     // sPrintln(rawData, BIN);
     if (data & ENC_TICS_PER_MOTOR_REV) { // First bit is 1 = latch bit working, increased probability of good read
-        // sPrintln("err 388 !");
-        // enc->err = ERR_ENC_CONN;
-        // // enc->SERCOM->SPI.DATA.reg = errorCode;
-        // error(true);
+                                         // sPrintln("err 388 !");
+                                         // enc->err = ERR_ENC_CONN;
+                                         // // enc->SERCOM->SPI.DATA.reg = errorCode;
+                                         // error(true);
     }
     if (!(data & 1l)) { // Last bit is 0 = enc internal error
         sPrint("data: ");
