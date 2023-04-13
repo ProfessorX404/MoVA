@@ -25,8 +25,8 @@ IMPORTANT NOTE: ***MUST*** change pin definitions in variant.cpp for D4, D5, D6 
 
 #define PULLUP                 (1u)
 #define PULLDOWN               (0u)
-#define ACTIVE_LOW             (false)
-#define ACTIVE_HIGH            (true)
+#define ACTIVE_LOW             (0)
+#define ACTIVE_HIGH            (1)
 #define SAMPLING_ON            (1u)
 #define SAMPLING_OFF           (0u)
 #define ENC_TOT_BIT_CT         (24u)                        // Total number of bits in encoder packet.
@@ -75,8 +75,8 @@ IMPORTANT NOTE: ***MUST*** change pin definitions in variant.cpp for D4, D5, D6 
 
 #define PORT_WRITE(p, b)                                                                                                    \
     (b == p.active ? PORT_IOBUS->Group[p.port].OUTSET.reg |= (1 << p.pin)                                                   \
-                   : PORT_IOBUS->Group[p.pin].OUTCLR.reg |= (1 << p.pin))
-#define PORT_READ(p)    (p.active == (PORT_IOBUS->Group[p.port].IN.reg & (1 << p.pin)))
+                   : PORT_IOBUS->Group[p.port].OUTCLR.reg |= (1 << p.pin))
+#define PORT_READ(p)    (int)(p.active == (!!(PORT_IOBUS->Group[p.port].IN.reg & (1 << p.pin))))
 #define statusCode      ((Fuel.err << FUEL_STATUS_OFFSET) | (Ox.err << OX_STATUS_OFFSET)) // Merge errors/statuses for LED output
 #define errorCode       ((Fuel.err << FUEL_ERR_OFFSET) | (Ox.err << OX_ERR_OFFSET))
 #define neg(x, y)       (((x ^ y) + (y & 1))) // Negates x if y (bit) is 1, only works for 2s complement
@@ -158,7 +158,7 @@ void configureGPIO(Pin p, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0
 
 void setup() {
     Serial1.begin(115200);
-    Fuel = {0, 0, 3.5, 0, 0, ERR_CLR, STATUS_INIT, .005, .005, .005, TC4, 2, &sercom1};
+    Fuel = {0, 0, 3.5, 0, 0, ERR_CLR, STATUS_CONN, 1.0, .15, .05, TC4, 2, &sercom1};
     Fuel.CTRL = {(uint8_t)g_APinDescription[A3].ulPort, (uint8_t)g_APinDescription[A3].ulPin};
     Fuel.DIR_SEL = {(uint8_t)g_APinDescription[10].ulPort, (uint8_t)g_APinDescription[10].ulPin, ACTIVE_HIGH};
     Fuel.STOP = {(uint8_t)g_APinDescription[A1].ulPort, (uint8_t)g_APinDescription[A1].ulPin, ACTIVE_LOW};
@@ -168,7 +168,7 @@ void setup() {
     Fuel.CS = {(uint8_t)g_APinDescription[8].ulPort, (uint8_t)g_APinDescription[8].ulPin, ACTIVE_LOW};
     Fuel.COM = new SPIClassSAMD(Fuel.serc, (uint8_t)12, (uint8_t)13, (uint8_t)11, SPI_PAD_0_SCK_1, SERCOM_RX_PAD_3);
 
-    Ox = {0, 0, 0.0, 0.0, 0.0, ERR_CLR, STATUS_INIT, 0.0, 0.0, 0.0, TC5, 3, &sercom0};
+    Ox = {0, 0, 3.5, 0.0, 0.0, ERR_CLR, STATUS_CONN, 0.0, 0.0, 0.0, TC5, 3, &sercom0};
     Ox.CTRL = {(uint8_t)g_APinDescription[A2].ulPort, (uint8_t)g_APinDescription[A2].ulPin};
     Ox.DIR_SEL = {(uint8_t)g_APinDescription[9].ulPort, (uint8_t)g_APinDescription[9].ulPin, ACTIVE_HIGH};
     Ox.STOP = {(uint8_t)g_APinDescription[A0].ulPort, (uint8_t)g_APinDescription[A0].ulPin, ACTIVE_LOW};
@@ -186,9 +186,9 @@ void setup() {
     configureGPIO(Ox.STOP, OUTPUT);
     configureGPIO(Ox.CS, OUTPUT);
 
-    configureGPIO(EXT.BUTTON_ONE, INPUT, 1, 1, PULLUP, SAMPLING_ON);
-    configureGPIO(EXT.BUTTON_TWO, INPUT, 1, 1, PULLUP, SAMPLING_ON);
-    configureGPIO(EXT.SEL_SWITCH, INPUT, 1, 1, PULLUP, SAMPLING_ON);
+    configureGPIO(EXT.BUTTON_ONE, INPUT, 1, 1, PULLDOWN, SAMPLING_ON);
+    configureGPIO(EXT.BUTTON_TWO, INPUT, 1, 1, PULLDOWN, SAMPLING_ON);
+    configureGPIO(EXT.SEL_SWITCH, INPUT, 1, 1, PULLDOWN, SAMPLING_ON);
     configureClocks();
     attachPins();
 
@@ -210,22 +210,22 @@ void setup() {
     TCC0->CCB[Fuel.CCB].reg = .10 * PWM_FREQ_COEF;
     while (true) {
         if (Serial1.available()) {
-            PORT_WRITE(Fuel.DIR_SEL, Serial1.read());
+            PORT_WRITE(Fuel.DIR_SEL, Serial1.parseInt() > 0 ? 0 : 1);
         }
     }
-    while (true) {
-        if (Serial1.available()) {
-            int ct = Serial1.parseInt();
-            Serial1.println(ct > 0);
-            uint16_t b = ((float)abs(ct) / 100) * PWM_FREQ_COEF;
-            b = min(PWM_FREQ_COEF, b);
-            TCC0->CCB[Fuel.CCB].reg = b;
-            PORT_WRITE(Fuel.DIR_SEL, ct > 0);
-            Serial1.print(ct);
-            Serial1.print(" ");
-            Serial1.println(b);
-        }
-    }
+    // while (true) {
+    //     if (Serial1.available()) {
+    //         int ct = Serial1.parseInt();
+    //         Serial1.println(ct > 0);
+    //         uint16_t b = ((float)abs(ct) / 100) * PWM_FREQ_COEF;
+    //         b = min(PWM_FREQ_COEF, b);
+    //         TCC0->CCB[Fuel.CCB].reg = b;
+    //         PORT_WRITE(Fuel.DIR_SEL, ct > 0);
+    //         Serial1.print(ct);
+    //         Serial1.print(" ");
+    //         Serial1.println(b);
+    //     }
+    // }
 }
 
 void loop() {
@@ -234,7 +234,7 @@ void loop() {
 
         {
             while (!PORT_READ(EXT.BUTTON_ONE)) {
-                sPrint((enc->CCB - 2) ? "FUEL: " : "Ox: ");
+                sPrint((enc->CCB - 2) ? "Ox: " : "FUEL: ");
                 while (enc->TC->COUNT16.STATUS.bit.SYNCBUSY)
                     ;
                 sPrint("dT: ");
@@ -253,12 +253,12 @@ void loop() {
             while (!PORT_READ(EXT.SEL_SWITCH)) {
                 if (PORT_READ(EXT.BUTTON_ONE)) {
                     PORT_WRITE(enc->STOP, false);
-                    PORT_WRITE(enc->DIR_SEL, true);
+                    PORT_WRITE(enc->DIR_SEL, 1);
                     TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
                     sPrintln("MoveLeft");
                 } else if (PORT_READ(EXT.BUTTON_TWO)) {
                     PORT_WRITE(enc->STOP, false);
-                    PORT_WRITE(enc->DIR_SEL, false);
+                    PORT_WRITE(enc->DIR_SEL, 0);
                     TCC0->CCB[enc->CCB].reg = .15 * PWM_FREQ_COEF;
                     sPrintln("MoveRight");
                 } else {
@@ -266,42 +266,53 @@ void loop() {
                     TCC0->CCB[enc->CCB].reg = 0;
                     sPrintln("Stop");
                 }
+                sPrint(PORT_READ(EXT.SEL_SWITCH));
+                sPrint(" ");
+                sPrintln((int)digitalRead(2), DEC);
 
                 delay(100);
             }
             PORT_WRITE(enc->STOP, true);
             if (PORT_READ(EXT.SEL_SWITCH)) {
-                if (PORT_READ(EXT.BUTTON_ONE) && PORT_READ(EXT.BUTTON_TWO)) {
-                    enc->target = TARGET_REVS;
-                    enc->status = STATUS_WAIT;
-                    break;
+                sPrintln("STOPPED. PRESS BOTH BUTTONS TO CONFIRM HOME POSITION");
+                while (!(PORT_READ(EXT.BUTTON_ONE) && PORT_READ(EXT.BUTTON_TWO))) {
+                    if (!PORT_READ(EXT.SEL_SWITCH)) {
+                        return;
+                    }
                 }
+                enc->target = TARGET_REVS;
+                enc->status = STATUS_WAIT;
+                break;
             }
             break;
         }
         case STATUS_WAIT: {
             PORT_WRITE(enc->STOP, true);
-            if (Fuel.status == STATUS_WAIT && Ox.status == STATUS_WAIT) {
+            if (((&Fuel)->status == STATUS_WAIT) && ((&Ox)->status == STATUS_WAIT)) {
                 sPrintln("Set SEL_SWITCH to ON and press both buttons to arm valves");
+                delay(200);
                 while (!PORT_READ(EXT.SEL_SWITCH))
                     ;
-                if (PORT_READ(EXT.BUTTON_ONE) && PORT_READ(EXT.BUTTON_TWO)) {
-                    (&Fuel)->status == STATUS_IDLE;
-                    (&Ox)->status == STATUS_IDLE;
-                }
-            } else {
-                enc = ((enc->CCB - 2) ? &Ox : &Fuel);
+                while (!(PORT_READ(EXT.BUTTON_ONE) && PORT_READ(EXT.BUTTON_TWO)))
+                    ;
+                (&Fuel)->status = STATUS_IDLE;
+                (&Ox)->status = STATUS_IDLE;
+                sPrintln("idle");
+                delay(200);
             }
             break;
         }
         case STATUS_IDLE: {
             PORT_WRITE(enc->STOP, true);
+            sPrintln("idle");
             if (serEn) {
                 while (Serial1.available() < PACKET_LENGTH)
                     ;
 
                 byte header = Serial1.read();
                 uint16_t pData = ((Serial1.read() << 8) | Serial1.read());
+                sPrintln(header, BIN);
+                sPrintln(pData, BIN);
 
                 if (header == PACKET_HEADER) {
                     if (pData == LAUNCH_CODE) {
@@ -330,11 +341,13 @@ void loop() {
             }
         } break;
         case STATUS_ACTIVATE: {
+            sPrintln("activated");
             enc->TC->COUNT16.CTRLA.bit.ENABLE = 1;
             enc->status = STATUS_RUN;
         } break;
         case STATUS_RUN: {
             PORT_WRITE(enc->STOP, false);
+            enc->target = 3.5;
             update(enc);
         } break;
         case STATUS_ABORT: {
@@ -349,6 +362,9 @@ void loop() {
         default:
             break;
     }
+    enc = ((enc->CCB - 2) ? &Fuel : &Ox);
+    // sPrintln("Switch");
+    // delay(200);
 }
 
 void sPrint(int i, uint8_t base = DEC) {
@@ -403,28 +419,29 @@ void sPrintln(void) { sPrint("\r\n"); }
 void update(Encoder *enc) {
     float dt = enc->TC->COUNT16.COUNT.reg; // Time since last loop, in us
     float theta_n = enc->totalRevs + getDeltaTheta(enc);
-    // sPrint("dt: ");
-    // sPrint32(dt >> 1);
-    // sPrint("  theta_n: ");
-    // sPrint32(theta_n);
-    // sPrint("  TARGET: ");
-    // sPrint32(enc->target);
-    // sPrint("  last term: ");
-    // sPrint((theta_n + enc->totalRevs - 2));
+    sPrint((enc->CCB - 2) ? "OX" : "FUEL");
+    sPrint("  dt: ");
+    sPrint(dt);
+    sPrint("  theta_n: ");
+    sPrint(theta_n);
+    sPrint("  TARGET: ");
+    sPrint(enc->target);
+    sPrint("  last term: ");
+    sPrint((theta_n + enc->totalRevs - 2));
 
     // Integral approximation based on trapezoidal Riemann sum
     enc->accumulator += (dt / 2) * enc->target * (theta_n + enc->totalRevs - 2);
-    // sPrint("  dA: ");
-    // sPrint32((dt >> 1) * enc->target * (theta_n + enc->totalRevs - 2));
-    // sPrint("  accumulator: ");
-    // sPrint32(enc->accumulator);
+    sPrint("  dA: ");
+    sPrint((dt / 2) * enc->target * (theta_n + enc->totalRevs - 2));
+    sPrint("  accumulator: ");
+    sPrint(enc->accumulator);
 
     // Calculate PID output
     float O =
         (enc->P * (theta_n - enc->target)) + (enc->I * enc->accumulator) + (enc->D * ((theta_n - enc->totalRevs) / dt));
 
-    // sPrint("  O: ");
-    // sPrintln(O);
+    sPrint("  O: ");
+    sPrintln(O);
     PORT_WRITE(enc->DIR_SEL, O < 0);
 
     TCC0->CCB[enc->CCB].reg = min(PWM_FREQ_COEF, abs(O));
