@@ -34,8 +34,8 @@ IMPORTANT NOTE: ***MUST*** change pin definitions in variant.cpp for D4, D5, D6 
 #define ENC_DATA_MASK          (0b011111111111111111000000) // Bits [22:6]
 #define ENC_END_SHIFT          (6u) // Number of digits to drop at right to read from data after masking
 #define ENC_TIMEOUT            (20u)
-#define ENC_TICS_PER_MOTOR_REV (0x20000u) // Number of encoder tics in mechanical revolution (per datasheet)
-#define GEARBOX_RATIO          (15u)      // Revs into gearbox per 1 revolution out
+#define ENC_TICS_PER_MOTOR_REV (0x1FFFF) // Number of encoder tics in mechanical revolution (per datasheet)
+#define GEARBOX_RATIO          (15u)     // Revs into gearbox per 1 revolution out
 
 #define PACKET_LENGTH (3u)
 #define PACKET_HEADER (0b10101010)
@@ -207,18 +207,18 @@ void setup() {
     sPrintln((enc->CCB - 2) ? "OX" : "FUEL");
     initSPIs(&Fuel);
     initSPIs(&Ox);
-    while (true) {
-        update(&Fuel);
-    }
-    TCC0->CCB[Fuel.CCB].reg = .10 * PWM_FREQ_COEF;
-    while (true) {
-        if (Serial1.available()) {
-            // digitalWrite(10, Serial1.parseInt() > 0 ? 1 : 0);
-            int i = Serial1.parseInt();
-            PORT_WRITE(enc->DIR_SEL, i > 0);
-            sPrintln(i, DEC);
-        }
-    }
+    // while (true) {
+    //     update(&Fuel);
+    // }
+    // TCC0->CCB[Fuel.CCB].reg = .10 * PWM_FREQ_COEF;
+    // while (true) {
+    //     if (Serial1.available()) {
+    //         // digitalWrite(10, Serial1.parseInt() > 0 ? 1 : 0);
+    //         int i = Serial1.parseInt();
+    //         PORT_WRITE(enc->DIR_SEL, i > 0);
+    //         sPrintln(i, DEC);
+    //     }
+    // }
     // while (true) {
     //     if (Serial1.available()) {
     //         int ct = Serial1.parseInt();
@@ -250,7 +250,7 @@ void loop() {
                 sPrint(";  Pos:");
                 sPrintln(enc->totalRevs);
                 // sPrintln("?");
-                // delay(100);
+                delay(100);
             }
 
             enc->status = STATUS_HOME;
@@ -439,7 +439,7 @@ void update(Encoder *enc) {
     signed long pTerm = enc->P * (enc->target - enc->totalRevs);
     sPrint("pTerm: ");
     sPrint(pTerm, DEC);
-    TCC0->CCB[enc->CCB].reg = min(PWM_FREQ_COEF, abs(pTerm));
+    TCC0->CCB[enc->CCB].reg = PWM_FREQ_COEF; // min(PWM_FREQ_COEF, abs(pTerm));
 
     if (pTerm < 0) {
 
@@ -504,44 +504,20 @@ float getDeltaTheta(Encoder *enc) {
         npos = (npos & ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
         signed long dif = (npos - enc->prev_t);
 
-        if (dif < (ENC_TICS_PER_MOTOR_REV / 2)) {
+        if (abs(dif) < (ENC_TICS_PER_MOTOR_REV / 2)) {
             enc->prev_t = npos;
             return dif;
+        } else if (dif > 0) {
+            dif = (ENC_TICS_PER_MOTOR_REV - npos) + enc->prev_t;
         } else {
-            if (dif > 0) {
-                dif = (ENC_TICS_PER_MOTOR_REV - npos) + enc->prev_t;
-            } else {
-                dif = (ENC_TICS_PER_MOTOR_REV - enc->prev_t) + npos;
-            }
-
-            enc->prev_t = npos;
-            return dif;
+            dif = (ENC_TICS_PER_MOTOR_REV - enc->prev_t) + npos;
         }
-        // if (abs(dif) > (ENC_TICS_PER_MOTOR_REV >> 1)) { // If the shortest path between npos and ppos crosses the 0 point
-        // (eg
-        //                                                 // npos and ppos are 11 o clock and 1 o clock)
-        //     dif = (ENC_TICS_PER_MOTOR_REV - (enc->prev_t + (ENC_TICS_PER_MOTOR_REV - npos)));
-        //     if (dif > 0) {
-        //         dif = -dif;
-        //     }
-        //     // dif = ENC_TICS_PER_MOTOR_REV - dif;
-        //     // if (dif > 0) { // If 0 point crossed in the negative direction (prev_t = 1 o clock, npos = 11 o clock)
-        //     //     dif = -dif;
-        //     // } // If it crossed 0 point travelling in the positive direciton (prev_t = 11 o clock, npos = 1 o clock)
-        // }
-        // enc->prev_t = npos;
-        // return dif; // If the movement did not cross the 0 point, return straightforward difference
-        //             // between npos and prev_t
 
-        // if (abs(npos - ppos) < (1 << (ENC_DATA_BIT_CT - 2))) {
-        //     sPrint(1);
-        //     dif = ((signed long)npos - (signed long)ppos);
-        // } else {
-        //     sPrint(2);
-        //     dif = ((signed long)npos - (signed long)ppos) + ((neg((1l << ENC_DATA_BIT_CT), (npos > ppos))));
-        // }
-        // return (float)(dif / (1 << ENC_DATA_BIT_CT - 1));
-    } else {
+        enc->prev_t = npos;
+        return dif;
+    }
+
+    else {
         sPrint("npos: ");
         sPrintln32(npos, BIN);
         sPrint("nnpos: ");
