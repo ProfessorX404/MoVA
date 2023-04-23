@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#line 1 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 /*
 Xavier Beech
 UW SARP 2022-23
@@ -148,6 +150,41 @@ uint32_t readSPIs(SPIClassSAMD, bool);
 uint32_t readSPIs(SPIClassSAMD);
 
 // Configure GPIO pins per 23.6.3 of SAMD datasheet
+#line 159 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void setup();
+#line 237 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void loop();
+#line 404 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrint(const char *str);
+#line 409 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrint(float f);
+#line 414 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrintln(const char *str);
+#line 419 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrintln(bool b);
+#line 424 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrintln(float f);
+#line 429 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void sPrintln(void);
+#line 431 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void update(Encoder *enc);
+#line 460 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void fakeupdate(Encoder *enc);
+#line 495 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+float getDeltaTheta(Encoder *enc);
+#line 542 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+uint32_t readRawEncData(Encoder *enc);
+#line 581 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void error(bool fatal);
+#line 606 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+bool serialEnabled();
+#line 611 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void initSPIs(Encoder *enc);
+#line 691 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void attachPins();
+#line 996 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
+void configureClocks();
+#line 151 "C:\\Users\\xsegg\\Documents\\Git\\motoractuatedvalve-controller\\Controller\\Controller.ino"
 void configureGPIO(Pin p, bool DIR, bool INEN = 0, bool PULLEN = 0, bool OUT = 0, bool SAMPLE = 0) {
     PORT->Group[p.port].DIR.reg |= DIR << p.pin;
     PORT->Group[p.port].PINCFG[p.pin].bit.INEN = INEN;
