@@ -305,6 +305,8 @@ void loop() {
                     ;
                 (&Fuel)->status = STATUS_IDLE;
                 (&Ox)->status = STATUS_IDLE;
+                (&Fuel)->target = 3.5;
+                (&Ox)->target = 3.5;
                 sPrintln("idle");
                 delay(200);
             } else {
@@ -381,7 +383,7 @@ void loop() {
 
 void sPrint(int i, uint8_t base = DEC) {
     Serial1.print(i, base);
-    Serial1.flush();
+    // Serial1.flush();
 }
 
 void sPrintln(int i, uint8_t base = DEC) {
@@ -391,11 +393,11 @@ void sPrintln(int i, uint8_t base = DEC) {
 
 void sPrintln32(long i, uint8_t base = DEC) {
     Serial1.println(i, base);
-    Serial1.flush();
+    // Serial1.flush();
 }
 void sPrint32(long i, uint8_t base = DEC) {
     Serial1.print(i, base);
-    Serial1.flush();
+    // Serial1.flush();
 }
 
 // void sPrint(int i, uint8_t base = DEC) { sPrint(i, base); }
@@ -403,12 +405,12 @@ void sPrint32(long i, uint8_t base = DEC) {
 
 void sPrint(const char *str) {
     Serial1.print(str);
-    Serial1.flush();
+    // Serial1.flush();
 }
 
 void sPrint(float f) {
     Serial1.print(f);
-    Serial1.flush();
+    // Serial1.flush();
 }
 
 void sPrintln(const char *str) {
@@ -428,8 +430,8 @@ void sPrintln(float f) {
 
 void sPrintln(void) { sPrint("\r\n"); }
 
-void update(Encoder *enc) {
-    signed long dt = getDeltaTheta(enc);
+void fakeupdate(Encoder *enc) {
+    float dt = getDeltaTheta(enc);
     enc->totalRevs += dt;
     // if (enc->totalRevs < enc->target) {
 
@@ -437,11 +439,11 @@ void update(Encoder *enc) {
 
     //     TCC0->CCB[enc->CCB].reg = PWM_FREQ_COEF;
     // } else {
-    signed long pTerm = enc->P * (enc->target - enc->totalRevs);
+    float pTerm = enc->P * (enc->target - enc->totalRevs);
     sPrint("pTerm: ");
     sPrint(pTerm, DEC);
     TCC0->CCB[enc->CCB].reg = PWM_FREQ_COEF; // min(PWM_FREQ_COEF, abs(pTerm));
-
+    PORT_WRITE(enc->DIR_SEL, HIGH);
     if (pTerm < 0) {
 
         TCC0->CCB[enc->CCB].reg = 0;
@@ -457,37 +459,39 @@ void update(Encoder *enc) {
     sPrintln(enc->target);
 }
 // PID loop. General implementation.
-void fakeupdate(Encoder *enc) {
-    float dt = enc->TC->COUNT16.COUNT.reg; // Time since last loop, in us
-    float theta_n = enc->totalRevs + getDeltaTheta(enc);
-    sPrint((enc->CCB - 2) ? "OX" : "FUEL");
-    sPrint("  dt: ");
-    sPrint(dt);
-    sPrint("  theta_n: ");
-    sPrint(theta_n);
-    sPrint("  TARGET: ");
-    sPrint(enc->target);
-    sPrint("  last term: ");
-    sPrint((theta_n + enc->totalRevs - 2));
+void update(Encoder *enc) {
+    uint32_t dt = enc->TC->COUNT16.COUNT.reg; // Time since last loop, in us
+    float dtheta = getDeltaTheta(enc);
+    float theta_n = enc->totalRevs + dtheta;
+    // sPrint("  last term: ");
+    // sPrint((theta_n + enc->totalRevs - 2));
 
     // Integral approximation based on trapezoidal Riemann sum
     enc->accumulator += (dt / 2) * enc->target * (theta_n + enc->totalRevs - 2);
-    sPrint("  dA: ");
-    sPrint((dt / 2) * enc->target * (theta_n + enc->totalRevs - 2));
-    sPrint("  accumulator: ");
-    sPrint(enc->accumulator);
+    // sPrint("  dA: ");
+    // sPrint((dt / 2) * enc->target * (theta_n + enc->totalRevs - 2));
+    // sPrint("  accumulator: ");
+    // sPrint(enc->accumulator);
 
     // Calculate PID output
     float O =
         (enc->P * (theta_n - enc->target)) + (enc->I * enc->accumulator) + (enc->D * ((theta_n - enc->totalRevs) / dt));
 
-    sPrint("  O: ");
-    sPrintln(O);
+    // sPrint("  O: ");
+    // sPrintln(O);
     PORT_WRITE(enc->DIR_SEL, O < 0);
 
     TCC0->CCB[enc->CCB].reg = min(PWM_FREQ_COEF, abs(O));
 
     enc->totalRevs = theta_n;
+
+    sPrint((enc->CCB - 2) ? " Ox: " : " FUEL: ");
+    sPrint(";  dT: ");
+    sPrint(dtheta);
+    sPrint(";  Pos:");
+    sPrint(enc->totalRevs);
+    sPrint(";  Target: ");
+    sPrintln(enc->target);
 }
 
 // Returns change in encoder position since last call in revolutions. For use with PID loop, as this
@@ -504,25 +508,24 @@ float getDeltaTheta(Encoder *enc) {
 
         npos = (npos & ENC_DATA_MASK) >> ENC_END_SHIFT; // Extract value from raw bits
         // sPrint("  i: ");
-        sPrint32(enc->prev_t);
-        sPrint(",");
+        // sPrint32(enc->prev_t);
+        // sPrint(",");
         // sPrint("  f: ");
-        sPrint32(npos);
-        sPrint(",");
+        // sPrint32(npos);
+        // sPrint(",");
         // sPrint("  dt: ");
         signed long dif = (npos - enc->prev_t);
 
-        if (abs(dif) < (ENC_TICS_PER_MOTOR_REV / 2)) {
-            enc->prev_t = npos;
-            return dif;
-        } else if (dif > 0) {
-            dif = (ENC_TICS_PER_MOTOR_REV - npos) + enc->prev_t;
-        } else {
-            dif = (ENC_TICS_PER_MOTOR_REV - enc->prev_t) + npos;
+        if (abs(dif) > (ENC_TICS_PER_MOTOR_REV / 2)) {
+            if (dif > 0) {
+                dif = -((ENC_TICS_PER_MOTOR_REV - npos) + enc->prev_t);
+            } else {
+                dif = (ENC_TICS_PER_MOTOR_REV - enc->prev_t) + npos;
+            }
         }
 
         enc->prev_t = npos;
-        return dif;
+        return (float)dif / (ENC_TICS_PER_MOTOR_REV);
     }
 
     else {
